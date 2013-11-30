@@ -8,5 +8,6 @@
     <string name="hello_world2">Hello world!</string>
     <string name="hello_world3">Hello world!</string>
     <string name="hello_world4">Hello world!</string>
+    <string name="title_activity_http_test">HttpTest</string>
 
 </resources>

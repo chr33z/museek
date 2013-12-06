@@ -135,6 +135,12 @@ public class MusicNode implements IGraph{
 	 */
 	public MusicNode setChildren(ArrayList<MusicNode> children) {
 		this.children = children;
+		
+		if(children != null){
+			for (MusicNode child : this.children) {
+				child.setParent(this);
+			}
+		}
 		return this;
 	}
 	
@@ -148,6 +154,7 @@ public class MusicNode implements IGraph{
 			children = new ArrayList<MusicNode>();
 		}
 		children.add(child);
+		child.setParent(this);
 		
 		return this;
 	}

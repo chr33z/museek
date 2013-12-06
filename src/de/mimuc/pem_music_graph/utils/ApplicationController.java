@@ -24,7 +24,10 @@ public class ApplicationController extends Application {
     public static final String URL_BASE = "http://pem-project-server.herokuapp.com/";
     
     /** URL GET find all locations - use with care! */
-    public static final String URL_GET_FIND_ALL = URL_BASE + "location/find";
+    public static final String URL_GET_FIND_ALL = URL_BASE + "location/findall";
+    
+    /** URL POST find locations by position and radius */
+    public static final String URL_GET_FIND_BY_LOCATION = URL_BASE + "location/findbylocation";
 
     /**
      * Global request queue for Volley

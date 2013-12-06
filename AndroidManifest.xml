@@ -7,7 +7,8 @@
     <uses-sdk
         android:minSdkVersion="9"
         android:targetSdkVersion="18" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name="de.mimuc.pem_music_graph.utils.ApplicationController"
@@ -27,6 +28,10 @@
         <activity
             android:name="de.mimuc.pem_music_graph.HttpTest"
             android:label="@string/title_activity_http_test" >
+        </activity>
+        <activity
+            android:name="de.mimuc.pem_music_graph.graph.GraphTest"
+            android:label="@string/title_activity_graph_test" >
         </activity>
     </application>
 

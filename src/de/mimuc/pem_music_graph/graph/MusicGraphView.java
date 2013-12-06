@@ -57,7 +57,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		musicNodes.add(new MusicNode(
 				300, 
 				300, 
-				100, 
 				"Bert"));
 		
 	}

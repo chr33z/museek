@@ -1,56 +1,43 @@
 package de.mimuc.pem_music_graph.graph;
 
+import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.R.layout;
+import de.mimuc.pem_music_graph.R.menu;
+import android.os.Bundle;
+import android.app.Activity;
+import android.view.Menu;
+
 /**
- * This is a wrapper class for the Music-Graph Nodes. It controls motion and which level
- * of the graph is shown
- * 
+ * Music Graph Activity
  * 
  * @author Christopher Gebhardt
  *
  */
-public class MusicGraph implements IGraph {
+public class MusicGraph extends Activity {
+	
+	MusicGraphView musicGraphView;
 
-	private static final String TAG = MusicNode.class.getName();
-	
-	/**
-	 * the root of the graph
-	 */
-	private MusicNode root;
-	
 	@Override
-	public void setAsRoot(String name){
-		setInvisibleCascading();
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 		
-		if(root.getName().equalsIgnoreCase(name)){
-			root.setRoot(true);
-		}
-		else {
-			root.setVisible(false);
-			if(root.getChildren() != null){
-				for (MusicNode child : root.getChildren()) {
-					child.setAsRoot(name);
-				}
-			}
-		}
+		musicGraphView = new MusicGraphView(this);
+		setContentView(musicGraphView);
+		
+		musicGraphView.onThreadResume();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.graph_test, menu);
+		return true;
 	}
 	
-	@Override
-	public void move(float x, float y) {
-		root.move(x, y);
+	protected void onPause(){
+		super.onPause();
+		
+		musicGraphView.onThreadPause();
 	}
 
-	@Override
-	public void setInvisibleCascading() {
-		root.setInvisibleCascading();
-	}
-
-	@Override
-	public void addChildTo(MusicNode child, String name) {
-		if(root.getName().equalsIgnoreCase(name)){
-			root.addChild(child);
-		}
-		else {
-			root.addChildTo(child, name);
-		}
-	}
 }

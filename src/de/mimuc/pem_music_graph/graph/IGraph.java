@@ -19,18 +19,27 @@ public interface IGraph {
 	 * set is as root. Sets all nodes invisible at first and makes the
 	 * new root and its children visible
 	 * @param name
+	 * @return Node that is now the root of the graph
 	 */
-	public void setAsRoot(String name);
+	public GenreNode setAsRoot(String name);
 	
 	/**
 	 * Add a child to the node with the given name
 	 * @param child
 	 * @param name node name to add the child to
 	 */
-	public void addChildTo(MusicNode child, String name);
+	public void addChildTo(GenreNode child, String name);
 	
 	/**
 	 * Set all nodes invisible.
 	 */
 	public void setInvisibleCascading();
+	
+	/**
+	 * Test for touch on node and return that node
+	 * @param x
+	 * @param y
+	 * @return GenreNode that has been touched
+	 */
+	public GenreNode testForTouch(float x, float y);
 }

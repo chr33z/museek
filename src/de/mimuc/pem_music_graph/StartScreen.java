@@ -1,6 +1,6 @@
 package de.mimuc.pem_music_graph;
 
-import de.mimuc.pem_music_graph.graph.GraphTest;
+import de.mimuc.pem_music_graph.graph.MusicGraph;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
@@ -26,7 +26,7 @@ public class StartScreen extends Activity {
 			public void onClick(View v) {
 				switch(v.getId()){
 				case R.id.btn_graph:
-					startActivity(new Intent(getApplicationContext(), GraphTest.class));
+					startActivity(new Intent(getApplicationContext(), MusicGraph.class));
 					break;
 				}
 			}

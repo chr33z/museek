@@ -3,15 +3,17 @@ package de.mimuc.pem_music_graph.graph;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.util.Log;
+
 /**
  * A node that represents one genre on the screen.
  * 
  * @author Christopher Gebhardt
  *
  */
-public class MusicNode implements IGraph{
+public class GenreNode implements IGraph{
 	
-	private static final String TAG = MusicNode.class.getName();
+	private static final String TAG = GenreNode.class.getName();
 	
 	protected float x = 0;
 	protected float y = 0;
@@ -35,14 +37,14 @@ public class MusicNode implements IGraph{
 	/**
 	 * child nodes of this node
 	 */
-	private List<MusicNode> children;
+	private List<GenreNode> children;
 	
 	/**
 	 * parent node
 	 */
-	private MusicNode parent;
+	private GenreNode parent;
 	
-	public MusicNode(float x, float y, String name){
+	public GenreNode(float x, float y, String name){
 		this.x = x;
 		this.y = y;
 		this.name = name;
@@ -54,7 +56,7 @@ public class MusicNode implements IGraph{
 	 * @param y
 	 * @return
 	 */
-	public MusicNode setPosition(float x, float y){
+	public GenreNode setPosition(float x, float y){
 		this.x = x;
 		this.y = y;
 		return this;
@@ -73,7 +75,7 @@ public class MusicNode implements IGraph{
 	 * @param name visible name of this node
 	 * @return
 	 */
-	public MusicNode setName(String name){
+	public GenreNode setName(String name){
 		this.name = name;
 		return this;
 	}
@@ -91,12 +93,12 @@ public class MusicNode implements IGraph{
 	 * set all its children visible
 	 * @param isRoot
 	 */
-	public MusicNode setRoot(boolean isRoot) {
+	public GenreNode setRoot(boolean isRoot) {
 		this.isRoot = isRoot;
 		this.setVisible(true);
 		
 		if(children != null){
-			for (MusicNode child : children) {
+			for (GenreNode child : children) {
 				child.setVisible(true);
 			}
 		}
@@ -116,7 +118,7 @@ public class MusicNode implements IGraph{
 	 * Set the visibility of this node
 	 * @param isVisible
 	 */
-	public MusicNode setVisible(boolean isVisible) {
+	public GenreNode setVisible(boolean isVisible) {
 		this.isVisible = isVisible;
 		return this;
 	}
@@ -125,7 +127,8 @@ public class MusicNode implements IGraph{
 	 * 
 	 * @return children of this node
 	 */
-	public List<MusicNode> getChildren() throws NullPointerException {
+	public List<GenreNode> getChildren() {
+		if(children == null) children = new ArrayList<GenreNode>();
 		return children;
 	}
 
@@ -133,11 +136,11 @@ public class MusicNode implements IGraph{
 	 * Set the children nodes of this node
 	 * @param children
 	 */
-	public MusicNode setChildren(ArrayList<MusicNode> children) {
+	public GenreNode setChildren(ArrayList<GenreNode> children) {
 		this.children = children;
 		
 		if(children != null){
-			for (MusicNode child : this.children) {
+			for (GenreNode child : this.children) {
 				child.setParent(this);
 			}
 		}
@@ -149,9 +152,9 @@ public class MusicNode implements IGraph{
 	 * @param child
 	 * @return
 	 */
-	public MusicNode addChild(MusicNode child){
+	public GenreNode addChild(GenreNode child){
 		if(children == null){
-			children = new ArrayList<MusicNode>();
+			children = new ArrayList<GenreNode>();
 		}
 		children.add(child);
 		child.setParent(this);
@@ -163,7 +166,7 @@ public class MusicNode implements IGraph{
 	 * 
 	 * @return parent node of this node
 	 */
-	public MusicNode getParent() {
+	public GenreNode getParent() {
 		return parent;
 	}
 
@@ -171,7 +174,7 @@ public class MusicNode implements IGraph{
 	 * Set the parent node of this node
 	 * @param parent
 	 */
-	public MusicNode setParent(MusicNode parent) {
+	public GenreNode setParent(GenreNode parent) {
 		this.parent = parent;
 		return this;
 	}
@@ -181,22 +184,31 @@ public class MusicNode implements IGraph{
 		this.x += x;
 		this.y += y;
 		
-		for (MusicNode child : children) {
-			child.move(x, y);
+		if(children != null){
+			for (GenreNode child : children) {
+				child.move(x, y);
+			}
 		}
 	}
 
 	@Override
-	public void setAsRoot(String name) {
+	public GenreNode setAsRoot(String name) {
+		GenreNode result = null;
+		
 		if(this.getName().equalsIgnoreCase(name)){
 			this.setRoot(true);
+			return this;
 		}
 		else {
 			this.setVisible(false);
-			for (MusicNode child : this.getChildren()) {
-				child.setAsRoot(name);
+			for (GenreNode child : this.getChildren()) {
+				result = child.setAsRoot(name);
+				if(result != null){
+					return result;
+				}
 			}
 		}
+		return result;
 	}
 
 	@Override
@@ -204,23 +216,44 @@ public class MusicNode implements IGraph{
 		this.setVisible(false);
 		
 		if(children != null){
-			for (MusicNode child : children) {
+			for (GenreNode child : children) {
 				child.setInvisibleCascading();
 			}
 		}
 	}
 
 	@Override
-	public void addChildTo(MusicNode child, String name) {
+	public void addChildTo(GenreNode child, String name) {
 		if(this.name.equalsIgnoreCase(name)){
 			addChild(child);
 		}
 		else {
 			if(children != null){
-				for (MusicNode node : children) {
+				for (GenreNode node : children) {
 					node.addChildTo(child, name);
 				}
 			}
 		}
+	}
+
+	@Override
+	public GenreNode testForTouch(float x, float y) {
+		GenreNode result = null;
+		
+		if(isVisible && Math.sqrt( (this.x-x)*(this.x-x) + (this.y-y)*(this.y-y) ) <= this.radius ){
+			Log.d(TAG, "Node touched!");
+			return this;
+		}
+		else {
+			if(children != null){
+				for(GenreNode child : children){
+					result = child.testForTouch(x, y);
+					if(result != null){
+						return result;
+					}
+				}
+			}
+		}
+		return result;
 	}
 }

@@ -1,5 +1,6 @@
 package de.mimuc.pem_music_graph;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -11,49 +12,23 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-public class ExpandableListAdapter2 extends BaseExpandableListAdapter implements
-		ListAdapter {
+public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	private static final String TAG = ExpandableListAdapter2.class.getName();
 
 	private Context context;
 
 	// TODO where comes the List with the Information from?
-	private LocationList loList = new LocationList();
-	private List<Location> locations = loList.getLocations();
+	private List<EventLocation> eventLocationList;
 
 	public ExpandableListAdapter2(Context context) {
 		this.context = context;
+		
+		eventLocationList = new ArrayList<EventLocation>();
 	}
 
-	@Override
-	public int getCount() {
-		return 0;
-	}
-
-	@Override
-	public Object getItem(int arg0) {
-		return null;
-	}
-
-	@Override
-	public long getItemId(int arg0) {
-		return 0;
-	}
-
-	@Override
-	public int getItemViewType(int arg0) {
-		return 0;
-	}
-
-	@Override
-	public View getView(int arg0, View arg1, ViewGroup arg2) {
-		return null;
-	}
-
-	@Override
-	public int getViewTypeCount() {
-		return 0;
+	public void setEventLocationList(List<EventLocation> eventLocationList) {
+		this.eventLocationList = eventLocationList;
 	}
 
 	@Override
@@ -79,8 +54,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter implements
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = layoutInflater.inflate(R.layout.listitem, null);
 		}
-		Location location = locations.get(groupPosition);
-		if (location != null) {
+		EventLocation eventLocation = eventLocationList.get(groupPosition);
+		if (eventLocation != null) {
 			TextView address = (TextView) convertView
 					.findViewById(R.id.address);
 			TextView phonenumber = (TextView) convertView
@@ -102,22 +77,23 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter implements
 			ageRestriction.setKeyListener(null);
 			furtherInformation.setKeyListener(null);
 
-			// setting the Informations of the Location
+			// setting the Informations of the EventLocation
 			if (address != null)
-				address.setText(location.street + " " + location.housenumber
-						+ ", " + location.postcode + " " + location.city);
+				address.setText(eventLocation.street + " "
+						+ eventLocation.housenumber + ", "
+						+ eventLocation.postcode + " " + eventLocation.city);
 			if (phonenumber != null)
-				phonenumber.setText(location.phonenumber);
+				phonenumber.setText(eventLocation.phonenumber);
 			if (emailAddress != null)
-				emailAddress.setText(location.emailAddress);
+				emailAddress.setText(eventLocation.emailAddress);
 			if (openingHours != null)
-				openingHours
-						.setText("Öffnungszeiten: " + location.openingHours);
+				openingHours.setText("Öffnungszeiten: "
+						+ eventLocation.openingHours);
 			if (ageRestriction != null)
 				ageRestriction.setText("Altersbeschränkung: "
-						+ location.ageRestriction);
+						+ eventLocation.ageRestriction);
 			if (furtherInformation != null)
-				furtherInformation.setText(location.furtherInformation);
+				furtherInformation.setText(eventLocation.furtherInformation);
 		}
 
 		return convertView;
@@ -136,7 +112,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter implements
 
 	@Override
 	public int getGroupCount() {
-		return locations.size();
+		return eventLocationList.size();
 	}
 
 	@Override
@@ -148,7 +124,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter implements
 	public View getGroupView(int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
 		TextView textView = new TextView(context);
-		textView.setText(locations.get(groupPosition).name);
+		textView.setText(eventLocationList.get(groupPosition).name);
 		textView.setPadding(50, 10, 10, 10);
 		textView.setTextSize(25);
 		return textView;
@@ -157,11 +133,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter implements
 	@Override
 	public boolean isChildSelectable(int groupPosition, int childPosition) {
 		return false;
-	}
-
-	@Override
-	public boolean isEnabled(int arg0) {
-		return true;
 	}
 
 }

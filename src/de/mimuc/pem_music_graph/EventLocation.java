@@ -1,14 +1,14 @@
 package de.mimuc.pem_music_graph;
 
-public class Location {
+public class EventLocation {
 
 	public String name;
 	public String genre;
 	public String subgenre;
 	public String street;
-	public int housenumber;
+	public String housenumber;
 	public String city;
-	public int postcode;
+	public String postcode;
 	public String phonenumber;
 	public String emailAddress;
 	public String openingHours;
@@ -17,8 +17,8 @@ public class Location {
 	public String latitude;
 	public String longitude;
 
-	public Location(String name, String genre, String subgenre, String street,
-			int housenumber, String city, int postcode, String phonenumber,
+	public EventLocation(String name, String genre, String subgenre, String street,
+			String housenumber, String city, String postcode, String phonenumber,
 			String emailAddress, String openingHours, String ageRestriction,
 			String furtherInformation, String latitude, String longitude) {
 		this.name = name;

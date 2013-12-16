@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.location.Location;
 import android.util.Log;
 
 import com.android.volley.Response;
@@ -19,14 +20,13 @@ import com.google.android.gms.maps.model.LatLng;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
 
-public class LocationController {
+public class LocationController implements JsonConstants {
 
-	private static final String TAG = LocationController.class.getName();
+	private static final String TAG = LocationController.class.getSimpleName();
 
 	public List<EventLocation> eventLocationList;
 
 	public LocationController() {
-		super();
 		this.eventLocationList = new ArrayList<EventLocation>();
 	}
 
@@ -34,19 +34,23 @@ public class LocationController {
 	 * stellt eine Anfrage an den Server, um die aktuelle Liste der
 	 * EventLocations in einem bestimmten Radius abzufragen
 	 */
-	public void updateLocation(LatLng currentPoint) {
+	public void updateLocation(Location location) {
+		Log.d(TAG, "Try to retrieve locations from server...");
+		
 		/*
-		 * Locations um einen bestimmten Ort herum finden. Dazu müssen die
+		 * Locations um einen bestimmten Ort herum finden. Dazu mï¿½ssen die
 		 * Koordinaten und ein Radius angegeben werden
 		 */
 
-		// Json für POST Request
+		// Json fï¿½r POST Request
 		HashMap<String, String> params = new HashMap<String, String>();
-		params.put("latitude", currentPoint.latitude + "");
-		params.put("longitude", currentPoint.longitude + "");
+		params.put(TAG_LATITUDE, location.getLatitude() + "");
+		params.put(TAG_LONGITUDE, location.getLongitude() + "");
 		// radius in Metern - optional (ansonsten wird standard von 10000m
 		// verwendet
 		params.put("radius", "1000000");
+		
+		Log.d(TAG, params.toString());
 
 		// POST request
 		JsonObjectRequest req = new JsonObjectRequest(
@@ -54,13 +58,16 @@ public class LocationController {
 				new JSONObject(params), new Response.Listener<JSONObject>() {
 					@Override
 					public void onResponse(JSONObject response) {
+						Log.d(TAG, response.toString());
 						readJson(response);
+						Log.i(TAG, "...success!");
 					}
 				}, new Response.ErrorListener() {
 					@Override
 					public void onErrorResponse(VolleyError error) {
-//						 Log.e(TAG, error.getMessage());
+						 Log.e(TAG, error.getMessage());
 						 VolleyLog.e("Error: ", error.getMessage());
+						 Log.w(TAG, "...could not retrieve locations!");
 					}
 				});
 
@@ -125,7 +132,7 @@ public class LocationController {
 	}
 
 	/**
-	 * Getter für die aktuelle Liste der EventLocations
+	 * Getter fï¿½r die aktuelle Liste der EventLocations
 	 * 
 	 * @return List<EventLocation>
 	 */

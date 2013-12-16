@@ -17,9 +17,9 @@ import android.widget.ExpandableListView;
 public class StartScreen extends Activity implements ConnectionCallbacks, OnConnectionFailedListener {
 
 	private static final String TAG = StartScreen.class.getName();
-	
-	 private static final long DEFAULT_UPDATE_LOCATION_INTERVAL = 30 * 1000; // update every 30 seconds
-	 private static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
+
+	private static final long DEFAULT_UPDATE_LOCATION_INTERVAL = 30 * 1000; // update every 30 seconds
+	private static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
 
 	private LocationController mLocationController;
 	private Location mLocation;
@@ -36,7 +36,7 @@ public class StartScreen extends Activity implements ConnectionCallbacks, OnConn
 			if(mLocation != null &&
 					location.getLatitude() == mLocation.getLatitude() && 
 					location.getLongitude() == mLocation.getLongitude()){
-				
+
 				Log.i(TAG, "Location not changed.");
 				return;
 			}

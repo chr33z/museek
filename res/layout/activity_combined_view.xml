@@ -5,16 +5,19 @@
     tools:context=".CombinedView"
     android:orientation="vertical" >
 
-    <fragment
+    <SurfaceView
+        android:id="@+id/fragment_graph"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:text="@string/hello_world" />
     
-    <fragment
-        android:layout_width="wrap_content"
+    <ExpandableListView
+        android:id="@+id/expandableListView1"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="2"
-        android:text="@string/hello_world" />
+        android:layout_weight="3"
+        android:padding="5dp" >
+    </ExpandableListView>
 
 </LinearLayout>

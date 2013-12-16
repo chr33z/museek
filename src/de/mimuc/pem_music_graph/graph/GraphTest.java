@@ -1,8 +1,6 @@
 package de.mimuc.pem_music_graph.graph;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.R.layout;
-import de.mimuc.pem_music_graph.R.menu;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;

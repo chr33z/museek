@@ -33,6 +33,10 @@
             android:name="de.mimuc.pem_music_graph.graph.GraphTest"
             android:label="@string/title_activity_graph_test" >
         </activity>
+        <activity
+            android:name="de.mimuc.pem_music_graph.CombinedView"
+            android:label="@string/title_activity_combined_view" >
+        </activity>
     </application>
 
 </manifest>

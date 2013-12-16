@@ -1,18 +1,23 @@
 package de.mimuc.pem_music_graph;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.location.Location;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationClient;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 
-import android.location.Location;
-import android.os.Bundle;
-import android.app.Activity;
-import android.util.Log;
-import android.view.Menu;
-import android.widget.ExpandableListView;
+import de.mimuc.pem_music_graph.graph.MusicGraph;
 
 public class StartScreen extends Activity implements ConnectionCallbacks, OnConnectionFailedListener {
 
@@ -48,6 +53,8 @@ public class StartScreen extends Activity implements ConnectionCallbacks, OnConn
 
 	private ExpandableListAdapter2 listAdapter;
 
+	Button btnGraph;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -57,13 +64,27 @@ public class StartScreen extends Activity implements ConnectionCallbacks, OnConn
 
 		mLocationController = new LocationController();
 
-		// get the listview
-		ExpandableListView expListView = (ExpandableListView) findViewById(R.id.expandableListView1);
-		listAdapter = new ExpandableListAdapter2(this);
-		// setting list adapter
-		expListView.setAdapter(listAdapter);
-		listAdapter.setEventLocationList(mLocationController
-				.getEventLocationList());
+//		// get the listview
+//		ExpandableListView expListView = (ExpandableListView) findViewById(R.id.expandableListView1);
+//		listAdapter = new ExpandableListAdapter2(this);
+//		// setting list adapter
+//		expListView.setAdapter(listAdapter);
+//		listAdapter.setEventLocationList(mLocationController
+//				.getEventLocationList());
+		
+		btnGraph = (Button) findViewById(R.id.btn_combined_view);
+		
+		btnGraph.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				switch(v.getId()){
+				case R.id.btn_combined_view:
+					startActivity(new Intent(getApplicationContext(), MusicGraph.class));
+					break;
+				}
+			}
+		});
 	}
 
 	@Override

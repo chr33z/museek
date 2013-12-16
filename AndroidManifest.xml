@@ -35,7 +35,7 @@
             android:label="@string/title_activity_http_test" >
         </activity>
         <activity
-            android:name="de.mimuc.pem_music_graph.graph.GraphTest"
+            android:name="de.mimuc.pem_music_graph.graph.MusicGraph"
             android:label="@string/title_activity_graph_test" >
         </activity>
         <activity

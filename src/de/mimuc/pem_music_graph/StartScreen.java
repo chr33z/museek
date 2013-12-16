@@ -80,7 +80,7 @@ public class StartScreen extends Activity implements ConnectionCallbacks, OnConn
 			public void onClick(View v) {
 				switch(v.getId()){
 				case R.id.btn_combined_view:
-					startActivity(new Intent(getApplicationContext(), MusicGraph.class));
+					startActivity(new Intent(getApplicationContext(), CombinedView.class));
 					break;
 				}
 			}

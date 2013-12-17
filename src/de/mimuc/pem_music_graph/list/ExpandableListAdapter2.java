@@ -1,7 +1,11 @@
-package de.mimuc.pem_music_graph;
+package de.mimuc.pem_music_graph.list;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.R.id;
+import de.mimuc.pem_music_graph.R.layout;
 
 import android.content.Context;
 import android.view.LayoutInflater;

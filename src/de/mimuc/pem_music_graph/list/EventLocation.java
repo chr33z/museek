@@ -1,4 +1,4 @@
-package de.mimuc.pem_music_graph;
+package de.mimuc.pem_music_graph.list;
 
 public class EventLocation {
 

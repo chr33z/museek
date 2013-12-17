@@ -210,7 +210,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 
 	}
 
-	private void updateListeView(){
+	@Override
+	public void onLocationControllerUpdate() {
 		Log.d(TAG, "Update ListAdapter");
 
 		this.runOnUiThread(new Runnable() 
@@ -222,11 +223,6 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 				locationListView.setAdapter(adapter);
 				graphView.onThreadResume();
 			}});
-	}
-
-	@Override
-	public void onLocationControllerUpdate() {
-		updateListeView();
 	}
 
 }

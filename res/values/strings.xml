@@ -10,5 +10,6 @@
     <string name="hello_world4">Hello world!</string>
     <string name="title_activity_http_test">HttpTest</string>
     <string name="title_activity_graph_test">GraphTest</string>
+    <string name="title_activity_combined_view">CombinedView</string>
 
 </resources>

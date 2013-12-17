@@ -1,11 +1,19 @@
 package de.mimuc.pem_music_graph.graph;
 
 import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.R.layout;
+import de.mimuc.pem_music_graph.R.menu;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
 
-public class GraphTest extends Activity {
+/**
+ * Music Graph Activity
+ * 
+ * @author Christopher Gebhardt
+ *
+ */
+public class MusicGraph extends Activity {
 	
 	MusicGraphView musicGraphView;
 

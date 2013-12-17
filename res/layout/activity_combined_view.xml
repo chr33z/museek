@@ -6,18 +6,17 @@
     tools:context=".CombinedView"
     android:orientation="vertical" >
 
-    <de.mimuc.pem-music-graph.MusicGraphView
-        android:id="@+id/graph_view"
+    <FrameLayout
+        android:id="@+id/graph_view_frame"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:text="@string/hello_world" />
+        android:layout_weight="1"/>
     
     <ExpandableListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3"
+        android:layout_weight="1"
         android:padding="5dp" >
     </ExpandableListView>
 

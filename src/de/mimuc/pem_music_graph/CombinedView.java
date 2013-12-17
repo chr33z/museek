@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.widget.ExpandableListView;
+import android.widget.FrameLayout;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
 
 public class CombinedView extends Activity {
@@ -17,7 +18,9 @@ public class CombinedView extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
 		
-		graphView = (MusicGraphView) findViewById(R.id.graph_view);
+		FrameLayout frame = (FrameLayout) findViewById(R.id.graph_view_frame);
+		graphView = new MusicGraphView(this);
+		frame.addView(graphView);
 		graphView.onThreadResume();
 	}
 

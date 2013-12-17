@@ -106,7 +106,6 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
         layout.setAnchorPoint(0.3f);
         layout.setPanelHeight(300);
         layout.setDragView(listHandle);
-        layout.setShadowDrawable(getResources().getDrawable(R.drawable.above_shadow));
         layout.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
         layout.setPanelSlideListener(new PanelSlideListener() {
 

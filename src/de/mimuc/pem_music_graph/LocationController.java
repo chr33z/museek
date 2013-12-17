@@ -15,7 +15,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.android.gms.maps.model.LatLng;
 
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
@@ -37,21 +36,12 @@ public class LocationController implements JsonConstants {
 	public void updateLocation(Location location) {
 		Log.d(TAG, "Try to retrieve locations from server...");
 		
-		/*
-		 * Locations um einen bestimmten Ort herum finden. Dazu m�ssen die
-		 * Koordinaten und ein Radius angegeben werden
-		 */
-
 		// Json f�r POST Request
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(TAG_LATITUDE, location.getLatitude() + "");
 		params.put(TAG_LONGITUDE, location.getLongitude() + "");
-		// radius in Metern - optional (ansonsten wird standard von 10000m
-		// verwendet
-		params.put("radius", "1000000");
+		params.put("radius", "1000000"); // radius in m
 		
-		Log.d(TAG, params.toString());
-
 		// POST request
 		JsonObjectRequest req = new JsonObjectRequest(
 				ApplicationController.URL_POST_FIND_BY_LOCATION,
@@ -65,13 +55,15 @@ public class LocationController implements JsonConstants {
 				}, new Response.ErrorListener() {
 					@Override
 					public void onErrorResponse(VolleyError error) {
-						 Log.e(TAG, error.getMessage());
-						 VolleyLog.e("Error: ", error.getMessage());
-						 Log.w(TAG, "...could not retrieve locations!");
+						if(error.getMessage() == null){
+							Log.e(TAG, "...could not retrieve location or a meaningfull error...");
+							return;
+						}
+						VolleyLog.e("Error: ", error.getMessage());
+						Log.w(TAG, "...could not retrieve locations!");
 					}
 				});
 
-		// add the request object to the queue to be executed
 		ApplicationController.getInstance().addToRequestQueue(req);
 	}
 

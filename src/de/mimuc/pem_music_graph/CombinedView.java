@@ -38,7 +38,6 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 	
 	private MusicGraphView graphView;
 	
-	private RelativeLayout listContainer;
 	private ExpandableListView locationListView;
 	private FrameLayout listHandle;
 	
@@ -83,9 +82,6 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 		
 		// initialize controller
 		mLocationController = new LocationController();
-		
-		// get list container
-		listContainer = (RelativeLayout) findViewById(R.id.list_container);
 		
 		// get list handle
 		listHandle = (FrameLayout) findViewById(R.id.list_handle);
@@ -141,8 +137,6 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 
             }
         });
-//        FrameLayout t = (FrameLayout) findViewById(R.id.list_handle);
-//        t.setMovementMethod(LinkMovementMethod.getInstance());
 	}
 
 	@Override
@@ -193,45 +187,5 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 	public void onDisconnected() {
 		// TODO Auto-generated method stub
 
-	}
-	
-	OnTouchListener handleTouchListener = new OnTouchListener() {
-		
-		@Override
-		public boolean onTouch(View v, MotionEvent event) {
-			RelativeLayout parent = (RelativeLayout) v.getParent();
-			
-            final float y = event.getRawY();
-
-			switch(event.getAction()){
-			case MotionEvent.ACTION_DOWN:
-				RelativeLayout.LayoutParams lParams = (RelativeLayout.LayoutParams) parent.getLayoutParams();
-				dy = y - lParams.topMargin;
-				
-		        // stop drawing if graph for perfomance
-		        graphView.onThreadPause();
-				return true;
-				
-			case MotionEvent.ACTION_MOVE:
-				Log.d(TAG, "position: "+y);
-				moveList(y - dy);
-				return true;
-				
-			case MotionEvent.ACTION_UP:
-				
-				// start drawing as soon as finger released handle
-				graphView.onThreadResume(); 
-				return true;
-			}
-			
-			return false;
-		}
-	};
-	
-	private void moveList(float y){
-		RelativeLayout.LayoutParams layoutParams = 
-				(RelativeLayout.LayoutParams) listContainer.getLayoutParams();
-		layoutParams.topMargin = Math.round(y);   
-		listContainer.setLayoutParams(layoutParams);
 	}
 }

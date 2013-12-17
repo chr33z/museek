@@ -1,17 +1,13 @@
 package de.mimuc.pem_music_graph.graph;
 
 import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
-
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
-import android.annotation.SuppressLint;
+import de.mimuc.pem_music_graph.R;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -68,8 +64,8 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		super(context);
 		this.context = context;
 		
-		paintNode.setColor(context.getResources().getColor(android.R.color.holo_red_light));
-		paintText.setColor(context.getResources().getColor(android.R.color.white));
+		paintNode.setColor(context.getResources().getColor(R.color.graph_node_lila));
+		paintText.setColor(Color.WHITE);
 		paintText.setTextSize(paintText.getTextSize() * textSizeScale);
 		
 		// Build GenreGraph and add nodes
@@ -83,8 +79,8 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 		// TODO make dimensions resolution dependent and synced with the node position itself
 		rootX = width / 2.0f;
-		rootY = 200;
-		childY = 300 * 2;
+		rootY = height * 0.15f;
+		childY = height * 0.25f;
 		
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(new SurfaceHolder.Callback() {
@@ -131,7 +127,9 @@ public class MusicGraphView extends SurfaceView implements Runnable {
         	
         	canvas.drawLine(child.x, child.y, root.x, root.y, paintNode);
         	canvas.drawCircle(child.x, child.y, child.radius, paintNode);
-        	
+		}
+        
+        for (GenreNode child : root.getChildren()) {
         	canvas.drawText(child.getName(), (child.x - (child.radius / 2)), child.y, paintText);
 		}
     }

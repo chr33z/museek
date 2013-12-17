@@ -19,14 +19,14 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	// TODO where comes the List with the Information from?
 	private List<EventLocation> eventLocationList;
 
-	public ExpandableListAdapter2(Context context) {
+	public ExpandableListAdapter2(Context context, List<EventLocation> eventLocationList) {
 		this.context = context;
 		
-		eventLocationList = new ArrayList<EventLocation>();
+		this.eventLocationList = eventLocationList;
 	}
 
-	public void setEventLocationList(List<EventLocation> eventLocationList) {
-		this.eventLocationList = eventLocationList;
+	public void updateEventLocationList(List<EventLocation> eventLocationList) {
+	    this.eventLocationList = eventLocationList;
 	}
 
 	@Override
@@ -85,10 +85,10 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			if (emailAddress != null)
 				emailAddress.setText(eventLocation.emailAddress);
 			if (openingHours != null)
-				openingHours.setText("Öffnungszeiten: "
+				openingHours.setText("ï¿½ffnungszeiten: "
 						+ eventLocation.openingHours);
 			if (ageRestriction != null)
-				ageRestriction.setText("Altersbeschränkung: "
+				ageRestriction.setText("Altersbeschrï¿½nkung: "
 						+ eventLocation.ageRestriction);
 			if (furtherInformation != null)
 				furtherInformation.setText(eventLocation.furtherInformation);

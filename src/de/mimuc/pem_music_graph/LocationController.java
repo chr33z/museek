@@ -18,14 +18,18 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
+import de.mimuc.pem_music_graph.utils.LocationControllerListener;
 
 public class LocationController implements JsonConstants {
 
 	private static final String TAG = LocationController.class.getSimpleName();
 
 	public List<EventLocation> eventLocationList;
+	
+	private LocationControllerListener callbackReceiver;
 
-	public LocationController() {
+	public LocationController(LocationControllerListener callbackReceiver) {
+		this.callbackReceiver = callbackReceiver;
 		this.eventLocationList = new ArrayList<EventLocation>();
 	}
 
@@ -65,6 +69,8 @@ public class LocationController implements JsonConstants {
 				});
 
 		ApplicationController.getInstance().addToRequestQueue(req);
+		
+		callbackReceiver.onLocationControllerUpdate();
 	}
 
 	/**
@@ -83,11 +89,13 @@ public class LocationController implements JsonConstants {
 		String longitude = null;
 
 		try {
+			eventLocationList.clear();
+			
 			// eventLocations are stored in an array
 			JSONArray jsonArray = json
 					.getJSONArray(JsonConstants.TAG_LOCATIONS);
 
-			for (int i = 0; i < 1; i++) {
+			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject eventLocation = jsonArray.getJSONObject(i);
 
 				name = eventLocation.getString(JsonConstants.TAG_NAME);
@@ -106,8 +114,7 @@ public class LocationController implements JsonConstants {
 				String emailAddress = "";
 				String openingHours = "";
 				String ageRestriction = "";
-				String furtherInformation = eventLocation
-						.getString(JsonConstants.TAG_DESCRIPTION);
+				String furtherInformation = "";
 				latitude = eventLocation.getString(JsonConstants.TAG_LATITUDE);
 				longitude = eventLocation
 						.getString(JsonConstants.TAG_LONGITUDE);
@@ -116,7 +123,10 @@ public class LocationController implements JsonConstants {
 						subgenre, street, housenumber, city, postcode,
 						phonenumber, emailAddress, openingHours,
 						ageRestriction, furtherInformation, latitude, longitude);
+				
+				Log.d(TAG, newEventLocation.name);
 				eventLocationList.add(newEventLocation);
+				Log.d(TAG, eventLocationList.size()+"");
 			}
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());

@@ -21,19 +21,19 @@
             android:background="#eee"
             android:orientation="vertical">
 
+            
             <FrameLayout
                 android:id="@+id/list_handle"
                 android:layout_width="match_parent"
                 android:layout_height="34dp"
                 android:background="#aaa" />
-
+			
             <ExpandableListView
                 android:id="@+id/list_view"
                 android:layout_width="match_parent"
-                android:layout_height="34dp"
-                android:layout_alignParentLeft="true"
-		        android:layout_alignParentTop="true"
-		        android:padding="5dp" />
+                android:layout_height="match_parent"
+                android:layout_below="@+id/list_handle"
+		        android:padding="10dp" />
         </RelativeLayout>
         
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>

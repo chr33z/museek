@@ -44,9 +44,10 @@ public class GenreNode implements IGraph{
 	 */
 	private GenreNode parent;
 	
-	public GenreNode(float x, float y, String name){
+	public GenreNode(float x, float y, float radius, String name){
 		this.x = x;
 		this.y = y;
+		this.radius = radius;
 		this.name = name;
 	}
 	

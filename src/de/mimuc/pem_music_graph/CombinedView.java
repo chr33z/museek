@@ -11,8 +11,10 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -22,6 +24,8 @@ import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
+import de.mimuc.pem_music_graph.utils.ApplicationController;
+import de.mimuc.pem_music_graph.utils.LocationControllerListener;
 
 /**
  * Shows both the music graph and the location list in one place
@@ -29,25 +33,31 @@ import de.mimuc.pem_music_graph.graph.MusicGraphView;
  * @author Christopher Gebhardt
  *
  */
-public class CombinedView extends Activity implements ConnectionCallbacks, OnConnectionFailedListener {
-	
+public class CombinedView extends Activity 
+implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerListener {
+
 	private static final String TAG = CombinedView.class.getSimpleName();
-	
+
 	private static final long DEFAULT_UPDATE_LOCATION_INTERVAL = 60 * 1000; // update every 60 seconds
 	private static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
-	
+
+	private Context context;
+
 	private MusicGraphView graphView;
-	
+
+	private ExpandableListAdapter2 adapter;
 	private ExpandableListView locationListView;
 	private FrameLayout listHandle;
-	
+
 	private LocationController mLocationController;
 	private Location mLocation;
 
 	private LocationClient mLocationClient;
-	
+
 	// coordinates for moving the view
 	private float dy;
+	
+	boolean updated = false;
 
 	/**
 	 * Is called when location updates arrive
@@ -76,13 +86,15 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
-		
+
+		this.context = this;
+
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
-		
+
 		// initialize controller
-		mLocationController = new LocationController();
-		
+		mLocationController = new LocationController(this);
+
 		// get list handle
 		listHandle = (FrameLayout) findViewById(R.id.list_handle);
 
@@ -91,52 +103,57 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 		graphView = new MusicGraphView(this);
 		frame.addView(graphView);
 		graphView.onThreadResume();
-		
+
 		//intialize listview
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
-		ExpandableListAdapter2 adapter = new ExpandableListAdapter2(this);
-		adapter.setEventLocationList(mLocationController.getEventLocationList());
+		ExpandableListAdapter2 adapter = 
+				new ExpandableListAdapter2(this, mLocationController.getEventLocationList());
 		locationListView.setAdapter(adapter);
-		
+
+		// initialize dimensions
+		DisplayMetrics metrics = ApplicationController
+				.getInstance().getResources().getDisplayMetrics();
+		int width = metrics.widthPixels;
+		int height = metrics.heightPixels;
+
 		SlidingUpPanelLayout layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        layout.setAnchorPoint(0.3f);
-        layout.setPanelHeight(300);
-        layout.setDragView(listHandle);
-        layout.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
-        layout.setPanelSlideListener(new PanelSlideListener() {
+		layout.setPanelHeight((int)(height * 0.6));
+		layout.setDragView(listHandle);
+		layout.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
+		layout.setPanelSlideListener(new PanelSlideListener() {
 
-            @SuppressLint("NewApi")
+			@SuppressLint("NewApi")
 			@Override
-            public void onPanelSlide(View panel, float slideOffset) {
-                if (slideOffset < 0.2) {
-                    if (getActionBar().isShowing()) {
-                        getActionBar().hide();
-                    }
-                } else {
-                    if (!getActionBar().isShowing()) {
-                        getActionBar().show();
-                    }
-                }
-            }
+			public void onPanelSlide(View panel, float slideOffset) {
+				if (slideOffset < 0.2) {
+					if (getActionBar().isShowing()) {
+						getActionBar().hide();
+					}
+				} else {
+					if (!getActionBar().isShowing()) {
+						getActionBar().show();
+					}
+				}
+			}
 
-            @Override
-            public void onPanelExpanded(View panel) {
-
-
-            }
-
-            @Override
-            public void onPanelCollapsed(View panel) {
+			@Override
+			public void onPanelExpanded(View panel) {
 
 
-            }
+			}
 
-            @Override
-            public void onPanelAnchored(View panel) {
+			@Override
+			public void onPanelCollapsed(View panel) {
 
 
-            }
-        });
+			}
+
+			@Override
+			public void onPanelAnchored(View panel) {
+
+
+			}
+		});
 	}
 
 	@Override
@@ -145,10 +162,12 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 		getMenuInflater().inflate(R.menu.combined_view, menu);
 		return true;
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
+
+		graphView.onThreadResume();
 
 		if(mLocationClient != null)
 			mLocationClient.connect();
@@ -157,6 +176,8 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 	@Override
 	protected void onPause() {
 		super.onPause();
+
+		graphView.onThreadPause();
 
 		if(mLocationClient != null)
 			mLocationClient.disconnect();
@@ -188,4 +209,24 @@ public class CombinedView extends Activity implements ConnectionCallbacks, OnCon
 		// TODO Auto-generated method stub
 
 	}
+
+	private void updateListeView(){
+		Log.d(TAG, "Update ListAdapter");
+
+		this.runOnUiThread(new Runnable() 
+		{
+			@Override
+			public void run() {                                                
+				graphView.onThreadPause();
+				adapter = new ExpandableListAdapter2(context, mLocationController.getEventLocationList());
+				locationListView.setAdapter(adapter);
+				graphView.onThreadResume();
+			}});
+	}
+
+	@Override
+	public void onLocationControllerUpdate() {
+		updateListeView();
+	}
+
 }

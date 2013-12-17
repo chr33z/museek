@@ -41,30 +41,33 @@ public class GenreGraph implements IGraph {
 		int height = metrics.heightPixels;
 
 		float rootX = width / 2.0f;
-		float rootY = 200;
-		float childY = 500;
+		float rootY = height * 0.15f;
+		float childY = height * 0.25f;
+		float radius = width * 0.1f;
 		
-		root = new GenreNode(rootX, rootY, "Music");
+		root = new GenreNode(rootX, rootY, radius, "Music");
 		
-		root.addChild(new GenreNode( (width/5.0f * 1), childY, "Rock" ));
-		root.addChild(new GenreNode( (width/5.0f * 2), childY, "Pop" ));
-		root.addChild(new GenreNode( (width/5.0f * 3), childY, "Electro" ));
-		root.addChild(new GenreNode( (width/5.0f * 4), childY, "House" ));
+		root.addChild(new GenreNode( (width/5.0f * 1), childY,radius,  "Rock" ));
+		root.addChild(new GenreNode( (width/5.0f * 2), childY,radius,  "Pop" ));
+		root.addChild(new GenreNode( (width/5.0f * 3), childY,radius,  "Electro" ));
+		root.addChild(new GenreNode( (width/5.0f * 4), childY,radius,  "House" ));
 		
 		// Level 2
-		GenreNode rock_hard = new GenreNode( (width/4.0f * 1), childY, "Hard Rock" );
-		GenreNode rock_progressive = new GenreNode( (width/4.0f * 2), childY, "Progressive" );
-		GenreNode rock_alternative = new GenreNode( (width/4.0f * 3), childY, "Alternative" );
+		GenreNode rock_hard = new GenreNode( (width/4.0f * 1), childY,radius,  "Hard Rock" );
+		GenreNode rock_progressive = new GenreNode( (width/4.0f * 2), childY,radius,  "Progressive" );
+		GenreNode rock_alternative = new GenreNode( (width/4.0f * 3), childY,radius,  "Alternative" );
 		root.addChildTo(rock_hard, "Rock");
 		root.addChildTo(rock_progressive, "Rock");
 		root.addChildTo(rock_alternative, "Rock");
 		
-		GenreNode electro_dubstep = new GenreNode( (width/4.0f * 1), childY, "Dubstep" );
-		GenreNode electro_techno = new GenreNode( (width/4.0f * 2), childY, "Techno" );
-		GenreNode electro_extrem = new GenreNode( (width/4.0f * 3), childY, "Extrem" );
+		GenreNode electro_dubstep = new GenreNode( (width/4.0f * 1), childY,radius,  "Dubstep" );
+		GenreNode electro_techno = new GenreNode( (width/4.0f * 2), childY,radius,  "Techno" );
+		GenreNode electro_extrem = new GenreNode( (width/4.0f * 3), childY,radius,  "Extrem" );
 		root.addChildTo(electro_dubstep, "Electro");
 		root.addChildTo(electro_techno, "Electro");
 		root.addChildTo(electro_extrem, "Electro");
+		
+		Log.d(TAG, root.getChildren().get(0).radius+"");
 		
 		currentRoot = setAsRoot("Music");
 		

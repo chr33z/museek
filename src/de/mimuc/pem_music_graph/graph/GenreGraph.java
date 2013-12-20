@@ -142,6 +142,7 @@ public class GenreGraph implements IGraph {
 		if(newRoot.getParent() != null){
 			newRoot.getParent().x = width / 2.0f;
 			newRoot.getParent().y = height * PARENT_Y_FACTOR;
+			newRoot.radius = width * RADIUS_FACTOR;
 		}
 		
 		int size = newRoot.getChildren().size();
@@ -150,6 +151,7 @@ public class GenreGraph implements IGraph {
 			
 			child.x = ((width * i) / size) + ((width * 0.5f) / size);
 			child.y = height * CHILD_Y_FACTOR;
+			child.radius = width * RADIUS_FACTOR;
 		}
 	}
 	

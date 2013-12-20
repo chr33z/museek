@@ -3,6 +3,8 @@ package de.mimuc.pem_music_graph.graph.animation;
 public abstract class GraphAnimation {
 	
 	protected GraphAnimationListener callbackReceiver;
+	
+	protected long delay = 0;
 
 	protected long duration = 0;
 	
@@ -25,12 +27,18 @@ public abstract class GraphAnimation {
 			return;
 		}
 		
-		if(time - startTime > duration){
+		// skip the delay
+		if(time - startTime < delay){
+			return;
+		}
+		
+		
+		if(time - (startTime + delay) > duration){
 			animate(duration);
 			callbackReceiver.animationFinished(tag);
 		}
 			
-		animate(time - startTime);
+		animate(time - (startTime + delay));
 	}
 	
 	/**

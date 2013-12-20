@@ -69,7 +69,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 	 * @param animation
 	 * @param tag
 	 */
-	public void addAnimation(GraphAnimation animation, String tag){
+	public void add(GraphAnimation animation, String tag){
 		animation.setAnimationListener(this);
 		animation.setTag(tag);
 		
@@ -87,7 +87,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 	 * Add an animation to the main queue
 	 * @param animation
 	 */
-	public void addAnimation(GraphAnimation animation){
+	public void add(GraphAnimation animation){
 		animation.setAnimationListener(this);
 		animation.setTag(MAIN_QUEUE);
 		
@@ -114,5 +114,39 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 		if(queues.get(tag) != null){
 			queues.get(tag).clear();
 		}
+	}
+	
+	/**
+	 * Get animation lengt in milliseconds of queue with tag 
+	 * @param tag
+	 * @return
+	 */
+	public long getQueueLength(String tag){
+		if(tag == null) tag = MAIN_QUEUE;
+		
+		long duration = 0;
+		if(queues.get(tag) != null){
+			for (GraphAnimation animation : queues.get(tag)) {
+				duration += animation.duration;
+			}
+		}
+		
+		return duration;
+	}
+	
+	public long getLongestQueue(){
+		long duration = 0;
+		
+		for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
+			
+			long tmpDuration = 0;
+			for (GraphAnimation animation : queue.getValue()) {
+				tmpDuration += animation.duration;
+			}
+			if(tmpDuration > duration){
+				duration = tmpDuration;
+			}
+		}
+		return duration;
 	}
 }

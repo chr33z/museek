@@ -59,6 +59,12 @@ public class GenreNode implements IGraph, GraphDrawable{
 	private double visibility = 1;
 	
 	/**
+	 * only animation can make this false
+	 * resets after each draw cycle
+	 */
+	public boolean drawLines = true;
+	
+	/**
 	 * child nodes of this node
 	 */
 	private List<GenreNode> children;
@@ -343,13 +349,15 @@ public class GenreNode implements IGraph, GraphDrawable{
 		nodeP.setAntiAlias(true);
 		
 		lineP.setStrokeWidth(5); // FIXME make screen dependent
-		nodeP.setAntiAlias(true);
+		lineP.setARGB((int)(255 * visibility), 20, 20, 20);
+		lineP.setAntiAlias(true);
 		
 		textP.setColor(res.getColor(R.color.graph_text_light));
-		textP.setTextSize(textP.getTextSize() * 5); // FIXME make screen dependent
-		nodeP.setAntiAlias(true);
+		textP.setTextSize((float) (textP.getTextSize() * 5 * visibility)); // FIXME make screen dependent
+		textP.setARGB((int)(255 * visibility), 220, 220, 220);
+		textP.setAntiAlias(true);
 		
-		if(parent != null) canvas.drawLine(
+		if(parent != null && drawLines) canvas.drawLine(
 				x, y + translation, 
 				parent.x, parent.y + translation, 
 				lineP);
@@ -361,5 +369,7 @@ public class GenreNode implements IGraph, GraphDrawable{
 		canvas.drawText(name, 
 				(x - (radius / 2)), y + translation, 
 				textP);
+		
+		drawLines = true;
 	}
 }

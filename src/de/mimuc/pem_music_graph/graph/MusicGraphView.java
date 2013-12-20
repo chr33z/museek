@@ -6,6 +6,7 @@ import de.mimuc.pem_music_graph.graph.animation.FadeAnimation;
 import de.mimuc.pem_music_graph.graph.animation.GraphAnimationQueue;
 import de.mimuc.pem_music_graph.graph.animation.IdleAnimation;
 import de.mimuc.pem_music_graph.graph.animation.MoveAnimation;
+import de.mimuc.pem_music_graph.graph.animation.ShrinkAnimation;
 import de.mimuc.pem_music_graph.graph.animation.TouchAnimation;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
@@ -14,6 +15,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -156,8 +158,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		float eventX = event.getX();
 		float eventY = event.getY();
 		
-		GenreNode node = null;
-		
 		switch(event.getAction()){
 		
 		case MotionEvent.ACTION_DOWN:
@@ -174,8 +174,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			/*
 			 *  determine the relative move direction 
 			 *  and move nodes accordingly in y direction only
-			 *  TODO only allow pull down motion
-			 *  FIXME root node always drawn at same position
 			 *  so it does not move with child nodes
 			 */
 			if((eventY-lastTouchY) >= 0){
@@ -194,24 +192,63 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
             if(clickDuration < MAX_CLICK_DURATION) {
             	Log.d(TAG, "Node click event!");
-                node = graph.testForTouch(eventX, eventY);
+            	
+            	final GenreNode node = graph.testForTouch(eventX, eventY);
                 
-                // if we touch a node that is currently not root, set as root
+                // touch event on child nodes
                 if(node != null && !(graph.getCurrentRoot().getName())
                 		.equalsIgnoreCase(node.getName()) ){
                 	
-                	animationQueue.addAnimation(
-                			new MoveAnimation(node, 2000, node.getParent().x, node.getParent().y));
-                	animationQueue.addAnimation(new FadeAnimation(node, 2000, FadeAnimation.HIDE), "fade");
+                	/**********************
+                	 * Fancy Animation
+                	 **********************/
                 	
-                	graph.setAsRoot(node.getName());
+                	// shrink other siblings
+                	for(int i=0; i<node.getParent().getChildren().size(); i++) {
+						GenreNode sibling = node.getParent().getChildren().get(i);
+                		
+						// Add shrink animations with increasing delay that run parallel;
+                		if(!node.getName().equalsIgnoreCase(sibling.getName())){
+							animationQueue.add(new ShrinkAnimation(sibling, 150, i*50), "sib"+i);
+						}
+					}
+                	
+                	// move touched node to root position
+                	animationQueue.add(new MoveAnimation(
+                			node, 310, node.getParent().x, node.getParent().y), "root");
+                	
+                	// move root further up
+                	animationQueue.add(new MoveAnimation(
+                			node.getParent(), 310, node.getParent().x, 0), "rootparent");
+                	
+                	// run other logic when animation has finished playing
+                	Handler handler = new Handler();
+                	handler.postDelayed(new Runnable()
+                	{
+                	     @Override
+                	     public void run()
+                	     {
+                	    	 graph.setAsRoot(node.getName());
+                	     }
+                	}, animationQueue.getLongestQueue()+5);
                 }
+                
+                // touch event on root node
                 else if(node != null && node.isRoot()){
-                	GenreNode parent = node.getParent();
-                	
-                	if(parent != null){
-                		graph.setAsRoot(parent.getName());
-                	}
+                	final GenreNode parent = node.getParent();
+
+                	// run other logic when animation has finished playing
+                	Handler handler = new Handler();
+                	handler.postDelayed(new Runnable()
+                	{
+                		@Override
+                		public void run()
+                		{
+                			if(parent != null){
+                				graph.setAsRoot(parent.getName());
+                			}
+                		}
+                	}, animationQueue.getQueueLength("parent"));
                 }
             }
             return true;

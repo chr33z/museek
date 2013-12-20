@@ -27,6 +27,7 @@ public class MoveAnimation extends GraphAnimation{
 		double pos_x = EaseFunction.easeInQuad(time, x_start, x_end-x_start, duration);
 		double pos_y = EaseFunction.easeInQuad(time, y_start, y_end-y_start, duration);
 		
+		node.drawLines = false;
 		node.setPosition((float)pos_x, (float)pos_y);
 	}
 

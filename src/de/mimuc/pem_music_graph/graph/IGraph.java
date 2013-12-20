@@ -36,6 +36,13 @@ public interface IGraph {
 	public void setInvisibleCascading();
 	
 	/**
+	 * Find a node with name
+	 * @param name
+	 * @return the node or null
+	 */
+	public GenreNode findNode(String name);
+
+	/**
 	 * Test for touch on node and return that node
 	 * @param x
 	 * @param y

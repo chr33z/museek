@@ -1,6 +1,8 @@
 package de.mimuc.pem_music_graph.graph;
 
 import de.mimuc.pem_music_graph.utils.ApplicationController;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -16,6 +18,25 @@ public class GenreGraph implements IGraph {
 
 	private static final String TAG = GenreNode.class.getName();
 	
+	private static final float PARENT_Y_FACTOR = 0.0f;
+	private static final float ROOT_Y_FACTOR = 0.15f;
+	private static final float CHILD_Y_FACTOR = 0.30f;
+	private static final float RADIUS_FACTOR = 0.1f;
+	
+	// value between 0 and 1
+	public static final float TRANSLATION_SNAP_FACTOR = 0.1f;
+	
+	/*
+	 * screen dimensions
+	 */
+	private float width;
+	private float height;
+	
+	/**
+	 * 
+	 */
+	public float translation = 0;
+	
 	/**
 	 * the root of the graph
 	 */
@@ -24,6 +45,11 @@ public class GenreGraph implements IGraph {
 	private GenreNode currentRoot;
 	
 	public GenreGraph(){
+		DisplayMetrics metrics = ApplicationController
+				.getInstance().getResources().getDisplayMetrics();
+		width = metrics.widthPixels;
+		height = metrics.heightPixels;
+		
 		buildGraph();
 	}
 	
@@ -35,43 +61,38 @@ public class GenreGraph implements IGraph {
 		Log.d(TAG, "Building the graph nodes...");
 		long startTime = System.currentTimeMillis();
 		
-		DisplayMetrics metrics = ApplicationController
-				.getInstance().getResources().getDisplayMetrics();
-		int width = metrics.widthPixels;
-		int height = metrics.heightPixels;
-
-		float rootX = width / 2.0f;
-		float rootY = height * 0.15f;
-		float childY = height * 0.25f;
-		float radius = width * 0.1f;
+		root = buildNode("Music");
 		
-		root = new GenreNode(rootX, rootY, radius, "Music");
-		
-		root.addChild(new GenreNode( (width/5.0f * 1), childY,radius,  "Rock" ));
-		root.addChild(new GenreNode( (width/5.0f * 2), childY,radius,  "Pop" ));
-		root.addChild(new GenreNode( (width/5.0f * 3), childY,radius,  "Electro" ));
-		root.addChild(new GenreNode( (width/5.0f * 4), childY,radius,  "House" ));
+		root.addChild(buildNode("Rock"));
+		root.addChild(buildNode("Pop"));
+		root.addChild(buildNode("Electro"));
+		root.addChild(buildNode("House"));
 		
 		// Level 2
-		GenreNode rock_hard = new GenreNode( (width/4.0f * 1), childY,radius,  "Hard Rock" );
-		GenreNode rock_progressive = new GenreNode( (width/4.0f * 2), childY,radius,  "Progressive" );
-		GenreNode rock_alternative = new GenreNode( (width/4.0f * 3), childY,radius,  "Alternative" );
+		GenreNode rock_hard = buildNode("Hard Rock");
+		GenreNode rock_progressive = buildNode("Progressive");
+		GenreNode rock_alternative = buildNode("Alternative");
 		root.addChildTo(rock_hard, "Rock");
 		root.addChildTo(rock_progressive, "Rock");
 		root.addChildTo(rock_alternative, "Rock");
 		
-		GenreNode electro_dubstep = new GenreNode( (width/4.0f * 1), childY,radius,  "Dubstep" );
-		GenreNode electro_techno = new GenreNode( (width/4.0f * 2), childY,radius,  "Techno" );
-		GenreNode electro_extrem = new GenreNode( (width/4.0f * 3), childY,radius,  "Extrem" );
+		GenreNode electro_dubstep = buildNode("Dubstep");
+		GenreNode electro_techno = buildNode("Techno");
+		GenreNode electro_extrem = buildNode("Extrem");
 		root.addChildTo(electro_dubstep, "Electro");
 		root.addChildTo(electro_techno, "Electro");
 		root.addChildTo(electro_extrem, "Electro");
 		
-		Log.d(TAG, root.getChildren().get(0).radius+"");
-		
 		currentRoot = setAsRoot("Music");
 		
 		Log.d(TAG, "...finished in "+(System.currentTimeMillis() - startTime)+" ms!");
+	}
+	
+	/**
+	 * Helper method for shortening the code
+	 */
+	private GenreNode buildNode(String name){
+		return new GenreNode(0, 0, width * RADIUS_FACTOR, name);
 	}
 	
 	@Override
@@ -100,9 +121,36 @@ public class GenreGraph implements IGraph {
 		
 		if(result != null){
 			currentRoot = result;
+			positionNodes(name);
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Helper method
+	 * Make the provided node root and position itself and
+	 * its children
+	 * @param node
+	 */
+	private void positionNodes(String name){
+		GenreNode newRoot = findNode(name);
+		
+		newRoot.x = width / 2.0f;
+		newRoot.y = height * ROOT_Y_FACTOR;
+		
+		if(newRoot.getParent() != null){
+			newRoot.getParent().x = width / 2.0f;
+			newRoot.getParent().y = height * PARENT_Y_FACTOR;
+		}
+		
+		int size = newRoot.getChildren().size();
+		for (int i = 0; i < size ; i++) {
+			GenreNode child = newRoot.getChildren().get(i);
+			
+			child.x = ((width * i) / size) + ((width * 0.5f) / size);
+			child.y = height * CHILD_Y_FACTOR;
+		}
 	}
 	
 	@Override
@@ -136,5 +184,10 @@ public class GenreGraph implements IGraph {
 	 */
 	public GenreNode getCurrentRoot(){
 		return currentRoot;
+	}
+
+	@Override
+	public GenreNode findNode(String name) {
+		return root.findNode(name);
 	}
 }

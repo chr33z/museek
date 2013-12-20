@@ -3,6 +3,13 @@ package de.mimuc.pem_music_graph.graph;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.utils.ApplicationController;
+
+import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.Log;
 
 /**
@@ -11,13 +18,25 @@ import android.util.Log;
  * @author Christopher Gebhardt
  *
  */
-public class GenreNode implements IGraph{
+public class GenreNode implements IGraph, GraphDrawable{
 	
 	private static final String TAG = GenreNode.class.getName();
 	
-	protected float x = 0;
-	protected float y = 0;
-	protected float radius = 100;
+	/*
+	 * save the position of the root and the children
+	 * for repositioning when this node becomes root 
+	 */
+	protected float root_x = 0;
+	protected float root_y = 0;
+	protected float child_y = 0;
+	
+	/*
+	 * positions of this node on the screen
+	 * and for touch events 
+	 */
+	public float x = 0;
+	public float y = 0;
+	public float radius = 100;
 	
 	/**
 	 * visible name of this node
@@ -35,6 +54,11 @@ public class GenreNode implements IGraph{
 	private boolean isVisible;
 	
 	/**
+	 * value between 0 and 1. 0 is invisible, 1 is visible
+	 */
+	private double visibility = 1;
+	
+	/**
 	 * child nodes of this node
 	 */
 	private List<GenreNode> children;
@@ -49,6 +73,22 @@ public class GenreNode implements IGraph{
 		this.y = y;
 		this.radius = radius;
 		this.name = name;
+	}
+	
+	/**
+	 * 
+	 * @param radius
+	 * @param name
+	 * @param root_x position when the node becomes root
+	 * @param root_y position when the node becomes root
+	 * @param child_y position of children when the node becomes root
+	 */
+	public GenreNode(String name, float radius, float root_y, float child_y, double width, double height){
+		this.radius = radius;
+		this.name = name;
+		this.root_x = root_x;
+		this.root_y = root_y;
+		this.child_y = child_y;
 	}
 	
 	/**
@@ -180,6 +220,14 @@ public class GenreNode implements IGraph{
 		return this;
 	}
 	
+	public double getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(double visibility) {
+		this.visibility = visibility;
+	}
+
 	@Override
 	public void move(float x, float y) {
 		this.x += x;
@@ -256,5 +304,62 @@ public class GenreNode implements IGraph{
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public GenreNode findNode(String name) {
+		GenreNode result = null;
+		
+		if(this.name.equalsIgnoreCase(name)){
+			return this;
+		}
+		else {
+			if(children != null){
+				for (GenreNode child : children) {
+					result = child.findNode(name);
+					if(result != null){
+						return result;
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public void draw(Canvas canvas, int width, int height, float translation) {
+		Resources res = ApplicationController.getInstance().getResources();
+		
+		Paint nodeP = new Paint();
+		Paint lineP = new Paint();
+		Paint textP = new Paint();
+		
+		// normailze alpha value
+		if(visibility > 1) visibility = 1;
+		else if(visibility < 0) visibility = 0;
+		
+		nodeP.setColor(res.getColor(R.color.graph_node_lila));
+		nodeP.setARGB((int)(255 * visibility), 124, 205, 124);
+		nodeP.setAntiAlias(true);
+		
+		lineP.setStrokeWidth(5); // FIXME make screen dependent
+		nodeP.setAntiAlias(true);
+		
+		textP.setColor(res.getColor(R.color.graph_text_light));
+		textP.setTextSize(textP.getTextSize() * 5); // FIXME make screen dependent
+		nodeP.setAntiAlias(true);
+		
+		if(parent != null) canvas.drawLine(
+				x, y + translation, 
+				parent.x, parent.y + translation, 
+				lineP);
+		
+		canvas.drawCircle(
+				x, y + translation, 
+				radius, nodeP);
+		
+		canvas.drawText(name, 
+				(x - (radius / 2)), y + translation, 
+				textP);
 	}
 }

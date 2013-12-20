@@ -57,7 +57,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	private LocationClient mLocationClient;
 
 	// coordinates for moving the view
-	private float dy;
+	private double dy;
 	
 	boolean updated = false;
 
@@ -119,7 +119,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		int height = metrics.heightPixels;
 
 		SlidingUpPanelLayout layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-		layout.setPanelHeight((int)(height * 0.6));
+		layout.setPanelHeight((int)(height * 0.5));
 		layout.setDragView(listHandle);
 		layout.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
 		layout.setPanelSlideListener(new PanelSlideListener() {
@@ -146,8 +146,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-
-
+				
 			}
 
 			@Override

@@ -1,6 +1,12 @@
 package de.mimuc.pem_music_graph.graph;
 
 import java.util.Calendar;
+
+import de.mimuc.pem_music_graph.graph.animation.FadeAnimation;
+import de.mimuc.pem_music_graph.graph.animation.GraphAnimationQueue;
+import de.mimuc.pem_music_graph.graph.animation.IdleAnimation;
+import de.mimuc.pem_music_graph.graph.animation.MoveAnimation;
+import de.mimuc.pem_music_graph.graph.animation.TouchAnimation;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
 import de.mimuc.pem_music_graph.R;
@@ -25,13 +31,16 @@ import android.view.SurfaceView;
 public class MusicGraphView extends SurfaceView implements Runnable {
 	
 	private static final String TAG = MusicGraphView.class.getSimpleName();
-
-	private Context context;
 	
 	/**
 	 * The genre graph contains all genre nodes
 	 */
 	GenreGraph graph;
+	
+	/**
+	 * manages all animations that are played
+	 */
+	GraphAnimationQueue animationQueue;
 	
 	private Thread thread;
 	private SurfaceHolder surfaceHolder;
@@ -39,8 +48,10 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	volatile boolean running;
 	
 	// Save the last touch position to calculate relative movement on the screen
-	float lastTouchX = 0;
-	float lastTouchY = 0;
+	double lastTouchX = 0;
+	double lastTouchY = 0;
+	
+	boolean onTouch = false;
 	
 	float textSizeScale = 5;
 	
@@ -48,13 +59,14 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	Paint paintNode = new Paint();
     Paint paintText = new Paint();
     
-    // Screen width and other positions
+    // Screen dimensions
     int width = 0;
     int height = 0;
-    float rootX = 0;
-	float rootY = 0;
-	float childX = 0;
-	float childY = 0;
+    
+    double rootX = 0;
+	double rootY = 0;
+	double childX = 0;
+	double childY = 0;
     
     // Variables for touch event to distingish a click from a move
     private static final int MAX_CLICK_DURATION = 200;
@@ -62,7 +74,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	
 	public MusicGraphView(Context context){
 		super(context);
-		this.context = context;
 		
 		paintNode.setColor(context.getResources().getColor(R.color.graph_node_lila));
 		paintText.setColor(Color.WHITE);
@@ -71,17 +82,15 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		// Build GenreGraph and add nodes
 		graph = new GenreGraph();
 		
+		// initialize animation queue
+		animationQueue = new GraphAnimationQueue();
+		
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController
 				.getInstance().getResources().getDisplayMetrics();
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
 
-		// TODO make dimensions resolution dependent and synced with the node position itself
-		rootX = width / 2.0f;
-		rootY = height * 0.15f;
-		childY = height * 0.25f;
-		
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(new SurfaceHolder.Callback() {
 			
@@ -96,42 +105,50 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			}
 			
 			@Override
-			public void surfaceChanged(SurfaceHolder holder, int format, int width,
-					int height) {
-				
+			public void surfaceChanged(SurfaceHolder holder, int format, int s_width,
+					int s_height) {
+				width = s_width;
+				height = s_height;
 			}
 		});
 	}
 	
 	@Override
     protected void onDraw(Canvas canvas) {
-        /**
-         * TODO
-         * Idea we need to 
-         */
-		
 		canvas.drawColor(Color.DKGRAY);
-        
+		
+		// update the animations
+		animationQueue.update(System.currentTimeMillis());
+		
         // get current node and save for easier access
         GenreNode root = graph.getCurrentRoot();
+        boolean hasParent = (root.getParent() != null);
         
         /*
-         *  draw the root node
-         *  use not the node coordinates but set the coordinates yourself
+         * slowly move the translation back to original
+         * if the graph is not touched but the graph was moved
          */
-        canvas.drawCircle(rootX, rootY, root.radius, paintNode);
-        canvas.drawText(root.getName(), rootX - (root.radius / 2), rootY, paintText);
-        
-        // iterate through root children and draw them and a line to root
-        for (GenreNode child : root.getChildren()) {
+        if(!onTouch && graph.translation > 0){
+        	graph.translation -= 
+        			graph.translation * GenreGraph.TRANSLATION_SNAP_FACTOR;
         	
-        	canvas.drawLine(child.x, child.y, root.x, root.y, paintNode);
-        	canvas.drawCircle(child.x, child.y, child.radius, paintNode);
+        	if(graph.translation < 0){
+        		graph.translation = 0;
+        	}
+        }
+        
+        /*
+         * watch the draw order! children -> root -> parent
+         */
+        for (GenreNode child : root.getChildren()) {
+			child.draw(canvas, width, height, graph.translation);
 		}
         
-        for (GenreNode child : root.getChildren()) {
-        	canvas.drawText(child.getName(), (child.x - (child.radius / 2)), child.y, paintText);
-		}
+        root.draw(canvas, width, height, graph.translation);
+        
+        if(hasParent){
+        	root.getParent().draw(canvas, width, height, graph.translation);
+        }
     }
 	
 	@Override
@@ -144,6 +161,8 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		switch(event.getAction()){
 		
 		case MotionEvent.ACTION_DOWN:
+			onTouch = true;
+			
 			lastTouchX = eventX;
 			lastTouchY = eventY;
 			
@@ -151,46 +170,58 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			return true;
 			
 		case MotionEvent.ACTION_MOVE:
-			node = graph.testForTouch(eventX, eventY);
-			if(node != null){
-				/*
-				 *  determine the relative move direction 
-				 *  and move nodes accordingly in y direction only
-				 *  TODO only allow pull down motion
-				 *  FIXME root node always drawn at same position
-				 *  so it does not move with child nodes
-				 */
-				graph.move(0, eventY-lastTouchY);
-				lastTouchX = eventX;
-				lastTouchY = eventY;
+			Log.d(TAG, "Node moved!");
+			/*
+			 *  determine the relative move direction 
+			 *  and move nodes accordingly in y direction only
+			 *  TODO only allow pull down motion
+			 *  FIXME root node always drawn at same position
+			 *  so it does not move with child nodes
+			 */
+			if((eventY-lastTouchY) >= 0){
+				graph.translation += (eventY-lastTouchY);
 			}
-			break;
+			
+			lastTouchX = eventX;
+			lastTouchY = eventY;
+			
+			return true;
 			
 		case MotionEvent.ACTION_UP:
+			onTouch = false;
+			
 			// we measure the click time and decide if its a click or not
 			long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
             if(clickDuration < MAX_CLICK_DURATION) {
+            	Log.d(TAG, "Node click event!");
                 node = graph.testForTouch(eventX, eventY);
                 
-                // if we touched a node that is currently not root, set as root
+                // if we touch a node that is currently not root, set as root
                 if(node != null && !(graph.getCurrentRoot().getName())
                 		.equalsIgnoreCase(node.getName()) ){
                 	
+                	animationQueue.addAnimation(
+                			new MoveAnimation(node, 2000, node.getParent().x, node.getParent().y));
+                	animationQueue.addAnimation(new FadeAnimation(node, 2000, FadeAnimation.HIDE), "fade");
+                	
                 	graph.setAsRoot(node.getName());
-                	Log.d(TAG, "Set node \""+node.getName()+"\" as Root");
-                	Log.d(TAG, "New Root "+graph.getCurrentRoot().getName());
                 }
-                
-                // TODO if we touch the root, make its parent root
+                else if(node != null && node.isRoot()){
+                	GenreNode parent = node.getParent();
+                	
+                	if(parent != null){
+                		graph.setAsRoot(parent.getName());
+                	}
+                }
             }
-			break;
+            return true;
 			
 		default:
 			return false;
 		}
 		
-		invalidate();
-		return true;
+//		invalidate();
+//		return true;
 	};
 	
 	private void setRunning(boolean running){

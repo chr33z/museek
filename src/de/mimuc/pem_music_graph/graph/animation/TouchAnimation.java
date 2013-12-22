@@ -12,16 +12,16 @@ public class TouchAnimation extends GraphAnimation {
 	
 	private GenreNode node;
 	
-	private float radius = 0f;
+	private float origRadius = 0f;
 	private float maxRadius = 0f;
 	private float difference = 0f;
 
 	public TouchAnimation(GenreNode node, int duration){
 		this.node = node;
-		this.radius = node.radius;
+		this.origRadius = node.radius;
 		this.duration = duration;
 		
-		this.difference = radius * 0.2f;
+		this.difference = origRadius * 0.2f;
 	}
 
 	@Override
@@ -29,14 +29,21 @@ public class TouchAnimation extends GraphAnimation {
 		float newRadius;
 		
 		if(time <= duration / 2){
-			newRadius = (float) EaseFunction.easeOutQuad(time, radius, difference, duration);
+			newRadius = (float) EaseFunction.easeOutQuad(time, origRadius, difference, duration);
 			maxRadius = newRadius;
+			
+			// check for "overshoot"
+			if(newRadius > origRadius + difference) newRadius = origRadius + difference;
+			
 			node.radius = newRadius;
-			Log.d("move1", newRadius+"");
 		} else {
+			maxRadius = origRadius + difference;
 			newRadius = (float) EaseFunction.easeInQuad(time, maxRadius, -difference, duration);
+			
+			// check for "overshoot"
+			if(newRadius < origRadius) newRadius = origRadius;
+			
 			node.radius = newRadius;
-			Log.d("move2", newRadius+"");
 		}
 	}
 }

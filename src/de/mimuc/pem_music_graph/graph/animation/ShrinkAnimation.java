@@ -7,6 +7,8 @@ public class ShrinkAnimation extends GraphAnimation {
 
 	private GenreNode node;
 	
+	private boolean reverse;
+	
 	private float origRadius;
 	private float maxRadius;
 	
@@ -23,24 +25,55 @@ public class ShrinkAnimation extends GraphAnimation {
 		this.origRadius = node.radius;
 	}
 	
+	public ShrinkAnimation(GenreNode node, long duration, boolean reverse){
+		this.duration = duration;
+		this.node = node;
+		this.origRadius = node.radius;
+		this.reverse = reverse;
+	}
+	
+	public ShrinkAnimation(GenreNode node, long duration, long delay, boolean reverse){
+		this.duration = duration;
+		this.delay = delay;
+		this.node = node;
+		this.origRadius = node.radius;
+		this.reverse = reverse;
+	}
+	
 	@Override
 	protected void animate(long time) {
-		// fade
-		double visibility = EaseFunction.easeInQuad(time, 1, -1, duration);
-		node.setVisibility(visibility);
-		
-		//shrink
-		float newRadius;
-		if(time <= duration / 10){
-			newRadius = (float) EaseFunction.easeOutQuad(
-					time, origRadius, origRadius + origRadius * 0.2f, duration);
-			maxRadius = newRadius;
-			node.radius = newRadius;
+		if(!reverse){
+			// fade
+			double visibility = EaseFunction.easeInQuad(time, 1, -1, duration);
+			node.setVisibility(visibility);
+			
+			//shrink
+			float newRadius;
+			if(time <= duration / 10){
+				newRadius = (float) EaseFunction.easeOutQuad(
+						time, origRadius, origRadius + origRadius * 0.2f, duration);
+				maxRadius = newRadius;
+				node.radius = newRadius;
+			} else {
+				newRadius = (float) EaseFunction.easeInQuad(time, maxRadius, -maxRadius, duration);
+				node.radius = newRadius;
+			}
 		} else {
-			newRadius = (float) EaseFunction.easeInQuad(time, maxRadius, -maxRadius, duration);
-			node.radius = newRadius;
+			double visibility = EaseFunction.easeInQuad(time, 0, 1, duration);
+			node.setVisibility(visibility);
+			
+			//shrink
+			float newRadius;
+			if(time <= duration - (duration / 10)){
+				newRadius = (float) EaseFunction.easeOutQuad(
+						time, 0, origRadius + origRadius * 0.2f, duration);
+				maxRadius = newRadius;
+				node.radius = newRadius;
+			} else {
+				newRadius = (float) EaseFunction.easeInQuad(time, maxRadius, -origRadius * 0.2f, duration);
+				node.radius = newRadius;
+			}
 		}
-		
 	}
 
 	

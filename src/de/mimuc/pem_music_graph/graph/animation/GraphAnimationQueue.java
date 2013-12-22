@@ -1,6 +1,8 @@
 package de.mimuc.pem_music_graph.graph.animation;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
@@ -8,8 +10,13 @@ import java.util.Map.Entry;
 import android.util.Log;
 
 /**
- * Animation Queue that supportes multiple simultanios animations.
- * The animations queues are identified by tags like "movetorootanimations"
+ * Animation Queue that supports multiple simultaneous animations.
+ * The animations queues are identified by tags like "movetorootanimations".
+ * 
+ * All animations with a tag are executed subsequently
+ * 
+ * Animations can change properties of a node like visibility or position but 
+ * not yet spawn ohter objects or draw directly onto the canvas
  * 
  * @author Christopher Gebhardt
  *
@@ -41,25 +48,34 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 		/*
 		 *  remove empty queues - store values in list first before you remove
 		 *  otherwise prepare for exception
+		 *  TODO catch current modification exception
 		 */
-		ArrayList<String> queuesToRemove = new ArrayList<String>();
-		for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
-			if(!queue.getKey().equals(MAIN_QUEUE) && 
-					queue.getValue().size() == 0){
-				queuesToRemove.add(queue.getKey());
+		try{
+			ArrayList<String> queuesToRemove = new ArrayList<String>();
+			for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
+				if(!queue.getKey().equals(MAIN_QUEUE) && 
+						queue.getValue().size() == 0){
+					queuesToRemove.add(queue.getKey());
+				}
 			}
-		}
-		for (String queue : queuesToRemove) {
-			queues.remove(queue);
-		}
+			for (String queue : queuesToRemove) {
+				queues.remove(queue);
+			}
+			
+			// update rest of the queues
+			for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
+				if(queue.getValue().size() > 0){
+					queue.getValue().getFirst().update(time);
+				} else {
+					queues.remove(queue.getKey());
+				}
+			}
 		
-		// update rest of the queues
-		for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
-			if(queue.getValue().size() > 0){
-				queue.getValue().getFirst().update(time);
-			} else {
-				queues.remove(queue.getKey());
-			}
+		} catch(ConcurrentModificationException e){
+			/*
+			 * catch this exception and just skip this frame
+			 */
+			Log.w(TAG, "Unsynchronized access on queues. Skip this frame!");
 		}
 	}
 	
@@ -106,7 +122,6 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 		if(queues.get(tag) != null){
 			queues.get(tag).pollFirst();
 		}
-		Log.d(TAG, "Animation finished");
 	}
 
 	@Override

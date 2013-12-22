@@ -18,10 +18,10 @@ public class GenreGraph implements IGraph {
 
 	private static final String TAG = GenreNode.class.getName();
 	
-	private static final float PARENT_Y_FACTOR = 0.0f;
-	private static final float ROOT_Y_FACTOR = 0.15f;
-	private static final float CHILD_Y_FACTOR = 0.30f;
-	private static final float RADIUS_FACTOR = 0.1f;
+	public static final float PARENT_Y_FACTOR = 0.0f;
+	public static final float ROOT_Y_FACTOR = 0.15f;
+	public static final float CHILD_Y_FACTOR = 0.30f;
+	public static final float RADIUS_FACTOR = 0.1f;
 	
 	// value between 0 and 1
 	public static final float TRANSLATION_SNAP_FACTOR = 0.1f;
@@ -121,7 +121,7 @@ public class GenreGraph implements IGraph {
 		
 		if(result != null){
 			currentRoot = result;
-			positionNodes(name);
+			positionNodes(result);
 		}
 		
 		return result;
@@ -133,16 +133,18 @@ public class GenreGraph implements IGraph {
 	 * its children
 	 * @param node
 	 */
-	private void positionNodes(String name){
-		GenreNode newRoot = findNode(name);
+	private void positionNodes(GenreNode newRoot){
 		
 		newRoot.x = width / 2.0f;
 		newRoot.y = height * ROOT_Y_FACTOR;
+		newRoot.radius = width * RADIUS_FACTOR;
+		newRoot.setVisibility(1);
 		
 		if(newRoot.getParent() != null){
 			newRoot.getParent().x = width / 2.0f;
 			newRoot.getParent().y = height * PARENT_Y_FACTOR;
-			newRoot.radius = width * RADIUS_FACTOR;
+			newRoot.getParent().radius = width * RADIUS_FACTOR;
+			newRoot.getParent().setVisibility(1);
 		}
 		
 		int size = newRoot.getChildren().size();
@@ -152,6 +154,7 @@ public class GenreGraph implements IGraph {
 			child.x = ((width * i) / size) + ((width * 0.5f) / size);
 			child.y = height * CHILD_Y_FACTOR;
 			child.radius = width * RADIUS_FACTOR;
+			child.setVisibility(1);
 		}
 	}
 	

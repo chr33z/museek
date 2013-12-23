@@ -56,6 +56,14 @@ public class GenreNode implements IGraph, GraphDrawable{
 	 */
 	public boolean drawLines = true;
 	
+	private Paint paintNode = new Paint();
+	
+	private Paint paintLine = new Paint();
+	
+	private Paint paintText = new Paint();
+	
+	private float textSize = 0;
+	
 	/**
 	 * child nodes of this node
 	 */
@@ -71,6 +79,8 @@ public class GenreNode implements IGraph, GraphDrawable{
 		this.y = y;
 		this.radius = radius;
 		this.name = name;
+		
+		initPaint();
 	}
 	
 	/**
@@ -81,6 +91,25 @@ public class GenreNode implements IGraph, GraphDrawable{
 	public GenreNode(String name, float radius, double width, double height){
 		this.radius = radius;
 		this.name = name;
+		
+		initPaint();
+	}
+	
+	private void initPaint(){
+		textSize = paintText.getTextSize() * 5;
+		
+		paintNode.setARGB(255, 176, 48, 96);
+		paintNode.setAntiAlias(true);
+		
+		paintLine.setStrokeWidth(5); // FIXME make screen dependent
+		paintLine.setARGB(255, 20, 20, 20);
+		paintLine.setAntiAlias(true);
+		
+		paintText.setColor(ApplicationController.getInstance()
+				.getResources().getColor(R.color.graph_text_light));
+		paintText.setTextSize(textSize); // FIXME make screen dependent
+		paintText.setARGB(255, 220, 220, 220);
+		paintText.setAntiAlias(true);
 	}
 	
 	/**
@@ -320,41 +349,31 @@ public class GenreNode implements IGraph, GraphDrawable{
 
 	@Override
 	public void draw(Canvas canvas, int width, int height, float translation) {
-		Resources res = ApplicationController.getInstance().getResources();
-		
-		Paint nodeP = new Paint();
-		Paint lineP = new Paint();
-		Paint textP = new Paint();
+		//Resources res = ApplicationController.getInstance().getResources();
 		
 		// normailze alpha value
 		if(visibility > 1) visibility = 1;
 		else if(visibility < 0) visibility = 0;
 		
-//		nodeP.setColor(res.getColor(R.color.graph_node_lila));
-		nodeP.setARGB((int)(255 * visibility), 176, 48, 96);
-		nodeP.setAntiAlias(true);
+		paintNode.setARGB((int)(255 * visibility), 176, 48, 96);
 		
-		lineP.setStrokeWidth(5); // FIXME make screen dependent
-		lineP.setARGB((int)(255 * visibility), 20, 20, 20);
-		lineP.setAntiAlias(true);
+		paintLine.setARGB((int)(255 * visibility), 20, 20, 20);
 		
-		textP.setColor(res.getColor(R.color.graph_text_light));
-		textP.setTextSize((float) (textP.getTextSize() * 5 * visibility)); // FIXME make screen dependent
-		textP.setARGB((int)(255 * visibility), 220, 220, 220);
-		textP.setAntiAlias(true);
+		paintText.setTextSize((float) (textSize * visibility)); // FIXME make screen dependent
+		paintText.setARGB((int)(255 * visibility), 220, 220, 220);
 		
 		if(parent != null && drawLines) canvas.drawLine(
 				x, y + translation, 
 				parent.x, parent.y + translation, 
-				lineP);
+				paintLine);
 		
 		canvas.drawCircle(
 				x, y + translation, 
-				radius, nodeP);
+				radius, paintNode);
 		
 		canvas.drawText(name, 
 				(x - (radius / 2)), y + translation, 
-				textP);
+				paintText);
 		
 		drawLines = true;
 	}

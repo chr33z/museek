@@ -132,7 +132,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 	}
 	
 	/**
-	 * Get animation lengt in milliseconds of queue with tag 
+	 * Get animation length in milliseconds of queue with tag 
 	 * @param tag
 	 * @return
 	 */

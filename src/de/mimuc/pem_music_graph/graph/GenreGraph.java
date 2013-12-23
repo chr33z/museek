@@ -26,6 +26,8 @@ public class GenreGraph implements IGraph {
 	// value between 0 and 1
 	public static final float TRANSLATION_SNAP_FACTOR = 0.1f;
 	
+	public static float TRANSLATION_MAX;
+	
 	/*
 	 * screen dimensions
 	 */
@@ -49,6 +51,8 @@ public class GenreGraph implements IGraph {
 				.getInstance().getResources().getDisplayMetrics();
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
+		
+		TRANSLATION_MAX = (height * ROOT_Y_FACTOR) - (height * PARENT_Y_FACTOR);
 		
 		buildGraph();
 	}

@@ -16,6 +16,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -44,6 +45,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	private static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
 
 	private Context context;
+	
+	private SlidingUpPanelLayout layout;
 
 	private MusicGraphView graphView;
 
@@ -118,7 +121,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		int width = metrics.widthPixels;
 		int height = metrics.heightPixels;
 
-		SlidingUpPanelLayout layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
 		layout.setPanelHeight((int)(height * 0.5));
 		layout.setDragView(listHandle);
 		layout.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
@@ -224,6 +227,27 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 				locationListView.setAdapter(adapter);
 				graphView.onThreadResume();
 			}});
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		
+		// hijack back button to do what we want
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+	       
+			if(!layout.isExpanded() && !graphView.isAtRoot()){
+				graphView.graphNavigateBack();
+				return true;
+			} 
+			else if(layout.isExpanded()) {
+				layout.collapsePane();
+				return true;
+			} else {
+				moveTaskToBack(true);
+				return true;
+			}
+	    }
+	    return super.onKeyDown(keyCode, event);
 	}
 
 }

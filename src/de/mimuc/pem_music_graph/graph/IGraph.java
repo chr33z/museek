@@ -34,6 +34,11 @@ public interface IGraph {
 	 * Set all nodes invisible.
 	 */
 	public void setInvisibleCascading();
+
+	/**
+	 * Set a color intervall for the children
+	 */
+	public void setColorIntervall(float min, float max);
 	
 	/**
 	 * Find a node with name

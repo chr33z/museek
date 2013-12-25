@@ -353,12 +353,9 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 		default:
 
-			//			onThreadPause();
+			invalidate();
 			return false;
 		}
-
-		//		invalidate();
-		//		return true;
 	};
 
 	private boolean graphUpAnimation(GenreNode node){

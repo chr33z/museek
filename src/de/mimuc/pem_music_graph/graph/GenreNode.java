@@ -9,7 +9,6 @@ import de.mimuc.pem_music_graph.utils.ApplicationController;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 
 /**
@@ -65,8 +64,13 @@ public class GenreNode implements IGraph, GraphDrawable{
 	private Paint paintText = new Paint();
 	
 	private float textSize = 0;
-	
-	private Color nodeColor;
+
+	/**
+	 * The color of the node is always the arithetic mean
+	 * of the color intervall. All childrens color intervalls 
+	 * are inside this colorintervall
+	 */
+	private float[] colorIntervall = new float[2];
 	
 	/**
 	 * child nodes of this node
@@ -346,8 +350,6 @@ public class GenreNode implements IGraph, GraphDrawable{
 	private void setLevel(){
 		if(parent == null) level = 1;
 		else level = parent.level + 1;
-		
-		Log.d(TAG, "Level set to "+level);
 	}
 	
 	/**
@@ -391,7 +393,7 @@ public class GenreNode implements IGraph, GraphDrawable{
 		}
 		
 		paintNode.setColor(Color.HSVToColor(alpha, new float[]{ 
-				GenreGraph.COLOR_HUE - GenreGraph.COLOR_HUE_STEP * level,
+				360 * ((colorIntervall[0] + colorIntervall[1]) / 2),
 				GenreGraph.COLOR_SAT,
 				GenreGraph.COLOR_VAL}));
 
@@ -415,5 +417,22 @@ public class GenreNode implements IGraph, GraphDrawable{
 				paintText);
 		
 		drawLines = true;
+	}
+
+	@Override
+	public void setColorIntervall(float min, float max) {
+		colorIntervall[0] = min;
+		colorIntervall[1] = max;
+		
+		Log.d(TAG, "level "+level+" intervall "+colorIntervall[0]+" "+colorIntervall[1]);
+		
+		if(children != null && children.size() > 0){
+			for(int i=0, num = children.size(); i < num; i++){
+				children.get(i).setColorIntervall(
+						min + (((max-min)/num) * i), 
+						min + (((max-min)/num) * (i+1))
+				);
+			}
+		}
 	}
 }

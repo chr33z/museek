@@ -15,6 +15,7 @@ import android.content.Context;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -131,8 +132,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
-				Log.d(TAG, android.os.Build.VERSION.SDK_INT+"");
-				Log.d(TAG, Build.VERSION_CODES.GINGERBREAD+"");
+				graphView.onThreadPause();
+				
 				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
 					if (slideOffset < 0.2) {
 						if (getActionBar().isShowing()) {
@@ -148,13 +149,25 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 
 			@Override
 			public void onPanelExpanded(View panel) {
-
-
+				graphView.onThreadPause();
+				
+				// FIXME find other method for Android 2.3
+				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
+					((FrameLayout)layout.findViewById(R.id.graph_view_frame)).removeAllViews();
+				}
 			}
 
 			@Override
 			public void onPanelCollapsed(View panel) {
+				graphView.onThreadResume();
 				
+				// FIXME find other method for Android 2.3
+				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
+					FrameLayout frame = ((FrameLayout)layout.findViewById(R.id.graph_view_frame));
+					if(frame.getChildCount() == 0){
+						frame.addView(graphView);
+					}
+				}
 			}
 
 			@Override

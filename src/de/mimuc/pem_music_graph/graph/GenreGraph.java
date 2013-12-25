@@ -112,6 +112,8 @@ public class GenreGraph implements IGraph {
 		
 		currentRoot = setAsRoot("Music");
 		
+		setColorIntervall(0.3f, 0.5f);
+		
 		Log.d(TAG, "...finished in "+(System.currentTimeMillis() - startTime)+" ms!");
 	}
 	
@@ -221,5 +223,10 @@ public class GenreGraph implements IGraph {
 	@Override
 	public GenreNode findNode(String name) {
 		return root.findNode(name);
+	}
+
+	@Override
+	public void setColorIntervall(float min, float max) {
+		root.setColorIntervall(min, max);
 	}
 }

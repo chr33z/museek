@@ -96,7 +96,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 		} else {
 			queues.get(tag).add(animation);
 		}
-		Log.d(TAG, "Animation added to queue "+tag);
+//		Log.d(TAG, "Animation added to queue "+tag);
 	}
 	
 	/**
@@ -114,7 +114,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 		} else {
 			queues.get(MAIN_QUEUE).add(animation);
 		}
-		Log.d(TAG, "Animation added to queue "+MAIN_QUEUE);
+//		Log.d(TAG, "Animation added to queue "+MAIN_QUEUE);
 	}
 
 	@Override

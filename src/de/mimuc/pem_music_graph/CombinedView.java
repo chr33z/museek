@@ -13,6 +13,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -130,13 +131,17 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
-				if (slideOffset < 0.2) {
-					if (getActionBar().isShowing()) {
-						getActionBar().hide();
-					}
-				} else {
-					if (!getActionBar().isShowing()) {
-						getActionBar().show();
+				Log.d(TAG, android.os.Build.VERSION.SDK_INT+"");
+				Log.d(TAG, Build.VERSION_CODES.GINGERBREAD+"");
+				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
+					if (slideOffset < 0.2) {
+						if (getActionBar().isShowing()) {
+							getActionBar().hide();
+						}
+					} else {
+						if (!getActionBar().isShowing()) {
+							getActionBar().show();
+						}
 					}
 				}
 			}

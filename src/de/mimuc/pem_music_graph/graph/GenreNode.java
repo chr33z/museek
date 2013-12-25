@@ -6,10 +6,10 @@ import java.util.List;
 import de.mimuc.pem_music_graph.R;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 
 /**
@@ -50,6 +50,8 @@ public class GenreNode implements IGraph, GraphDrawable{
 	 */
 	private double visibility = 1;
 	
+	public int level = 0; 
+	
 	/**
 	 * only animation can make this false
 	 * resets after each draw cycle
@@ -63,6 +65,8 @@ public class GenreNode implements IGraph, GraphDrawable{
 	private Paint paintText = new Paint();
 	
 	private float textSize = 0;
+	
+	private Color nodeColor;
 	
 	/**
 	 * child nodes of this node
@@ -80,7 +84,7 @@ public class GenreNode implements IGraph, GraphDrawable{
 		this.radius = radius;
 		this.name = name;
 		
-		initPaint();
+		initColor();
 	}
 	
 	/**
@@ -92,13 +96,17 @@ public class GenreNode implements IGraph, GraphDrawable{
 		this.radius = radius;
 		this.name = name;
 		
-		initPaint();
+		initColor();
 	}
 	
-	private void initPaint(){
-		textSize = paintText.getTextSize() * 5;
+	private void initColor(){
+		textSize = paintText.getTextSize();
 		
-		paintNode.setARGB(255, 176, 48, 96);
+		paintNode.setColor(Color.HSVToColor(new float[]{
+				GenreGraph.COLOR_HUE,
+				GenreGraph.COLOR_SAT,
+				GenreGraph.COLOR_VAL
+				}));
 		paintNode.setAntiAlias(true);
 		
 		paintLine.setStrokeWidth(5); // FIXME make screen dependent
@@ -124,24 +132,6 @@ public class GenreNode implements IGraph, GraphDrawable{
 		return this;
 	}
 	
-	/**
-	 * @return the name of this node
-	 */
-	public String getName(){
-		return this.name;
-	}
-	
-	/**
-	 * Set a name for this node. This name is also drawn on
-	 * the canvas
-	 * @param name visible name of this node
-	 * @return
-	 */
-	public GenreNode setName(String name){
-		this.name = name;
-		return this;
-	}
-
 	/**
 	 * @return whether this node is currently the root 
 	 * of the graph
@@ -233,11 +223,13 @@ public class GenreNode implements IGraph, GraphDrawable{
 	}
 
 	/**
-	 * Set the parent node of this node
+	 * Set the parent node of this node and determine the level of this node
+	 * in the tree
 	 * @param parent
 	 */
 	public GenreNode setParent(GenreNode parent) {
 		this.parent = parent;
+		setLevel();
 		return this;
 	}
 	
@@ -265,7 +257,7 @@ public class GenreNode implements IGraph, GraphDrawable{
 	public GenreNode setAsRoot(String name) {
 		GenreNode result = null;
 		
-		if(this.getName().equalsIgnoreCase(name)){
+		if(this.name.equalsIgnoreCase(name)){
 			this.setRoot(true);
 			return this;
 		}
@@ -346,21 +338,68 @@ public class GenreNode implements IGraph, GraphDrawable{
 		}
 		return result;
 	}
+	
+	/**
+	 * Set the level of this node in the tree. is called as soon as this node has
+	 * a parent
+	 */
+	private void setLevel(){
+		if(parent == null) level = 1;
+		else level = parent.level + 1;
+		
+		Log.d(TAG, "Level set to "+level);
+	}
+	
+	/**
+	 * Blend the foreground color onto the background color based on the alpha channel
+	 * of the foreground color. 
+	 * 
+	 * @param colorForeground
+	 * @param colorBackground
+	 * @return new color
+	 */
+	private int calcTransparancy(int colorForeground, int colorBackground){
+		int alphaf = Color.alpha(colorForeground);
+		int redf = Color.red(colorForeground);
+		int greenf = Color.green(colorForeground);
+		int bluef = Color.blue(colorForeground);
+		
+		int redb = Color.red(colorBackground);
+		int greenb = Color.green(colorBackground);
+		int blueb = Color.blue(colorBackground);
+		
+		float alpha = (alphaf / 255.0f);
+		int redn = (int) ((redf * alpha) + ((1 - alpha) * redb));
+		int greenn = (int) ((greenf * alpha) + ((1 - alpha) * greenb));
+		int bluen = (int) ((bluef * alpha) + ((1 - alpha) * blueb));
+		
+		return Color.rgb(redn, greenn, bluen);
+	}
 
 	@Override
 	public void draw(Canvas canvas, int width, int height, float translation) {
 		//Resources res = ApplicationController.getInstance().getResources();
 		
 		// normailze alpha value
-		if(visibility > 1) visibility = 1;
-		else if(visibility < 0) visibility = 0;
+		int alpha = 0;
+		if(visibility > 1){
+			alpha = 255;
+		} else if(visibility < 0){
+			alpha = 0;
+		} else {
+			alpha = (int) (255 * visibility);
+		}
 		
-		paintNode.setARGB((int)(255 * visibility), 176, 48, 96);
+		paintNode.setColor(Color.HSVToColor(alpha, new float[]{ 
+				GenreGraph.COLOR_HUE - GenreGraph.COLOR_HUE_STEP * level,
+				GenreGraph.COLOR_SAT,
+				GenreGraph.COLOR_VAL}));
+
+		paintLine.setStrokeWidth(width * GenreGraph.LINE_FACTOR);
+		paintLine.setARGB(alpha, 20, 20, 20);
 		
-		paintLine.setARGB((int)(255 * visibility), 20, 20, 20);
-		
-		paintText.setTextSize((float) (textSize * visibility)); // FIXME make screen dependent
-		paintText.setARGB((int)(255 * visibility), 220, 220, 220);
+		paintText.setTextSize((float) (textSize * visibility * width * GenreGraph.TEXT_FACTOR));
+		paintText.setARGB(alpha, 220, 220, 220);
 		
 		if(parent != null && drawLines) canvas.drawLine(
 				x, y + translation, 

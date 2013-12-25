@@ -2,6 +2,7 @@ package de.mimuc.pem_music_graph.graph;
 
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -22,6 +23,24 @@ public class GenreGraph implements IGraph {
 	public static final float ROOT_Y_FACTOR = 0.15f;
 	public static final float CHILD_Y_FACTOR = 0.30f;
 	public static final float RADIUS_FACTOR = 0.1f;
+	public static final float TEXT_FACTOR = 0.005f;
+	public static final float LINE_FACTOR = 0.005f;
+	
+	// Colors used for nodes
+	public static final float COLOR_HUE = 158.0f;
+	public static final float COLOR_HUE_STEP = -15.0f;
+	public static final float COLOR_SAT = 0.73f;
+	public static final float COLOR_VAL = 0.69f;
+	
+	// colors used for the rest
+	public static final int COLOR_TEXT = Color.WHITE;
+	public static final int COLOR_BACKGROUND = Color.DKGRAY;
+	public static final int COLOR_LINE = Color.BLACK;
+	
+	// Animation Times
+	public static final int ANIM_MOVE_DURATION = 300;
+	public static final int ANIM_TOUCH_DURATION = 100;
+	public static final int ANIM_DELAY = 50;
 	
 	// value between 0 and 1
 	public static final float TRANSLATION_SNAP_FACTOR = 0.1f;
@@ -35,7 +54,7 @@ public class GenreGraph implements IGraph {
 	private float height;
 	
 	/**
-	 * 
+	 * vertical translation of entire graph view
 	 */
 	public float translation = 0;
 	
@@ -44,6 +63,9 @@ public class GenreGraph implements IGraph {
 	 */
 	private GenreNode root;
 	
+	/**
+	 * the current displayed root of the graph
+	 */
 	private GenreNode currentRoot;
 	
 	public GenreGraph(){
@@ -66,6 +88,7 @@ public class GenreGraph implements IGraph {
 		long startTime = System.currentTimeMillis();
 		
 		root = buildNode("Music");
+		root.level = 0;
 		
 		root.addChild(buildNode("Rock"));
 		root.addChild(buildNode("Pop"));
@@ -109,7 +132,7 @@ public class GenreGraph implements IGraph {
 		 */
 		setInvisibleCascading();
 		
-		if(root.getName().equalsIgnoreCase(name)){
+		if(root.name.equalsIgnoreCase(name)){
 			root.setRoot(true);
 			result =  root;
 		}
@@ -174,7 +197,7 @@ public class GenreGraph implements IGraph {
 
 	@Override
 	public void addChildTo(GenreNode child, String name) {
-		if(root.getName().equalsIgnoreCase(name)){
+		if(root.name.equalsIgnoreCase(name)){
 			root.addChild(child);
 		}
 		else {

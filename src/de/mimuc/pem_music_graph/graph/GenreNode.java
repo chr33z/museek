@@ -3,6 +3,12 @@ package de.mimuc.pem_music_graph.graph;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.utils.ApplicationController;
+
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.Log;
 
 /**
@@ -11,13 +17,17 @@ import android.util.Log;
  * @author Christopher Gebhardt
  *
  */
-public class GenreNode implements IGraph{
+public class GenreNode implements IGraph, GraphDrawable{
 	
 	private static final String TAG = GenreNode.class.getName();
 	
-	protected float x = 0;
-	protected float y = 0;
-	protected float radius = 100;
+	/*
+	 * positions of this node on the screen
+	 * and for touch events 
+	 */
+	public float x = 0;
+	public float y = 0;
+	public float radius = 100;
 	
 	/**
 	 * visible name of this node
@@ -35,6 +45,34 @@ public class GenreNode implements IGraph{
 	private boolean isVisible;
 	
 	/**
+	 * value between 0 and 1. 0 is invisible, 1 is visible
+	 */
+	private double visibility = 1;
+	
+	public int level = 0; 
+	
+	/**
+	 * only animation can make this false
+	 * resets after each draw cycle
+	 */
+	public boolean drawLines = true;
+	
+	private Paint paintNode = new Paint();
+	
+	private Paint paintLine = new Paint();
+	
+	private Paint paintText = new Paint();
+	
+	private float textSize = 0;
+
+	/**
+	 * The color of the node is always the arithetic mean
+	 * of the color intervall. All childrens color intervalls 
+	 * are inside this colorintervall
+	 */
+	private float[] colorIntervall = new float[2];
+	
+	/**
 	 * child nodes of this node
 	 */
 	private List<GenreNode> children;
@@ -49,6 +87,41 @@ public class GenreNode implements IGraph{
 		this.y = y;
 		this.radius = radius;
 		this.name = name;
+		
+		initColor();
+	}
+	
+	/**
+	 * 
+	 * @param radius
+	 * @param name
+	 */
+	public GenreNode(String name, float radius, double width, double height){
+		this.radius = radius;
+		this.name = name;
+		
+		initColor();
+	}
+	
+	private void initColor(){
+		textSize = paintText.getTextSize();
+		
+		paintNode.setColor(Color.HSVToColor(new float[]{
+				GenreGraph.COLOR_HUE,
+				GenreGraph.COLOR_SAT,
+				GenreGraph.COLOR_VAL
+				}));
+		paintNode.setAntiAlias(true);
+		
+		paintLine.setStrokeWidth(5); // FIXME make screen dependent
+		paintLine.setARGB(255, 20, 20, 20);
+		paintLine.setAntiAlias(true);
+		
+		paintText.setColor(ApplicationController.getInstance()
+				.getResources().getColor(R.color.graph_text_light));
+		paintText.setTextSize(textSize); // FIXME make screen dependent
+		paintText.setARGB(255, 220, 220, 220);
+		paintText.setAntiAlias(true);
 	}
 	
 	/**
@@ -63,24 +136,6 @@ public class GenreNode implements IGraph{
 		return this;
 	}
 	
-	/**
-	 * @return the name of this node
-	 */
-	public String getName(){
-		return this.name;
-	}
-	
-	/**
-	 * Set a name for this node. This name is also drawn on
-	 * the canvas
-	 * @param name visible name of this node
-	 * @return
-	 */
-	public GenreNode setName(String name){
-		this.name = name;
-		return this;
-	}
-
 	/**
 	 * @return whether this node is currently the root 
 	 * of the graph
@@ -172,14 +227,24 @@ public class GenreNode implements IGraph{
 	}
 
 	/**
-	 * Set the parent node of this node
+	 * Set the parent node of this node and determine the level of this node
+	 * in the tree
 	 * @param parent
 	 */
 	public GenreNode setParent(GenreNode parent) {
 		this.parent = parent;
+		setLevel();
 		return this;
 	}
 	
+	public double getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(double visibility) {
+		this.visibility = visibility;
+	}
+
 	@Override
 	public void move(float x, float y) {
 		this.x += x;
@@ -196,7 +261,7 @@ public class GenreNode implements IGraph{
 	public GenreNode setAsRoot(String name) {
 		GenreNode result = null;
 		
-		if(this.getName().equalsIgnoreCase(name)){
+		if(this.name.equalsIgnoreCase(name)){
 			this.setRoot(true);
 			return this;
 		}
@@ -256,5 +321,118 @@ public class GenreNode implements IGraph{
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public GenreNode findNode(String name) {
+		GenreNode result = null;
+		
+		if(this.name.equalsIgnoreCase(name)){
+			return this;
+		}
+		else {
+			if(children != null){
+				for (GenreNode child : children) {
+					result = child.findNode(name);
+					if(result != null){
+						return result;
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * Set the level of this node in the tree. is called as soon as this node has
+	 * a parent
+	 */
+	private void setLevel(){
+		if(parent == null) level = 1;
+		else level = parent.level + 1;
+	}
+	
+	/**
+	 * Blend the foreground color onto the background color based on the alpha channel
+	 * of the foreground color. 
+	 * 
+	 * @param colorForeground
+	 * @param colorBackground
+	 * @return new color
+	 */
+	private int calcTransparancy(int colorForeground, int colorBackground){
+		int alphaf = Color.alpha(colorForeground);
+		int redf = Color.red(colorForeground);
+		int greenf = Color.green(colorForeground);
+		int bluef = Color.blue(colorForeground);
+		
+		int redb = Color.red(colorBackground);
+		int greenb = Color.green(colorBackground);
+		int blueb = Color.blue(colorBackground);
+		
+		float alpha = (alphaf / 255.0f);
+		int redn = (int) ((redf * alpha) + ((1 - alpha) * redb));
+		int greenn = (int) ((greenf * alpha) + ((1 - alpha) * greenb));
+		int bluen = (int) ((bluef * alpha) + ((1 - alpha) * blueb));
+		
+		return Color.rgb(redn, greenn, bluen);
+	}
+
+	@Override
+	public void draw(Canvas canvas, int width, int height, float translation) {
+		//Resources res = ApplicationController.getInstance().getResources();
+		
+		// normailze alpha value
+		int alpha = 0;
+		if(visibility > 1){
+			alpha = 255;
+		} else if(visibility < 0){
+			alpha = 0;
+		} else {
+			alpha = (int) (255 * visibility);
+		}
+		
+		paintNode.setColor(Color.HSVToColor(alpha, new float[]{ 
+				360 * ((colorIntervall[0] + colorIntervall[1]) / 2),
+				GenreGraph.COLOR_SAT,
+				GenreGraph.COLOR_VAL}));
+
+		paintLine.setStrokeWidth(width * GenreGraph.LINE_FACTOR);
+		paintLine.setARGB(alpha, 20, 20, 20);
+		
+		paintText.setTextSize((float) (textSize * visibility * width * GenreGraph.TEXT_FACTOR));
+		paintText.setARGB(alpha, 220, 220, 220);
+		
+		if(parent != null && drawLines) canvas.drawLine(
+				x, y + translation, 
+				parent.x, parent.y + translation, 
+				paintLine);
+		
+		canvas.drawCircle(
+				x, y + translation, 
+				radius, paintNode);
+		
+		canvas.drawText(name, 
+				(x - (radius / 2)), y + translation, 
+				paintText);
+		
+		drawLines = true;
+	}
+
+	@Override
+	public void setColorIntervall(float min, float max) {
+		colorIntervall[0] = min;
+		colorIntervall[1] = max;
+		
+		Log.d(TAG, "level "+level+" intervall "+colorIntervall[0]+" "+colorIntervall[1]);
+		
+		if(children != null && children.size() > 0){
+			for(int i=0, num = children.size(); i < num; i++){
+				children.get(i).setColorIntervall(
+						min + (((max-min)/num) * i), 
+						min + (((max-min)/num) * (i+1))
+				);
+			}
+		}
 	}
 }

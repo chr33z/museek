@@ -13,9 +13,12 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -44,6 +47,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	private static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
 
 	private Context context;
+	
+	private SlidingUpPanelLayout layout;
 
 	private MusicGraphView graphView;
 
@@ -57,7 +62,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	private LocationClient mLocationClient;
 
 	// coordinates for moving the view
-	private float dy;
+	private double dy;
 	
 	boolean updated = false;
 
@@ -118,8 +123,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		int width = metrics.widthPixels;
 		int height = metrics.heightPixels;
 
-		SlidingUpPanelLayout layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-		layout.setPanelHeight((int)(height * 0.6));
+		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+		layout.setPanelHeight((int)(height * 0.5));
 		layout.setDragView(listHandle);
 		layout.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
 		layout.setPanelSlideListener(new PanelSlideListener() {
@@ -127,27 +132,42 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
-				if (slideOffset < 0.2) {
-					if (getActionBar().isShowing()) {
-						getActionBar().hide();
-					}
-				} else {
-					if (!getActionBar().isShowing()) {
-						getActionBar().show();
+				graphView.onThreadPause();
+				
+				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
+					if (slideOffset < 0.2) {
+						if (getActionBar().isShowing()) {
+							getActionBar().hide();
+						}
+					} else {
+						if (!getActionBar().isShowing()) {
+							getActionBar().show();
+						}
 					}
 				}
 			}
 
 			@Override
 			public void onPanelExpanded(View panel) {
-
-
+				graphView.onThreadPause();
+				
+				// FIXME find other method for Android 2.3
+				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
+					((FrameLayout)layout.findViewById(R.id.graph_view_frame)).removeAllViews();
+				}
 			}
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-
-
+				graphView.onThreadResume();
+				
+				// FIXME find other method for Android 2.3
+				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
+					FrameLayout frame = ((FrameLayout)layout.findViewById(R.id.graph_view_frame));
+					if(frame.getChildCount() == 0){
+						frame.addView(graphView);
+					}
+				}
 			}
 
 			@Override
@@ -225,6 +245,27 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 				locationListView.setAdapter(adapter);
 				graphView.onThreadResume();
 			}});
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		
+		// hijack back button to do what we want
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+	       
+			if(!layout.isExpanded() && !graphView.isAtRoot()){
+				graphView.graphNavigateBack();
+				return true;
+			} 
+			else if(layout.isExpanded()) {
+				layout.collapsePane();
+				return true;
+			} else {
+				moveTaskToBack(true);
+				return true;
+			}
+	    }
+	    return super.onKeyDown(keyCode, event);
 	}
 
 }

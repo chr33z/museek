@@ -6,6 +6,7 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.Volley;
 
 import android.app.Application;
+import android.graphics.Paint;
 import android.text.TextUtils;
 
 /**
@@ -35,7 +36,7 @@ public class ApplicationController extends Application {
 	/** URL POST find locations by position and radius */
 	public static final String URL_POST_FIND_BY_LOCATION = URL_BASE
 			+ "location/findbylocation";
-
+	
 	/**
 	 * Global request queue for Volley
 	 */

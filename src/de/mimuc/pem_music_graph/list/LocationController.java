@@ -25,8 +25,10 @@ public class LocationController implements JsonConstants {
 	private static final String TAG = LocationController.class.getSimpleName();
 
 	public List<EventLocation> eventLocationList;
-	
+
 	private LocationControllerListener callbackReceiver;
+
+	private Location currentLocation;
 
 	public LocationController(LocationControllerListener callbackReceiver) {
 		this.callbackReceiver = callbackReceiver;
@@ -39,13 +41,15 @@ public class LocationController implements JsonConstants {
 	 */
 	public void updateLocation(Location location) {
 		Log.d(TAG, "Try to retrieve locations from server...");
-		
+
+		currentLocation = location;
+
 		// Json f�r POST Request
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(TAG_LATITUDE, location.getLatitude() + "");
 		params.put(TAG_LONGITUDE, location.getLongitude() + "");
 		params.put("radius", "1000000"); // radius in m
-		
+
 		// POST request
 		JsonObjectRequest req = new JsonObjectRequest(
 				ApplicationController.URL_POST_FIND_BY_LOCATION,
@@ -59,8 +63,9 @@ public class LocationController implements JsonConstants {
 				}, new Response.ErrorListener() {
 					@Override
 					public void onErrorResponse(VolleyError error) {
-						if(error.getMessage() == null){
-							Log.e(TAG, "...could not retrieve location or a meaningfull error...");
+						if (error.getMessage() == null) {
+							Log.e(TAG,
+									"...could not retrieve location or a meaningfull error...");
 							return;
 						}
 						VolleyLog.e("Error: ", error.getMessage());
@@ -69,7 +74,7 @@ public class LocationController implements JsonConstants {
 				});
 
 		ApplicationController.getInstance().addToRequestQueue(req);
-		
+
 		callbackReceiver.onLocationControllerUpdate();
 	}
 
@@ -90,7 +95,7 @@ public class LocationController implements JsonConstants {
 
 		try {
 			eventLocationList.clear();
-			
+
 			// eventLocations are stored in an array
 			JSONArray jsonArray = json
 					.getJSONArray(JsonConstants.TAG_LOCATIONS);
@@ -122,11 +127,12 @@ public class LocationController implements JsonConstants {
 				EventLocation newEventLocation = new EventLocation(name, genre,
 						subgenre, street, housenumber, city, postcode,
 						phonenumber, emailAddress, openingHours,
-						ageRestriction, furtherInformation, latitude, longitude);
-				
+						ageRestriction, furtherInformation, latitude,
+						longitude, currentLocation);
+
 				Log.d(TAG, newEventLocation.name);
 				eventLocationList.add(newEventLocation);
-				Log.d(TAG, eventLocationList.size()+"");
+				Log.d(TAG, eventLocationList.size() + "");
 			}
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());

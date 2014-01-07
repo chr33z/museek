@@ -8,6 +8,8 @@ import de.mimuc.pem_music_graph.R.id;
 import de.mimuc.pem_music_graph.R.layout;
 
 import android.content.Context;
+import android.location.Location;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -125,11 +127,40 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
+		Location destination = new Location("destination");
+		destination.setLatitude(Double.parseDouble(eventLocationList.get(groupPosition).latitude));
+		destination.setLongitude(Double.parseDouble(eventLocationList.get(groupPosition).longitude));
+		Location currentLocation = eventLocationList.get(groupPosition).currentLocation;
+		float distance = currentLocation.distanceTo(destination);
+		
+		Log.v(TAG, ""+distance);
+		
 		TextView textView = new TextView(context);
-		textView.setText(eventLocationList.get(groupPosition).name);
+		
+		
+		textView.setText(eventLocationList.get(groupPosition).name + " " + roundDistance(distance));
 		textView.setPadding(50, 10, 10, 10);
 		textView.setTextSize(25);
 		return textView;
+	}
+
+	/**
+	 * if distance >=1000m, information in km, else in m
+	 * @param distance
+	 * @return
+	 */
+	private String roundDistance(float distance) {
+		String distanceUnity = "m";
+		if(distance >= 1000){
+			float dist = distance;
+			dist = distance/1000;
+			dist = Math.round(dist*10);
+			dist = dist/10;
+			distance = dist;
+			distanceUnity = "km";
+		}else
+			distance = Math.round(distance);
+		return distance + " " + distanceUnity;
 	}
 
 	@Override

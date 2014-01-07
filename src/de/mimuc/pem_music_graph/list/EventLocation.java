@@ -1,5 +1,7 @@
 package de.mimuc.pem_music_graph.list;
 
+import android.location.Location;
+
 public class EventLocation {
 
 	public String name;
@@ -17,10 +19,13 @@ public class EventLocation {
 	public String latitude;
 	public String longitude;
 
-	public EventLocation(String name, String genre, String subgenre, String street,
-			String housenumber, String city, String postcode, String phonenumber,
-			String emailAddress, String openingHours, String ageRestriction,
-			String furtherInformation, String latitude, String longitude) {
+	Location currentLocation;
+
+	public EventLocation(String name, String genre, String subgenre,
+			String street, String housenumber, String city, String postcode,
+			String phonenumber, String emailAddress, String openingHours,
+			String ageRestriction, String furtherInformation, String latitude,
+			String longitude, Location currentLocation) {
 		this.name = name;
 		this.genre = genre;
 		this.subgenre = subgenre;
@@ -34,7 +39,9 @@ public class EventLocation {
 		this.ageRestriction = ageRestriction;
 		this.furtherInformation = furtherInformation;
 		this.latitude = latitude;
-		this. longitude = longitude;
+		this.longitude = longitude;
+		
+		this.currentLocation = currentLocation;
 	}
 
 }

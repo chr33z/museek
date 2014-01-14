@@ -11,21 +11,20 @@ public class EventLocation {
 	public String housenumber;
 	public String city;
 	public String postcode;
-	public String phonenumber;
-	public String emailAddress;
+	// public String phonenumber;
+	// public String emailAddress;
 	public String openingHours;
-	public String ageRestriction;
+	// public String ageRestriction;
 	public String furtherInformation;
 	public String latitude;
 	public String longitude;
-
-	Location currentLocation;
+	public Location currentLocation;
+	public String locationUri;
 
 	public EventLocation(String name, String genre, String subgenre,
 			String street, String housenumber, String city, String postcode,
-			String phonenumber, String emailAddress, String openingHours,
-			String ageRestriction, String furtherInformation, String latitude,
-			String longitude, Location currentLocation) {
+			String openingHours, String furtherInformation, String latitude,
+			String longitude, Location currentLocation, String locationUri) {
 		this.name = name;
 		this.genre = genre;
 		this.subgenre = subgenre;
@@ -33,15 +32,15 @@ public class EventLocation {
 		this.housenumber = housenumber;
 		this.city = city;
 		this.postcode = postcode;
-		this.phonenumber = phonenumber;
-		this.emailAddress = emailAddress;
+//		this.phonenumber = phonenumber;
+//		this.emailAddress = emailAddress;
 		this.openingHours = openingHours;
-		this.ageRestriction = ageRestriction;
+//		this.ageRestriction = ageRestriction;
 		this.furtherInformation = furtherInformation;
 		this.latitude = latitude;
 		this.longitude = longitude;
-		
 		this.currentLocation = currentLocation;
+		this.locationUri = locationUri;
 	}
 
 }

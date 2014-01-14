@@ -84,6 +84,8 @@ public class LocationController implements JsonConstants {
 	 * @param json
 	 */
 	protected void readJson(JSONObject json) {
+		String genre = null;
+		String subgenre = null;
 		String name = null;
 		String description = " --- ";
 		String street = null;
@@ -92,6 +94,9 @@ public class LocationController implements JsonConstants {
 		String postcode = null;
 		String latitude = null;
 		String longitude = null;
+		String openingHours = null;
+		String furtherInformation = null;
+		String locationUri = null;
 
 		try {
 			eventLocationList.clear();
@@ -108,27 +113,20 @@ public class LocationController implements JsonConstants {
 				// Address is an extra JSONObject
 				JSONObject address = eventLocation
 						.getJSONObject(JsonConstants.TAG_ADDRESS);
-				String genre = "";
-				String subgenre = "";
+
 				street = address.getString(JsonConstants.TAG_STREET);
 				housenumber = address.getString(JsonConstants.TAG_HOUSENUMBER);
 				city = address.getString(JsonConstants.TAG_CITY);
 				postcode = address.getString(JsonConstants.TAG_POSTCODE);
 
-				String phonenumber = "";
-				String emailAddress = "";
-				String openingHours = "";
-				String ageRestriction = "";
-				String furtherInformation = "";
 				latitude = eventLocation.getString(JsonConstants.TAG_LATITUDE);
 				longitude = eventLocation
 						.getString(JsonConstants.TAG_LONGITUDE);
 
 				EventLocation newEventLocation = new EventLocation(name, genre,
 						subgenre, street, housenumber, city, postcode,
-						phonenumber, emailAddress, openingHours,
-						ageRestriction, furtherInformation, latitude,
-						longitude, currentLocation);
+						openingHours, furtherInformation, latitude, longitude,
+						currentLocation, locationUri);
 
 				Log.d(TAG, newEventLocation.name);
 				eventLocationList.add(newEventLocation);
@@ -140,7 +138,7 @@ public class LocationController implements JsonConstants {
 	}
 
 	/**
-	 * Getter f�r die aktuelle Liste der EventLocations
+	 * Getter fuer die aktuelle Liste der EventLocations
 	 * 
 	 * @return List<EventLocation>
 	 */

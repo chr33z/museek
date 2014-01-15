@@ -25,6 +25,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private static final String TAG = ExpandableListAdapter2.class.getName();
 
 	private Context context;
+	// TODO muss gespeichert werden
 	private boolean isStarFilled;
 	private boolean isTextExpanded;
 
@@ -62,8 +63,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (convertView == null) {
 			LayoutInflater layoutInflater = (LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			convertView = layoutInflater.inflate(R.layout.eventlocationlistbig,
-					null);
+			// TODO Abfrage, wie gross der Bildschirm ist
+			convertView = layoutInflater.inflate(R.layout.listitembig, null);
 		}
 		final EventLocation eventLocation = eventLocationList
 				.get(groupPosition);
@@ -136,8 +137,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					if (!isTextExpanded) {
 						furtherInformation.setMaxLines(10);
 						setTextExpanded(true);
-					}
-					else{
+					} else {
 						furtherInformation.setMaxLines(3);
 						setTextExpanded(false);
 					}

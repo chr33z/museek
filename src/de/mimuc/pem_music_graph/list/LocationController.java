@@ -130,6 +130,7 @@ public class LocationController implements JsonConstants {
 				endTime = event.getString(TAG_EVENT_END_TIME);
 				minAge = event.getString(TAG_EVENT_MIN_AGE);
 				specialOffer = event.getString(TAG_EVENT_SPECIAL_OFFER);
+				
 
 				locationID = event.getString(TAG_LOCATION_ID);
 				locationName = event.getString(TAG_LOCATION_NAME);

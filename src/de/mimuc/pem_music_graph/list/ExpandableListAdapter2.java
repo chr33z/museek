@@ -35,16 +35,16 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private boolean isTextExpanded;
 
 	// TODO where comes the List with the Information from?
-	private List<EventLocation> eventLocationList;
+	private List<Event> eventList;
 
 	public ExpandableListAdapter2(Context context,
-			List<EventLocation> eventLocationList) {
+			List<Event> eventList) {
 		this.context = context;
-		this.eventLocationList = eventLocationList;
+		this.eventList = eventList;
 	}
 
-	public void updateEventLocationList(List<EventLocation> eventLocationList) {
-		this.eventLocationList = eventLocationList;
+	public void updateEventList(List<Event> eventList) {
+		this.eventList = eventList;
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			// TODO Abfrage, wie gross der Bildschirm ist
 			convertView = layoutInflater.inflate(R.layout.listitembig, null);
 		}
-		final EventLocation eventLocation = eventLocationList
+		final Event eventLocation = eventList
 				.get(groupPosition);
 		if (eventLocation != null) {
 			TextView openingHours = (TextView) convertView
@@ -166,7 +166,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
-		return eventLocationList.size();
+		return eventList.size();
 	}
 
 	@Override
@@ -185,11 +185,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 		// compute distance
 		Location destination = new Location("destination");
-		destination.setLatitude(Double.parseDouble(eventLocationList
+		destination.setLatitude(Double.parseDouble(eventList
 				.get(groupPosition).latitude));
-		destination.setLongitude(Double.parseDouble(eventLocationList
+		destination.setLongitude(Double.parseDouble(eventList
 				.get(groupPosition).longitude));
-		Location currentLocation = eventLocationList.get(groupPosition).currentLocation;
+		Location currentLocation = eventList.get(groupPosition).currentLocation;
 		float distance = currentLocation.distanceTo(destination);
 
 		TextView eventLocationName = (TextView) convertView
@@ -204,7 +204,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 		if (eventLocationName != null) {
 			eventLocationName
-					.setText(eventLocationList.get(groupPosition).name);
+					.setText(eventList.get(groupPosition).name);
 		}
 		if (eventName != null) {
 			eventName.setText("Test");

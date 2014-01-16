@@ -2,7 +2,7 @@ package de.mimuc.pem_music_graph.list;
 
 import android.location.Location;
 
-public class EventLocation {
+public class Event {
 
 	public String name;
 	public String genre;
@@ -21,7 +21,7 @@ public class EventLocation {
 	public Location currentLocation;
 	public String locationUri;
 
-	public EventLocation(String name, String genre, String subgenre,
+	public Event(String name, String genre, String subgenre,
 			String street, String housenumber, String city, String postcode,
 			String openingHours, String furtherInformation, String latitude,
 			String longitude, Location currentLocation, String locationUri) {

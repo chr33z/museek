@@ -1,19 +1,28 @@
 package de.mimuc.pem_music_graph.list;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import de.mimuc.pem_music_graph.R;
 import de.mimuc.pem_music_graph.R.id;
 import de.mimuc.pem_music_graph.R.layout;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
@@ -21,18 +30,20 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private static final String TAG = ExpandableListAdapter2.class.getName();
 
 	private Context context;
+	// TODO muss gespeichert werden
+	private boolean isStarFilled;
+	private boolean isTextExpanded;
 
 	// TODO where comes the List with the Information from?
-	private List<EventLocation> eventLocationList;
+	private List<Event> eventList;
 
-	public ExpandableListAdapter2(Context context, List<EventLocation> eventLocationList) {
+	public ExpandableListAdapter2(Context context, List<Event> eventList) {
 		this.context = context;
-		
-		this.eventLocationList = eventLocationList;
+		this.eventList = eventList;
 	}
 
-	public void updateEventLocationList(List<EventLocation> eventLocationList) {
-	    this.eventLocationList = eventLocationList;
+	public void updateEventList(List<Event> eventList) {
+		this.eventList = eventList;
 	}
 
 	@Override
@@ -56,51 +67,109 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (convertView == null) {
 			LayoutInflater layoutInflater = (LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			convertView = layoutInflater.inflate(R.layout.listitem, null);
+			// TODO Abfrage, wie gross der Bildschirm ist
+			convertView = layoutInflater.inflate(R.layout.listitembig, null);
 		}
-		EventLocation eventLocation = eventLocationList.get(groupPosition);
-		if (eventLocation != null) {
-			TextView address = (TextView) convertView
-					.findViewById(R.id.address);
-			TextView phonenumber = (TextView) convertView
-					.findViewById(R.id.phonenumber);
-			TextView emailAddress = (TextView) convertView
-					.findViewById(R.id.emailAddress);
+		final Event event = eventList.get(groupPosition);
+		if (event != null) {
 			TextView openingHours = (TextView) convertView
-					.findViewById(R.id.openingHours);
-			TextView ageRestriction = (TextView) convertView
-					.findViewById(R.id.ageRestriction);
-			TextView furtherInformation = (TextView) convertView
-					.findViewById(R.id.furtherInformation);
-
-			// making Textfields not editable
-			address.setKeyListener(null);
-			phonenumber.setKeyListener(null);
-			emailAddress.setKeyListener(null);
-			openingHours.setKeyListener(null);
-			ageRestriction.setKeyListener(null);
-			furtherInformation.setKeyListener(null);
+					.findViewById(R.id.openinghours);
+			final TextView description = (TextView) convertView
+					.findViewById(R.id.description);
+			TextView admissionPriceGirls = (TextView) convertView
+					.findViewById(R.id.admissionpricegirls);
+			TextView admissionPriceBoys = (TextView) convertView
+					.findViewById(R.id.admissionpriceboys);
+			TextView addressStreet = (TextView) convertView
+					.findViewById(R.id.street);
+			TextView addressCity = (TextView) convertView
+					.findViewById(R.id.city);
+			ImageView loadWebsite = (ImageView) convertView
+					.findViewById(R.id.website);
+			ImageView pig = (ImageView) convertView.findViewById(R.id.pig);
+			ImageView direction = (ImageView) convertView
+					.findViewById(R.id.direction);
 
 			// setting the Informations of the EventLocation
-			if (address != null)
-				address.setText(eventLocation.street + " "
-						+ eventLocation.housenumber + ", "
-						+ eventLocation.postcode + " " + eventLocation.city);
-			if (phonenumber != null)
-				phonenumber.setText(eventLocation.phonenumber);
-			if (emailAddress != null)
-				emailAddress.setText(eventLocation.emailAddress);
-			if (openingHours != null)
-				openingHours.setText("ï¿½ffnungszeiten: "
-						+ eventLocation.openingHours);
-			if (ageRestriction != null)
-				ageRestriction.setText("Altersbeschrï¿½nkung: "
-						+ eventLocation.ageRestriction);
-			if (furtherInformation != null)
-				furtherInformation.setText(eventLocation.furtherInformation);
+			if (openingHours != null) {
+				if (stringNotEmpty(event.endTime))
+					openingHours.setText("Ge\u00F6ffnet: " + event.startTime
+							+ " - " + event.endTime);
+				else if (stringNotEmpty(event.startTime))
+					openingHours.setText("Ge\u00F6ffnet: " + " ab "
+							+ event.startTime);
+			}
+			if (description != null)
+				if (stringNotEmpty(event.endTime))
+					description.setText(event.eventDescription);
+			if (admissionPriceGirls != null)
+				admissionPriceGirls.setText("Mädels: ");
+			if (admissionPriceBoys != null)
+				admissionPriceBoys.setText("Jungs: ");
+			if (addressStreet != null)
+				if(stringNotEmpty(event.addressStreet) && stringNotEmpty(event.addressNumber))
+				addressStreet.setText(event.addressStreet + " "
+						+ event.addressNumber);
+			if (addressCity != null)
+				if(stringNotEmpty(event.addressPostcode) && stringNotEmpty(event.addressCity))
+				addressCity.setText(event.addressPostcode + " "
+						+ event.addressCity);
+
+			loadWebsite.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					if (stringNotEmpty(event.locationWebsite)) {
+						Intent browserIntent = new Intent(Intent.ACTION_VIEW,
+								Uri.parse(event.locationWebsite));
+						context.startActivity(browserIntent);
+					}
+				}
+			});
+
+			pig.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+
+				}
+			});
+
+			direction.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+
+				}
+			});
+
+			description.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					if (!isTextExpanded) {
+						description.setMaxLines(10);
+						setTextExpanded(true);
+					} else {
+						description.setMaxLines(3);
+						setTextExpanded(false);
+					}
+				}
+			});
 		}
 
 		return convertView;
+	}
+
+	/**
+	 * 
+	 * @param string
+	 * @return
+	 */
+	private boolean stringNotEmpty(String string) {
+		if (string.equals(""))
+			return false;
+		return true;
 	}
 
 	@Override
@@ -116,7 +185,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
-		return eventLocationList.size();
+		return eventList.size();
 	}
 
 	@Override
@@ -127,40 +196,97 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
+		if (convertView == null) {
+			LayoutInflater layoutInflater = (LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			convertView = layoutInflater.inflate(R.layout.headlinelist, null);
+		}
+
+		// compute distance
 		Location destination = new Location("destination");
-		destination.setLatitude(Double.parseDouble(eventLocationList.get(groupPosition).latitude));
-		destination.setLongitude(Double.parseDouble(eventLocationList.get(groupPosition).longitude));
-		Location currentLocation = eventLocationList.get(groupPosition).currentLocation;
+		destination
+				.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
+		destination.setLongitude(Double.parseDouble(eventList
+				.get(groupPosition).locationLongitude));
+		Location currentLocation = eventList.get(groupPosition).currentLocation;
 		float distance = currentLocation.distanceTo(destination);
-		
-		Log.v(TAG, ""+distance);
-		
-		TextView textView = new TextView(context);
-		
-		
-		textView.setText(eventLocationList.get(groupPosition).name + " " + roundDistance(distance));
-		textView.setPadding(50, 10, 10, 10);
-		textView.setTextSize(25);
-		return textView;
+
+		TextView locationName = (TextView) convertView
+				.findViewById(R.id.eventlocationname);
+		TextView eventName = (TextView) convertView
+				.findViewById(R.id.eventname);
+		TextView currentDistance = (TextView) convertView
+				.findViewById(R.id.currentdistance);
+		final ImageView arrow = (ImageView) convertView
+				.findViewById(R.id.arrow);
+		final ImageView star = (ImageView) convertView.findViewById(R.id.star);
+
+		if (locationName != null) {
+			if(stringNotEmpty(eventList.get(groupPosition).locationName))
+			locationName.setText(eventList.get(groupPosition).locationName);
+		}
+		if (eventName != null) {
+			if(stringNotEmpty(eventList.get(groupPosition).eventName))
+			eventName.setText(eventList.get(groupPosition).eventName);
+		}
+		if (currentDistance != null) {
+			currentDistance.setText(roundDistance(distance));
+		}
+
+		final int gP = groupPosition;
+		final boolean iE = isExpanded;
+		final ExpandableListView listView = (ExpandableListView) parent;
+
+		arrow.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (iE) {
+					listView.collapseGroup(gP);
+					arrow.setImageResource(R.drawable.ic_action_expand);
+				} else {
+					listView.expandGroup(gP);
+					arrow.setImageResource(R.drawable.ic_action_collapse);
+				}
+			}
+		});
+
+		star.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (!isStarFilled) {
+					star.setImageResource(R.drawable.ic_action_not_important);
+					setStarFilled(true);
+				} else {
+					star.setImageResource(R.drawable.ic_action_important);
+					setStarFilled(false);
+				}
+			}
+
+		});
+
+		return convertView;
 	}
 
 	/**
 	 * if distance >=1000m, information in km, else in m
+	 * 
 	 * @param distance
 	 * @return
 	 */
 	private String roundDistance(float distance) {
 		String distanceUnity = "m";
-		if(distance >= 1000){
+		if (distance >= 1000) {
 			float dist = distance;
-			dist = distance/1000;
-			dist = Math.round(dist*10);
-			dist = dist/10;
+			dist = distance / 1000;
+			dist = Math.round(dist * 10);
+			dist = dist / 10;
 			distance = dist;
 			distanceUnity = "km";
-		}else
+		} else
 			distance = Math.round(distance);
-		return distance + " " + distanceUnity;
+		return "ca. " + distance + " " + distanceUnity;
 	}
 
 	@Override
@@ -168,4 +294,19 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return false;
 	}
 
+	public boolean isStarFilled() {
+		return isStarFilled;
+	}
+
+	public void setStarFilled(boolean isStarFilled) {
+		this.isStarFilled = isStarFilled;
+	}
+
+	public boolean isTextExpanded() {
+		return isTextExpanded;
+	}
+
+	public void setTextExpanded(boolean isTextExpanded) {
+		this.isTextExpanded = isTextExpanded;
+	}
 }

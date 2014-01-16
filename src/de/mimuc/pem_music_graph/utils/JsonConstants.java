@@ -27,31 +27,31 @@ public interface JsonConstants {
 	 * new Server API json tags
 	 */
 	// general
-	public static final String TAG_RESULT_TIME 	= "res_tim";
-	public static final String TAG_RESULT_RADIUS = "res_rad";
-	public static final String TAG_RESULT_LATITUDE = "res_lat";
-	public static final String TAG_RESULT_LONGITUDE = "res_lon";
+    public static final String TAG_RESULT_TIME         = "result_time";
+    public static final String TAG_RESULT_RADIUS = "search_radius";
+    public static final String TAG_RESULT_LATITUDE = "search_latitude";
+    public static final String TAG_RESULT_LONGITUDE = "search_longitude";
 
-	// location specific
-	public static final String TAG_LOCATION_ID = "loc_id";
-	public static final String TAG_LOCATION_NAME = "loc_nam";
-	public static final String TAG_LOCATION_LATITUDE = "loc_lat";
-	public static final String TAG_LOCATION_LONGITUDE = "loc_lon";
-	public static final String TAG_LOCATION_DESCRIPTION = "loc_des";
-	public static final String TAG_LOCATION_ADDRESS_STREET = "loc_add_str";
-	public static final String TAG_LOCATION_ADDRESS_NUMBER = "loc_add_num";
-	public static final String TAG_LOCATION_ADDRESS_CITY = "loc_add_cit";
-	public static final String TAG_LOCATION_ADDRESS_POSTCODE = "loc_add_pos";
-	public static final String TAG_LOCATION_WEBSITE = "loc_web";
+    // location specific
+    public static final String TAG_LOCATION_ID = "location_id";
+    public static final String TAG_LOCATION_NAME = "location_name";
+    public static final String TAG_LOCATION_LATITUDE = "location_latitude";
+    public static final String TAG_LOCATION_LONGITUDE = "location_longitude";
+    public static final String TAG_LOCATION_DESCRIPTION = "location_description";
+    public static final String TAG_LOCATION_ADDRESS_STREET = "location_address_street";
+    public static final String TAG_LOCATION_ADDRESS_NUMBER = "location_address_housenumber";
+    public static final String TAG_LOCATION_ADDRESS_CITY = "location_address_city";
+    public static final String TAG_LOCATION_ADDRESS_POSTCODE = "location_address_postcode";
+    public static final String TAG_LOCATION_WEBSITE = "location_website";
 
 	// event specific
-	public static final String TAG_EVENT_NUMBER = "eve_num";
-	public static final String TAG_EVENT_NAME = "eve_nam";
-	public static final String TAG_EVENT_DESCRIPTION= "eve_des";
-	public static final String TAG_EVENT_START_TIME = "eve_sti";
-	public static final String TAG_EVENT_END_TIME = "eve_eti";
-	public static final String TAG_EVENT_MIN_AGE = "eve_mag";
-	public static final String TAG_EVENT_SPECIAL_OFFER = "eve_spo";
-	public static final String TAG_EVENT_GENRES = "eve_gen";
+	public static final String TAG_EVENT_NUMBER = "event_number";
+	public static final String TAG_EVENT_NAME = "event_name";
+	public static final String TAG_EVENT_DESCRIPTION= "event_description";
+	public static final String TAG_EVENT_START_TIME = "event_start_time";
+	public static final String TAG_EVENT_END_TIME = "event_end_time";
+	public static final String TAG_EVENT_MIN_AGE = "event_age_restriction";
+	public static final String TAG_EVENT_SPECIAL_OFFER = "event_special_offer";
+	public static final String TAG_EVENT_GENRES = "event_genres";
 
 }

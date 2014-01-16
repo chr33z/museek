@@ -48,7 +48,7 @@ public class LocationController implements JsonConstants {
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(TAG_LATITUDE, location.getLatitude() + "");
 		params.put(TAG_LONGITUDE, location.getLongitude() + "");
-		params.put("radius", "1000000"); // radius in m
+		params.put("radius", "10000000000"); // radius in m
 
 		// POST request
 		JsonObjectRequest req = new JsonObjectRequest(

@@ -11,5 +11,8 @@
     <string name="title_activity_http_test">HttpTest</string>
     <string name="title_activity_graph_test">GraphTest</string>
     <string name="title_activity_combined_view">CombinedView</string>
+    <string name="oe">\u00F6</string>
+    <string name="ae">\u00E4</string>
+    
 
 </resources>

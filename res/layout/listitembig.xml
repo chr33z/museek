@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical" 
+    android:padding="5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,37 +20,45 @@
                 android:id="@+id/openinghours"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="10dp" />
+                android:paddingBottom="10dp" 
+                android:textSize="16sp"
+                />
 
             <TextView
-                android:id="@+id/description"
+                android:id="@+id/eventdescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:paddingBottom="10dp"
                 android:maxLines="3"
-                android:linksClickable="true" />
+                android:linksClickable="true" 
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/admissionpricegirls"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" 
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/admissionpriceboys"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" 
-                android:paddingBottom="10dp" />
+                android:paddingBottom="10dp" 
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/street"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" 
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/city"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content" 
+                android:textSize="17sp"
+                />
 
             </LinearLayout>
 
@@ -57,17 +66,11 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical" >
+            android:orientation="vertical" 
+            android:layout_gravity="bottom">
 
             <ImageView
                 android:id="@+id/website"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:src="@drawable/ic_action_web_site" />
-
-            <ImageView
-                android:id="@+id/pig"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"

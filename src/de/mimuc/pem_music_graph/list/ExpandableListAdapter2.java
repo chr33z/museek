@@ -42,8 +42,25 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		this.eventList = eventList;
 	}
 
-	public void updateEventList(List<Event> eventList) {
-		this.eventList = eventList;
+	public void updateEventList(List<Event> eL) {
+		this.eventList = sortEventsDistance(eL);
+	}
+
+	private List<Event> sortEventsDistance(List<Event> eL) {
+		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
+		for(int i = 0; i< eL.size(); i++){
+			Location destination = new Location("destination");
+			destination.setLatitude(Double.parseDouble(eL
+					.get(i).locationLatitude));
+			destination.setLongitude(Double.parseDouble(eL
+					.get(i).locationLongitude));
+			Location currentLocation = eL.get(i).currentLocation;
+			float distance = currentLocation.distanceTo(destination);
+			unsortedList.put(distance, eL.get(i));
+		}
+		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
+		eL.addAll(sortedList.values());
+		return eL;
 	}
 
 	@Override
@@ -74,8 +91,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (event != null) {
 			TextView openingHours = (TextView) convertView
 					.findViewById(R.id.openinghours);
-			final TextView description = (TextView) convertView
-					.findViewById(R.id.description);
+			final TextView eventDescription = (TextView) convertView
+					.findViewById(R.id.eventdescription);
 			TextView admissionPriceGirls = (TextView) convertView
 					.findViewById(R.id.admissionpricegirls);
 			TextView admissionPriceBoys = (TextView) convertView
@@ -92,46 +109,51 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 			// setting the Informations of the EventLocation
 			if (openingHours != null) {
+				if (event.endTime.equals("0"))
+					event.endTime = "";
 				if (stringNotEmpty(event.endTime))
-					openingHours.setText("Ge\u00F6ffnet: " + event.startTime
-							+ " - " + event.endTime);
+					openingHours.setText("Ge" + context.getString(R.string.oe)
+							+ "ffnet: " + event.startTime + " - "
+							+ event.endTime + " Uhr");
 				else if (stringNotEmpty(event.startTime))
-					openingHours.setText("Ge\u00F6ffnet: " + " ab "
-							+ event.startTime);
+					openingHours.setText("Ge" + context.getString(R.string.oe)
+							+ "ffnet: " + " ab " + event.startTime + " Uhr");
 			}
-			if (description != null)
+			if (eventDescription != null)
 				if (stringNotEmpty(event.endTime))
-					description.setText(event.eventDescription);
+					eventDescription.setText(event.eventDescription);
+				else {
+					eventDescription.setMaxLines(0);
+					eventDescription.setPadding(0, 0, 0, 0);
+				}
 			if (admissionPriceGirls != null)
-				admissionPriceGirls.setText("Mädels: ");
+				admissionPriceGirls.setText("M"
+						+ context.getString(R.string.ae) + "dels: " + ",-");
 			if (admissionPriceBoys != null)
-				admissionPriceBoys.setText("Jungs: ");
+				admissionPriceBoys.setText("Jungs: " + ",-");
 			if (addressStreet != null)
-				if(stringNotEmpty(event.addressStreet) && stringNotEmpty(event.addressNumber))
-				addressStreet.setText(event.addressStreet + " "
-						+ event.addressNumber);
+				if (stringNotEmpty(event.addressStreet)
+						&& stringNotEmpty(event.addressNumber))
+					addressStreet.setText(event.addressStreet + " "
+							+ event.addressNumber);
 			if (addressCity != null)
-				if(stringNotEmpty(event.addressPostcode) && stringNotEmpty(event.addressCity))
-				addressCity.setText(event.addressPostcode + " "
-						+ event.addressCity);
+				if (stringNotEmpty(event.addressPostcode)
+						&& stringNotEmpty(event.addressCity))
+					addressCity.setText(event.addressPostcode + " "
+							+ event.addressCity);
 
 			loadWebsite.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
-					if (stringNotEmpty(event.locationWebsite)) {
-						Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-								Uri.parse(event.locationWebsite));
-						context.startActivity(browserIntent);
+					if (event.locationWebsite != null) {
+						if (stringNotEmpty(event.locationWebsite)) {
+							Intent browserIntent = new Intent(
+									Intent.ACTION_VIEW, Uri
+											.parse(event.locationWebsite));
+							context.startActivity(browserIntent);
+						}
 					}
-				}
-			});
-
-			pig.setOnClickListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View v) {
-
 				}
 			});
 
@@ -143,15 +165,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				}
 			});
 
-			description.setOnClickListener(new OnClickListener() {
+			eventDescription.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
 					if (!isTextExpanded) {
-						description.setMaxLines(10);
+						eventDescription.setMaxLines(10);
 						setTextExpanded(true);
 					} else {
-						description.setMaxLines(3);
+						eventDescription.setMaxLines(3);
 						setTextExpanded(false);
 					}
 				}
@@ -222,12 +244,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		final ImageView star = (ImageView) convertView.findViewById(R.id.star);
 
 		if (locationName != null) {
-			if(stringNotEmpty(eventList.get(groupPosition).locationName))
-			locationName.setText(eventList.get(groupPosition).locationName);
+			if (stringNotEmpty(eventList.get(groupPosition).locationName))
+				locationName.setText(eventList.get(groupPosition).locationName);
 		}
 		if (eventName != null) {
-			if(stringNotEmpty(eventList.get(groupPosition).eventName))
-			eventName.setText(eventList.get(groupPosition).eventName);
+			if (stringNotEmpty(eventList.get(groupPosition).eventName))
+				eventName.setText(eventList.get(groupPosition).eventName);
 		}
 		if (currentDistance != null) {
 			currentDistance.setText(roundDistance(distance));
@@ -286,7 +308,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			distanceUnity = "km";
 		} else
 			distance = Math.round(distance);
-		return "ca. " + distance + " " + distanceUnity;
+		return "ca. " + (int) distance + " " + distanceUnity;
 	}
 
 	@Override

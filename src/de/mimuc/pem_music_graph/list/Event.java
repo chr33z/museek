@@ -4,43 +4,65 @@ import android.location.Location;
 
 public class Event {
 
-	public String name;
-	public String genre;
-	public String subgenre;
-	public String street;
-	public String housenumber;
-	public String city;
-	public String postcode;
-	// public String phonenumber;
-	// public String emailAddress;
-	public String openingHours;
-	// public String ageRestriction;
-	public String furtherInformation;
-	public String latitude;
-	public String longitude;
-	public Location currentLocation;
-	public String locationUri;
+	public String resultTime;
+	public String resultRadius;
+	public String resultLatitude;
+	public String resultLongitude;
 
-	public Event(String name, String genre, String subgenre,
-			String street, String housenumber, String city, String postcode,
-			String openingHours, String furtherInformation, String latitude,
-			String longitude, Location currentLocation, String locationUri) {
-		this.name = name;
-		this.genre = genre;
-		this.subgenre = subgenre;
-		this.street = street;
-		this.housenumber = housenumber;
-		this.city = city;
-		this.postcode = postcode;
-//		this.phonenumber = phonenumber;
-//		this.emailAddress = emailAddress;
-		this.openingHours = openingHours;
-//		this.ageRestriction = ageRestriction;
-		this.furtherInformation = furtherInformation;
-		this.latitude = latitude;
-		this.longitude = longitude;
+	public String eventName;
+	public String eventGenre;
+	public String eventDescription;
+	public String startTime;
+	public String endTime;
+	public String minAge;
+	public String specialOffer;
+
+	public String locationID;
+	public String locationName;
+	public String locationLatitude;
+	public String locationLongitude;
+	public String locationDescription;
+	public String addressStreet;
+	public String addressNumber;
+	public String addressCity;
+	public String addressPostcode;
+	public String locationWebsite;
+	public Location currentLocation;
+
+	public Event(String resultTime, String resultRadius, String resultLatitude,
+			String resultLongitude, String eventName, String eventGenre,
+			String eventDescription, String startTime, String endTime,
+			String minAge, String specialOffer, String locationID,
+			String locationName, String locationLatitude,
+			String locationLongitude, String locationDescription,
+			String addressStreet, String addressNumber, String addressCity,
+			String addressPostcode, String locationWebsite,
+			Location currentLocation) {
+		this.resultTime = resultTime;
+		this.resultRadius = resultRadius;
+		this.resultLatitude = resultLatitude;
+		this.resultLongitude = resultLongitude;
+
+		this.eventName = eventName;
+		this.eventGenre = eventGenre;
+		this.eventDescription = eventDescription;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.minAge = minAge;
+		this.specialOffer = specialOffer;
+
+		this.locationID = locationID;
+		this.locationName = locationName;
+		this.locationLatitude = locationLatitude;
+		this.locationLongitude = locationLongitude;
+		this.locationDescription = locationDescription;
+		this.addressStreet = addressStreet;
+		this.addressNumber = addressNumber;
+		this.addressCity = addressCity;
+		this.addressPostcode = addressPostcode;
+		this.locationWebsite = locationWebsite;
+
 		this.currentLocation = currentLocation;
-		this.locationUri = locationUri;
 	}
 
 }

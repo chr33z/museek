@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" 
-    android:padding="5dp">
+    android:orientation="vertical"
+    android:padding="5dp" >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,59 +20,55 @@
                 android:id="@+id/openinghours"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="10dp" 
-                android:textSize="16sp"
-                />
+                android:paddingBottom="10dp"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/eventdescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:paddingBottom="10dp"
+                android:linksClickable="true"
                 android:maxLines="3"
-                android:linksClickable="true" 
-                android:textSize="16sp"/>
+                android:paddingBottom="10dp"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/admissionpricegirls"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" 
-                android:textSize="16sp"/>
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/admissionpriceboys"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" 
-                android:paddingBottom="10dp" 
-                android:textSize="16sp"/>
+                android:layout_height="wrap_content"
+                android:paddingBottom="10dp"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/street"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" 
-                android:textSize="16sp"/>
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/city"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" 
-                android:textSize="17sp"
-                />
+                android:layout_height="wrap_content"
+                android:textSize="17sp" />
+        </LinearLayout>
 
-            </LinearLayout>
-
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical" 
-            android:layout_gravity="bottom">
+            android:layout_weight="1" >
 
             <ImageView
                 android:id="@+id/website"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
                 android:clickable="true"
                 android:src="@drawable/ic_action_web_site" />
 
@@ -80,10 +76,12 @@
                 android:id="@+id/direction"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/website"
                 android:clickable="true"
-                android:src="@drawable/ic_action_directions" 
-                android:layout_gravity="bottom"/>
-        </LinearLayout>
+                android:src="@drawable/ic_action_directions" />
+        </RelativeLayout>
     </LinearLayout>
 
     <!-- Map -->

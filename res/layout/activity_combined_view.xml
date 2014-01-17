@@ -20,21 +20,34 @@
             android:layout_height="match_parent"
             android:background="#eee"
             android:orientation="vertical" >
+            
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/shadow_layer"
+                android:layout_above="@+id/list_handle"/>
 
             <FrameLayout
                 android:id="@+id/list_handle"
                 android:layout_width="match_parent"
                 android:layout_height="34dp"
-                android:background="#aaa" />
+                android:background="@drawable/list_handle_background" />
 
             <ExpandableListView
                 android:id="@+id/list_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_below="@+id/list_handle"
-                android:groupIndicator="@null"
-                android:padding="10dp" />
+                android:groupIndicator="@null" />
         </RelativeLayout>
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_alignParentBottom="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/shadow_layer" />
 
 </RelativeLayout>

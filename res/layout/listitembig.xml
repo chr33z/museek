@@ -1,94 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="5dp" >
-
-    <TextView
-        android:id="@+id/openinghours"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingBottom="10dp"
-        android:textSize="16sp" />
+    android:background="#f4e0f6">
+    
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_alignParentTop="true"
+        android:scaleType="fitXY"
+        android:rotation="180"
+        android:src="@drawable/shadow_layer" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="5dp" >
 
         <TextView
-            android:id="@+id/eventdescription"
-            android:layout_width="0dp"
+            android:id="@+id/openinghours"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="5"
-            android:ellipsize="end"
-            android:linksClickable="true"
-            android:maxLines="3"
             android:paddingBottom="10dp"
             android:textSize="16sp" />
 
-        <ImageView
-            android:id="@+id/website"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:src="@drawable/ic_action_web_site" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/admissionpricegirls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/admissionpriceboys"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingBottom="10dp"
-        android:textSize="16sp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="5"
-            android:orientation="vertical" >
+            android:orientation="horizontal" >
 
             <TextView
-                android:id="@+id/street"
-                android:layout_width="wrap_content"
+                android:id="@+id/eventdescription"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:ellipsize="end"
+                android:linksClickable="true"
+                android:maxLines="3"
+                android:paddingBottom="10dp"
                 android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/city"
-                android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/website"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textSize="17sp" />
+                android:layout_weight="1"
+                android:clickable="true"
+                android:src="@drawable/ic_action_web_site" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/direction"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/admissionpricegirls"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:clickable="true"
-            android:src="@drawable/ic_action_directions" />
-    </LinearLayout>
-    
-	<FrameLayout
-	    android:id="@+id/map_container"
-	    android:layout_width="match_parent"
-	    android:layout_height="100dp"
-	    android:background="@android:color/background_dark">
-	    
-	</FrameLayout>    
+            android:textSize="16sp" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/admissionpriceboys"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="10dp"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/street"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/city"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/direction"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:src="@drawable/ic_action_directions" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/map_container"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@android:color/background_dark" >
+        </FrameLayout>
+    </LinearLayout>
+
+</RelativeLayout>

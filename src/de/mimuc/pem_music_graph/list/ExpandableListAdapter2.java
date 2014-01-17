@@ -117,17 +117,20 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 							+ "ffnet: " + " ab " + event.startTime + " Uhr");
 			}
 			if (eventDescription != null)
-				if (stringNotEmpty(event.endTime))
+				if (stringNotEmpty(event.eventDescription))
 					eventDescription.setText(event.eventDescription);
 				else {
-					eventDescription.setMaxLines(0);
-					eventDescription.setPadding(0, 0, 0, 0);
+					eventDescription.setVisibility(View.GONE);
 				}
-			if (admissionPriceGirls != null)
-				admissionPriceGirls.setText("M"
-						+ context.getString(R.string.ae) + "dels: " + ",-");
-			if (admissionPriceBoys != null)
-				admissionPriceBoys.setText("Jungs: " + ",-");
+			// FIXME Abfrage, ob Preise vorhanden
+			admissionPriceGirls.setVisibility(View.GONE);
+			admissionPriceBoys.setVisibility(View.GONE);
+//			if (admissionPriceGirls != null)
+//				admissionPriceGirls.setText("M"
+//						+ context.getString(R.string.ae) + "dels: " + ",-");
+//			if (admissionPriceBoys != null)
+//				admissionPriceBoys.setText("Jungs: " + ",-");
+			
 			if (addressStreet != null)
 				if (stringNotEmpty(event.addressStreet)
 						&& stringNotEmpty(event.addressNumber))
@@ -147,7 +150,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						if (stringNotEmpty(event.locationWebsite)) {
 							Intent browserIntent = new Intent(
 									Intent.ACTION_VIEW, Uri
-											.parse(event.locationWebsite));
+									.parse(event.locationWebsite));
 							context.startActivity(browserIntent);
 						}
 					}
@@ -225,7 +228,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		// compute distance
 		Location destination = new Location("destination");
 		destination
-				.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
+		.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
 		destination.setLongitude(Double.parseDouble(eventList
 				.get(groupPosition).locationLongitude));
 		Location currentLocation = eventList.get(groupPosition).currentLocation;
@@ -313,28 +316,28 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public boolean isChildSelectable(int groupPosition, int childPosition) {
 		return false;
 	}
-	
+
 	public void openMap()
 	{
-		 String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f, "Where the party is at");
-	        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-	        intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
-	        try
-	        {
-	            context.startActivity(intent);
-	        }
-	        catch(ActivityNotFoundException ex)
-	        {
-	            try
-	            {
-	                Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-	                context.startActivity(unrestrictedIntent);
-	            }
-	            catch(ActivityNotFoundException innerEx)
-	            {
-	                Toast.makeText(context, "Please install a maps application", Toast.LENGTH_LONG).show();
-	            }
-	        }
+		String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f, "Where the party is at");
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+		intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+		try
+		{
+			context.startActivity(intent);
+		}
+		catch(ActivityNotFoundException ex)
+		{
+			try
+			{
+				Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+				context.startActivity(unrestrictedIntent);
+			}
+			catch(ActivityNotFoundException innerEx)
+			{
+				Toast.makeText(context, "Please install a maps application", Toast.LENGTH_LONG).show();
+			}
+		}
 	}
 
 	public boolean isStarFilled() {

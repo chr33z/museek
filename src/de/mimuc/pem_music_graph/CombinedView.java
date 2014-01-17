@@ -12,10 +12,12 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -65,6 +67,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	private double dy;
 	
 	boolean updated = false;
+	
+	private SharedPreferences sharedPreferences;
 
 	/**
 	 * Is called when location updates arrive
@@ -86,6 +90,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 
 			Log.i(TAG, "Location changed to (" + location.getLatitude() + ", " + location.getLongitude() + ")");
 			mLocationController.updateLocation(location);
+			
+			sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		}
 	};
 
@@ -198,7 +204,24 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	@Override
 	protected void onPause() {
 		super.onPause();
+		
+		graphView.onThreadPause();
 
+		if(mLocationClient != null)
+			mLocationClient.disconnect();
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		String json = mLocationController.getJsonForSharedPreferences().toString();
+		sharedPreferences.edit().putString("events", json).commit();
+		Log.v(TAG, adapter.getFavorites().toString());
+		String favorites = mLocationController.getFavorites().toString();
+		sharedPreferences.edit().putString("favorites", favorites).commit();
+		Log.v(TAG, favorites);
+		
 		graphView.onThreadPause();
 
 		if(mLocationClient != null)
@@ -266,6 +289,11 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			}
 	    }
 	    return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public void onAddFavorites(String locationID) {
+		mLocationController.onAddFavorites(locationID);
 	}
 
 }

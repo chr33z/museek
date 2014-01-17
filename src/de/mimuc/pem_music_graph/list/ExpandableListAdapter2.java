@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import de.mimuc.pem_music_graph.R;
 import de.mimuc.pem_music_graph.R.id;
 import de.mimuc.pem_music_graph.R.layout;
+import de.mimuc.pem_music_graph.utils.LocationControllerListener;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -22,27 +22,31 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodSession.EventCallback;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	private static final String TAG = ExpandableListAdapter2.class.getName();
 
 	private Context context;
-	// TODO muss gespeichert werden
 	private boolean isStarFilled;
+	// TODO in LocationController speichern
+	private List<String> favorites;
 	private boolean isTextExpanded;
 
-	// TODO where comes the List with the Information from?
 	private List<Event> eventList;
+	
+	private LocationControllerListener callbackReceiver;
 
 	public ExpandableListAdapter2(Context context, List<Event> eventList) {
 		this.context = context;
 		this.eventList = eventList;
+		this.callbackReceiver = (LocationControllerListener) context;
+		favorites = new ArrayList<String>();
 	}
 
 	public void updateEventList(List<Event> eL) {
@@ -51,12 +55,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	private List<Event> sortEventsDistance(List<Event> eL) {
 		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
-		for(int i = 0; i< eL.size(); i++){
+		for (int i = 0; i < eL.size(); i++) {
 			Location destination = new Location("destination");
-			destination.setLatitude(Double.parseDouble(eL
-					.get(i).locationLatitude));
-			destination.setLongitude(Double.parseDouble(eL
-					.get(i).locationLongitude));
+			destination
+					.setLatitude(Double.parseDouble(eL.get(i).locationLatitude));
+			destination
+					.setLongitude(Double.parseDouble(eL.get(i).locationLongitude));
 			Location currentLocation = eL.get(i).currentLocation;
 			float distance = currentLocation.distanceTo(destination);
 			unsortedList.put(distance, eL.get(i));
@@ -164,7 +168,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 				@Override
 				public void onClick(View v) {
-					openMap();
 
 				}
 			});
@@ -220,7 +223,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	}
 
 	@Override
-	public View getGroupView(int groupPosition, boolean isExpanded,
+	public View getGroupView(final int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
 		if (convertView == null) {
 			LayoutInflater layoutInflater = (LayoutInflater) context
@@ -268,7 +271,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			@Override
 			public void onClick(View v) {
 				if (iE) {
-					listView.collapseGroup(gP);
+					listView.collapseGroup(groupPosition);
 					arrow.setImageResource(R.drawable.ic_action_expand);
 				} else {
 					listView.expandGroup(gP);
@@ -281,9 +284,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 			@Override
 			public void onClick(View v) {
-				if (!isStarFilled) {
+				if (!eventList.get(groupPosition).isFavorite) {
 					star.setImageResource(R.drawable.ic_action_not_important);
-					setStarFilled(true);
+					callbackReceiver.onAddFavorites(eventList.get(groupPosition).locationID);
 				} else {
 					star.setImageResource(R.drawable.ic_action_important);
 					setStarFilled(false);
@@ -319,29 +322,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public boolean isChildSelectable(int groupPosition, int childPosition) {
 		return false;
 	}
-	
-	public void openMap()
-	{
-		 String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f, "Where the party is at");
-	        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-	        intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
-	        try
-	        {
-	            context.startActivity(intent);
-	        }
-	        catch(ActivityNotFoundException ex)
-	        {
-	            try
-	            {
-	                Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-	                context.startActivity(unrestrictedIntent);
-	            }
-	            catch(ActivityNotFoundException innerEx)
-	            {
-	                Toast.makeText(context, "Please install a maps application", Toast.LENGTH_LONG).show();
-	            }
-	        }
-	}
 
 	public boolean isStarFilled() {
 		return isStarFilled;
@@ -358,4 +338,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public void setTextExpanded(boolean isTextExpanded) {
 		this.isTextExpanded = isTextExpanded;
 	}
+
+	public List<String> getFavorites() {
+		return favorites;
+	}
+
 }

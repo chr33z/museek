@@ -18,7 +18,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
-import de.mimuc.pem_music_graph.utils.EventControllerListener;
 
 public class EventController implements JsonConstants {
 

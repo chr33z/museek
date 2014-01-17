@@ -30,10 +30,10 @@ import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
+import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
 import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
-import de.mimuc.pem_music_graph.utils.EventControllerListener;
 
 /**
  * Shows both the music graph and the location list in one place

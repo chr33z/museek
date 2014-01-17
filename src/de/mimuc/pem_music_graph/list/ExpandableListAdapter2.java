@@ -2,19 +2,24 @@ package de.mimuc.pem_music_graph.list;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import de.mimuc.pem_music_graph.R;
 import de.mimuc.pem_music_graph.R.id;
 import de.mimuc.pem_music_graph.R.layout;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
@@ -166,6 +171,29 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	@Override
 	public boolean isChildSelectable(int groupPosition, int childPosition) {
 		return false;
+	}
+	
+	public void openMap()
+	{
+		 String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f, "Where the party is at");
+	        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+	        intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+	        try
+	        {
+	            startActivity(intent);
+	        }
+	        catch(ActivityNotFoundException ex)
+	        {
+	            try
+	            {
+	                Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+	                startActivity(unrestrictedIntent);
+	            }
+	            catch(ActivityNotFoundException innerEx)
+	            {
+	                Toast.makeText(this, "Please install a maps application", Toast.LENGTH_LONG).show();
+	            }
+	        }
 	}
 
 }

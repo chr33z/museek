@@ -1,7 +1,5 @@
 package de.mimuc.pem_music_graph.list;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -9,15 +7,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.R.id;
-import de.mimuc.pem_music_graph.R.layout;
-
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;

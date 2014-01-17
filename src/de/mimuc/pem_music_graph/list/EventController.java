@@ -18,28 +18,40 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
-import de.mimuc.pem_music_graph.utils.LocationControllerListener;
+import de.mimuc.pem_music_graph.utils.EventControllerListener;
 
-public class LocationController implements JsonConstants {
+public class EventController implements JsonConstants {
 
-	private static final String TAG = LocationController.class.getSimpleName();
+	private static final String TAG = EventController.class.getSimpleName();
 
 	public List<Event> eventList;
 
-	private LocationControllerListener callbackReceiver;
+	private EventControllerListener callbackReceiver;
 
 	private Location currentLocation;
 
-	public LocationController(LocationControllerListener callbackReceiver) {
+	public EventController(EventControllerListener callbackReceiver) {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new ArrayList<Event>();
+	}
+	
+	public EventController(EventControllerListener callbackReceiver, JSONObject json, Location location) {
+		this.callbackReceiver = callbackReceiver;
+		this.eventList = new ArrayList<Event>();
+		this.currentLocation = location;
+		
+		readJson(json);
+	}
+	
+	public void setLocation(Location location){
+		currentLocation = location;
 	}
 
 	/**
 	 * stellt eine Anfrage an den Server, um die aktuelle Liste der
 	 * EventLocations in einem bestimmten Radius abzufragen
 	 */
-	public void updateLocation(Location location) {
+	public void updateEvents(Location location) {
 		Log.d(TAG, "Try to retrieve locations from server...");
 
 		currentLocation = location;
@@ -75,7 +87,7 @@ public class LocationController implements JsonConstants {
 
 		ApplicationController.getInstance().addToRequestQueue(req);
 
-		callbackReceiver.onLocationControllerUpdate();
+		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**

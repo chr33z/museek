@@ -38,6 +38,15 @@ public class ApplicationController extends Application {
 			+ "location/findbylocation";
 	
 	/**
+	 * If user has not moved at least this distance, there is no update from the server
+	 */
+	public static final int MAX_UPDATE_DISTANCE = 250;
+	
+	public static final long DEFAULT_UPDATE_LOCATION_INTERVAL = 60 * 1000; // update every 60 seconds
+	
+	public static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
+	
+	/**
 	 * Global request queue for Volley
 	 */
 	private RequestQueue mRequestQueue;

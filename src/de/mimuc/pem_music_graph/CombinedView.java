@@ -1,5 +1,8 @@
 package de.mimuc.pem_music_graph;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
@@ -28,9 +31,9 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
-import de.mimuc.pem_music_graph.list.LocationController;
+import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
-import de.mimuc.pem_music_graph.utils.LocationControllerListener;
+import de.mimuc.pem_music_graph.utils.EventControllerListener;
 
 /**
  * Shows both the music graph and the location list in one place
@@ -39,15 +42,12 @@ import de.mimuc.pem_music_graph.utils.LocationControllerListener;
  *
  */
 public class CombinedView extends Activity 
-implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerListener {
+implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
-	private static final long DEFAULT_UPDATE_LOCATION_INTERVAL = 60 * 1000; // update every 60 seconds
-	private static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
-
 	private Context context;
-	
+
 	private SlidingUpPanelLayout layout;
 
 	private MusicGraphView graphView;
@@ -56,14 +56,14 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	private ExpandableListView locationListView;
 	private FrameLayout listHandle;
 
-	private LocationController mLocationController;
+	private EventController mEventController;
 	private Location mLocation;
 
 	private LocationClient mLocationClient;
 
 	// coordinates for moving the view
 	private double dy;
-	
+
 	boolean updated = false;
 
 	/**
@@ -77,15 +77,13 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 				return;
 
 			if(mLocation != null &&
-					location.getLatitude() == mLocation.getLatitude() && 
-					location.getLongitude() == mLocation.getLongitude()){
-
+					location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE){
 				Log.i(TAG, "Location not changed.");
 				return;
 			}
 
 			Log.i(TAG, "Location changed to (" + location.getLatitude() + ", " + location.getLongitude() + ")");
-			mLocationController.updateLocation(location);
+			mEventController.updateEvents(location);
 		}
 	};
 
@@ -94,13 +92,30 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
 
-		this.context = this;
-
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
 
-		// initialize controller
-		mLocationController = new LocationController(this);
+		if(getIntent().getStringExtra("json") != null){
+			
+			// initialize controller
+			String json = getIntent().getStringExtra("json");
+			double latitude = getIntent().getDoubleExtra("latitude", 0.0);
+			double longitude = getIntent().getDoubleExtra("longitude", 0.0);
+			Location location = new Location("location");
+			location.setLatitude(latitude);
+			location.setLongitude(longitude);
+			try {
+				mEventController = new EventController(this, new JSONObject(json), location);
+			} catch (JSONException e) {
+				Log.w(TAG, "Could not create json from string");
+				e.printStackTrace();
+				mEventController = new EventController(this);
+			}
+		} else {
+			mEventController = new EventController(this);
+		}
+
+		this.context = this;
 
 		// get list handle
 		listHandle = (FrameLayout) findViewById(R.id.list_handle);
@@ -114,8 +129,11 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		//intialize listview
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
 		ExpandableListAdapter2 adapter = 
-				new ExpandableListAdapter2(this, mLocationController.getEventList());
+				new ExpandableListAdapter2(this, mEventController.getEventList());
 		locationListView.setAdapter(adapter);
+		
+		// Update once per hand
+		onEventControllerUpdate();
 
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController
@@ -133,7 +151,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
 				graphView.onThreadPause();
-				
+
 				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
 					if (slideOffset < 0.2) {
 						if (getActionBar().isShowing()) {
@@ -150,7 +168,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@Override
 			public void onPanelExpanded(View panel) {
 				graphView.onThreadPause();
-				
+
 				// FIXME find other method for Android 2.3
 				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
 					((FrameLayout)layout.findViewById(R.id.graph_view_frame)).removeAllViews();
@@ -160,7 +178,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@Override
 			public void onPanelCollapsed(View panel) {
 				graphView.onThreadResume();
-				
+
 				// FIXME find other method for Android 2.3
 				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
 					FrameLayout frame = ((FrameLayout)layout.findViewById(R.id.graph_view_frame));
@@ -189,7 +207,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	protected void onResume() {
 		super.onResume();
 
-		graphView.onThreadResume();
+		if(graphView != null)
+			graphView.onThreadResume();
 
 		if(mLocationClient != null)
 			mLocationClient.connect();
@@ -198,8 +217,9 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	@Override
 	protected void onPause() {
 		super.onPause();
-
-		graphView.onThreadPause();
+		
+		if(graphView != null)
+			graphView.onThreadPause();
 
 		if(mLocationClient != null)
 			mLocationClient.disconnect();
@@ -220,8 +240,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 
 		// Create location request
 		LocationRequest locationRequest = LocationRequest.create()
-				.setInterval(DEFAULT_UPDATE_LOCATION_INTERVAL)
-				.setExpirationDuration(DEFAULT_TERMINATE_SAT_FINDING)
+				.setInterval(ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
+				.setExpirationDuration(ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
 				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY); // Accuracy of about 100m
 		mLocationClient.requestLocationUpdates(locationRequest, mLocationListener);
 	}
@@ -233,7 +253,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	}
 
 	@Override
-	public void onLocationControllerUpdate() {
+	public void onEventControllerUpdate() {
 		Log.d(TAG, "Update ListAdapter");
 
 		this.runOnUiThread(new Runnable() 
@@ -241,18 +261,18 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@Override
 			public void run() {                                                
 				graphView.onThreadPause();
-				adapter = new ExpandableListAdapter2(context, mLocationController.getEventList());
+				adapter = new ExpandableListAdapter2(context, mEventController.getEventList());
 				locationListView.setAdapter(adapter);
 				graphView.onThreadResume();
 			}});
 	}
-	
+
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		
+
 		// hijack back button to do what we want
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-	       
+
 			if(!layout.isExpanded() && !graphView.isAtRoot()){
 				graphView.graphNavigateBack();
 				return true;
@@ -264,8 +284,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 				moveTaskToBack(true);
 				return true;
 			}
-	    }
-	    return super.onKeyDown(keyCode, event);
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 }

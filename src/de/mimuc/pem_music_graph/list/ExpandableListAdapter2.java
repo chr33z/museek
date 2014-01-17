@@ -142,6 +142,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 				@Override
 				public void onClick(View v) {
+					openMap();
 
 				}
 			});

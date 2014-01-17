@@ -24,7 +24,7 @@ public class LocationController implements JsonConstants {
 
 	private static final String TAG = LocationController.class.getSimpleName();
 
-	public List<EventLocation> eventLocationList;
+	public List<Event> eventList;
 
 	private LocationControllerListener callbackReceiver;
 
@@ -32,7 +32,7 @@ public class LocationController implements JsonConstants {
 
 	public LocationController(LocationControllerListener callbackReceiver) {
 		this.callbackReceiver = callbackReceiver;
-		this.eventLocationList = new ArrayList<EventLocation>();
+		this.eventList = new ArrayList<Event>();
 	}
 
 	/**
@@ -44,7 +44,7 @@ public class LocationController implements JsonConstants {
 
 		currentLocation = location;
 
-		// Json f�r POST Request
+		// Json fuer POST Request
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(TAG_LATITUDE, location.getLatitude() + "");
 		params.put(TAG_LONGITUDE, location.getLongitude() + "");
@@ -84,55 +84,77 @@ public class LocationController implements JsonConstants {
 	 * @param json
 	 */
 	protected void readJson(JSONObject json) {
-		String name = null;
-		String description = " --- ";
-		String street = null;
-		String housenumber = null;
-		String city = null;
-		String postcode = null;
-		String latitude = null;
-		String longitude = null;
+		String resultTime = null;
+		String resultRadius = null;
+		String resultLatitude = null;
+		String resultLongitude = null;
+
+		String eventName = null;
+		String eventGenre = null;
+		String eventDescription = null;
+		String startTime = null;
+		String endTime = null;
+		String minAge = null;
+		String specialOffer = null;
+
+		String locationID = null;
+		String locationName = null;
+		String locationLatitude = null;
+		String locationLongitude = null;
+		String locationDescription = null;
+		String addressStreet = null;
+		String addressNumber = null;
+		String addressCity = null;
+		String addressPostcode = null;
+		String locationWebsite = null;
 
 		try {
-			eventLocationList.clear();
+			eventList.clear();
 
 			// eventLocations are stored in an array
 			JSONArray jsonArray = json
-					.getJSONArray(JsonConstants.TAG_LOCATIONS);
+					.getJSONArray("events");
 
 			for (int i = 0; i < jsonArray.length(); i++) {
-				JSONObject eventLocation = jsonArray.getJSONObject(i);
+				JSONObject event = jsonArray.getJSONObject(i);
 
-				name = eventLocation.getString(JsonConstants.TAG_NAME);
+				resultTime = event.getString(TAG_RESULT_TIME);
+				resultRadius = event.getString(TAG_RESULT_RADIUS);
+				resultLatitude = event.getString(TAG_RESULT_LATITUDE);
+				resultLongitude = event.getString(TAG_RESULT_LONGITUDE);
 
-				// Address is an extra JSONObject
-				JSONObject address = eventLocation
-						.getJSONObject(JsonConstants.TAG_ADDRESS);
-				String genre = "";
-				String subgenre = "";
-				street = address.getString(JsonConstants.TAG_STREET);
-				housenumber = address.getString(JsonConstants.TAG_HOUSENUMBER);
-				city = address.getString(JsonConstants.TAG_CITY);
-				postcode = address.getString(JsonConstants.TAG_POSTCODE);
+				eventName = event.getString(TAG_EVENT_NAME);
+				eventGenre = event.getString(TAG_EVENT_GENRES);
+				eventDescription = event.getString(TAG_EVENT_DESCRIPTION);
+				startTime = event.getString(TAG_EVENT_START_TIME);
+				endTime = event.getString(TAG_EVENT_END_TIME);
+				minAge = event.getString(TAG_EVENT_MIN_AGE);
+				specialOffer = event.getString(TAG_EVENT_SPECIAL_OFFER);
+				
 
-				String phonenumber = "";
-				String emailAddress = "";
-				String openingHours = "";
-				String ageRestriction = "";
-				String furtherInformation = "";
-				latitude = eventLocation.getString(JsonConstants.TAG_LATITUDE);
-				longitude = eventLocation
+				locationID = event.getString(TAG_LOCATION_ID);
+				locationName = event.getString(TAG_LOCATION_NAME);
+				locationLatitude = event.getString(JsonConstants.TAG_LATITUDE);
+				locationLongitude = event
 						.getString(JsonConstants.TAG_LONGITUDE);
+				locationDescription = event.getString(TAG_LOCATION_DESCRIPTION);
+				addressStreet = event.getString(TAG_LOCATION_ADDRESS_STREET);
+				addressNumber = event.getString(TAG_LOCATION_ADDRESS_NUMBER);
+				addressCity = event.getString(TAG_LOCATION_ADDRESS_CITY);
+				addressPostcode = event
+						.getString(TAG_LOCATION_ADDRESS_POSTCODE);
+				locationWebsite = event.getString(TAG_LOCATION_WEBSITE);
 
-				EventLocation newEventLocation = new EventLocation(name, genre,
-						subgenre, street, housenumber, city, postcode,
-						phonenumber, emailAddress, openingHours,
-						ageRestriction, furtherInformation, latitude,
-						longitude, currentLocation);
+				Event newEvent = new Event(resultTime, resultRadius,
+						resultLatitude, resultLongitude, eventName, eventGenre,
+						eventDescription, startTime, endTime, minAge,
+						specialOffer, locationID, locationName,
+						locationLatitude, locationLongitude, locationDescription, addressStreet,
+						addressNumber, addressCity, addressPostcode, locationWebsite, currentLocation);
 
-				Log.d(TAG, newEventLocation.name);
-				eventLocationList.add(newEventLocation);
-				Log.d(TAG, eventLocationList.size() + "");
+				Log.d(TAG, newEvent.eventName);
+				eventList.add(newEvent);
+				Log.d(TAG, eventList.size() + "");
 			}
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());
@@ -140,12 +162,12 @@ public class LocationController implements JsonConstants {
 	}
 
 	/**
-	 * Getter f�r die aktuelle Liste der EventLocations
+	 * Getter fuer die aktuelle Liste der EventLocations
 	 * 
 	 * @return List<EventLocation>
 	 */
-	public List<EventLocation> getEventLocationList() {
-		Log.v(TAG, eventLocationList.size() + "");
-		return eventLocationList;
+	public List<Event> getEventList() {
+		Log.v(TAG, eventList.size() + "");
+		return eventList;
 	}
 }

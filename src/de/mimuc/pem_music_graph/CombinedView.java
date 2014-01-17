@@ -114,7 +114,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		//intialize listview
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
 		ExpandableListAdapter2 adapter = 
-				new ExpandableListAdapter2(this, mLocationController.getEventLocationList());
+				new ExpandableListAdapter2(this, mLocationController.getEventList());
 		locationListView.setAdapter(adapter);
 
 		// initialize dimensions
@@ -241,7 +241,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@Override
 			public void run() {                                                
 				graphView.onThreadPause();
-				adapter = new ExpandableListAdapter2(context, mLocationController.getEventLocationList());
+				adapter = new ExpandableListAdapter2(context, mLocationController.getEventList());
 				locationListView.setAdapter(adapter);
 				graphView.onThreadResume();
 			}});

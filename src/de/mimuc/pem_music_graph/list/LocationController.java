@@ -118,10 +118,10 @@ public class LocationController implements JsonConstants {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject event = jsonArray.getJSONObject(i);
 
-				resultTime = event.getString(TAG_RESULT_TIME);
-				resultRadius = event.getString(TAG_RESULT_RADIUS);
-				resultLatitude = event.getString(TAG_RESULT_LATITUDE);
-				resultLongitude = event.getString(TAG_RESULT_LONGITUDE);
+				resultTime = json.getString(TAG_RESULT_TIME);
+				resultRadius = json.getString(TAG_RESULT_RADIUS);
+				resultLatitude = json.getString(TAG_RESULT_LATITUDE);
+				resultLongitude = json.getString(TAG_RESULT_LONGITUDE);
 
 				eventName = event.getString(TAG_EVENT_NAME);
 				eventGenre = event.getString(TAG_EVENT_GENRES);
@@ -134,9 +134,9 @@ public class LocationController implements JsonConstants {
 
 				locationID = event.getString(TAG_LOCATION_ID);
 				locationName = event.getString(TAG_LOCATION_NAME);
-				locationLatitude = event.getString(JsonConstants.TAG_LATITUDE);
+				locationLatitude = event.getString(JsonConstants.TAG_LOCATION_LATITUDE);
 				locationLongitude = event
-						.getString(JsonConstants.TAG_LONGITUDE);
+						.getString(JsonConstants.TAG_LOCATION_LONGITUDE);
 				locationDescription = event.getString(TAG_LOCATION_DESCRIPTION);
 				addressStreet = event.getString(TAG_LOCATION_ADDRESS_STREET);
 				addressNumber = event.getString(TAG_LOCATION_ADDRESS_NUMBER);

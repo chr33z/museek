@@ -165,7 +165,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 					public void onErrorResponse(VolleyError error) {
 						if (error.getMessage() == null) {
 							Log.e(TAG,
-									"...could not retrieve location or a meaningfull error...");
+									"...could not retrieve events or a meaningfull error...");
 							return;
 						}
 						VolleyLog.e("Error: ", error.getMessage());

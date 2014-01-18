@@ -6,12 +6,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.joda.time.DateTime;
+
 import de.mimuc.pem_music_graph.R;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -110,11 +113,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					event.endTime = "";
 				if (stringNotEmpty(event.endTime))
 					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + event.startTime + " - "
+							+ "ffnet: " + formatTime(Long.parseLong(event.startTime)) + " - "
 							+ event.endTime + " Uhr");
 				else if (stringNotEmpty(event.startTime))
 					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + " ab " + event.startTime + " Uhr");
+							+ "ffnet: " + " ab " + formatTime(Long.parseLong(event.startTime)) + " Uhr");
 			}
 			if (eventDescription != null)
 				if (stringNotEmpty(event.eventDescription))
@@ -354,5 +357,24 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	public void setTextExpanded(boolean isTextExpanded) {
 		this.isTextExpanded = isTextExpanded;
+	}
+	
+	private String formatTime(long time){
+		String[] days = {"Mo","Di","Mi","Do", "Fr", "Sa", "So"};
+		String[] months = {"Jan","Febr","März","Apr", "Mai", "Juni", "Juli","Aug", "Sept", "Okt", "Nov", "Dez"};
+		
+		DateTime date = new DateTime(time);
+		Log.d(TAG, date.getDayOfWeek()+"");
+		Log.d(TAG, date.getDayOfMonth()+"");
+		Log.d(TAG, date.getMonthOfYear()+"");
+		
+		String dayWeek = days[date.getDayOfWeek()];
+		String dayMonth = date.getDayOfMonth()+"";
+		String month = months[date.getMonthOfYear()];
+		String hours = (date.getHourOfDay() < 10) ? "0"+date.getHourOfDay() : date.getHourOfDay()+"";
+		String minutes = (date.getMinuteOfHour() < 10) ? "0"+date.getMinuteOfHour() : date.getMinuteOfHour()+""; 
+		
+		return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":" + minutes;
+		
 	}
 }

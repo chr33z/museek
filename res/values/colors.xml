@@ -9,5 +9,8 @@
     <color name="graph_node_purple">#b03060</color>
     <color name="graph_node_maroon">#8b1c62</color>
     <color name="graph_node_lila">#cb4f39</color>
+    
+    <color name="list_head_primary">#303030</color>
+    <color name="list_head_secondary">#757575</color>
 
 </resources>

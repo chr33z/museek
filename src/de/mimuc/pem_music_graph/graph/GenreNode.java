@@ -6,9 +6,15 @@ import java.util.List;
 import de.mimuc.pem_music_graph.R;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.FontMetrics;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 /**
@@ -17,7 +23,7 @@ import android.util.Log;
  * @author Christopher Gebhardt
  *
  */
-public class GenreNode implements IGraph, GraphDrawable{
+public class GenreNode implements IGraph, GraphDrawable, GenreGraphValues {
 	
 	private static final String TAG = GenreNode.class.getName();
 	
@@ -30,6 +36,11 @@ public class GenreNode implements IGraph, GraphDrawable{
 	public float radius = 100;
 	
 	/**
+	 * left, top, right, bottom
+	 */
+	public float[] boundary = new float[4];
+	
+	/**
 	 * visible name of this node
 	 */
 	protected String name = "node";
@@ -37,7 +48,7 @@ public class GenreNode implements IGraph, GraphDrawable{
 	/**
 	 * is this node currently root of the graph
 	 */
-	private boolean isRoot;
+	public boolean isRoot;
 	
 	/**
 	 * is this node visible on screen
@@ -61,7 +72,8 @@ public class GenreNode implements IGraph, GraphDrawable{
 	
 	private Paint paintLine = new Paint();
 	
-	private Paint paintText = new Paint();
+	protected Paint paintText = new Paint();
+	protected Paint origPaintText = new Paint();
 	
 	private float textSize = 0;
 
@@ -82,13 +94,21 @@ public class GenreNode implements IGraph, GraphDrawable{
 	 */
 	private GenreNode parent;
 	
-	public GenreNode(float x, float y, float radius, String name){
+	private Drawable nodeDrawable;
+	
+	private FontMetrics fontMetrics;
+	
+	private float width, height;
+	
+	public GenreNode(float x, float y, float radius, String name, float width, float height){
 		this.x = x;
 		this.y = y;
 		this.radius = radius;
 		this.name = name;
+		this.width = width;
+		this.height = height;
 		
-		initColor();
+		initDrawing();
 	}
 	
 	/**
@@ -96,14 +116,16 @@ public class GenreNode implements IGraph, GraphDrawable{
 	 * @param radius
 	 * @param name
 	 */
-	public GenreNode(String name, float radius, double width, double height){
+	public GenreNode(String name, float radius, float width, float height){
 		this.radius = radius;
 		this.name = name;
+		this.width = width;
+		this.height = height;
 		
-		initColor();
+		initDrawing();
 	}
 	
-	private void initColor(){
+	private void initDrawing(){
 		textSize = paintText.getTextSize();
 		
 		paintNode.setColor(Color.HSVToColor(new float[]{
@@ -119,9 +141,18 @@ public class GenreNode implements IGraph, GraphDrawable{
 		
 		paintText.setColor(ApplicationController.getInstance()
 				.getResources().getColor(R.color.graph_text_light));
-		paintText.setTextSize(textSize); // FIXME make screen dependent
+		paintText.setTextSize(textSize * width * GenreGraph.TEXT_FACTOR ); // FIXME make screen dependent
 		paintText.setARGB(255, 220, 220, 220);
+		paintText.setTextAlign(Paint.Align.RIGHT);
 		paintText.setAntiAlias(true);
+		origPaintText = new Paint(paintText);
+		
+		nodeDrawable = ApplicationController.getInstance()
+				.getResources().getDrawable(R.drawable.music_genre_label);
+		
+		fontMetrics = new FontMetrics();
+		
+		updateBoundary(0);
 	}
 	
 	/**
@@ -150,8 +181,8 @@ public class GenreNode implements IGraph, GraphDrawable{
 	 * @param isRoot
 	 */
 	public GenreNode setRoot(boolean isRoot) {
-		this.isRoot = isRoot;
 		this.setVisible(true);
+		this.isRoot = true;
 		
 		if(children != null){
 			for (GenreNode child : children) {
@@ -266,6 +297,7 @@ public class GenreNode implements IGraph, GraphDrawable{
 			return this;
 		}
 		else {
+			this.isRoot = false;
 			this.setVisible(false);
 			for (GenreNode child : this.getChildren()) {
 				result = child.setAsRoot(name);
@@ -278,12 +310,13 @@ public class GenreNode implements IGraph, GraphDrawable{
 	}
 
 	@Override
-	public void setInvisibleCascading() {
+	public void resetCascading() {
 		this.setVisible(false);
+		this.isRoot = false;
 		
 		if(children != null){
 			for (GenreNode child : children) {
-				child.setInvisibleCascading();
+				child.resetCascading();
 			}
 		}
 	}
@@ -306,8 +339,18 @@ public class GenreNode implements IGraph, GraphDrawable{
 	public GenreNode testForTouch(float x, float y) {
 		GenreNode result = null;
 		
-		if(isVisible && Math.sqrt( (this.x-x)*(this.x-x) + (this.y-y)*(this.y-y) ) <= this.radius ){
-			Log.d(TAG, "Node touched!");
+		float textWidth = paintText.measureText(name);
+		float labelHeight = isRoot ? height * LABEL_HEIGHT_ROOT_FACTOR : height * LABEL_HEIGHT_FACTOR;
+		float labelPadding = width * LABEL_PADDING_HORIZONTAL_FACTOR;
+		float left = this.x - textWidth - labelPadding;
+		float top = this.y - labelHeight / 2;
+		float right = this.x + labelPadding;
+		float bottom = this.y + labelHeight / 2;
+		
+		if(isVisible && 
+				left < x && x < right && 
+				top < y && x < bottom){
+			Log.d(TAG, "Node "+name+" touched!");
 			return this;
 		}
 		else {
@@ -377,7 +420,7 @@ public class GenreNode implements IGraph, GraphDrawable{
 		
 		return Color.rgb(redn, greenn, bluen);
 	}
-
+	
 	@Override
 	public void draw(Canvas canvas, int width, int height, float translation) {
 		//Resources res = ApplicationController.getInstance().getResources();
@@ -391,29 +434,61 @@ public class GenreNode implements IGraph, GraphDrawable{
 		} else {
 			alpha = (int) (255 * visibility);
 		}
-		
-		paintNode.setColor(Color.HSVToColor(alpha, new float[]{ 
-				360 * ((colorIntervall[0] + colorIntervall[1]) / 2),
-				GenreGraph.COLOR_SAT,
-				GenreGraph.COLOR_VAL}));
 
-		paintLine.setStrokeWidth(width * GenreGraph.LINE_FACTOR);
-		paintLine.setARGB(alpha, 20, 20, 20);
+//		paintLine.setStrokeWidth(width * GenreGraph.LINE_FACTOR);
+//		paintLine.setARGB(alpha, 20, 20, 20);
 		
-		paintText.setTextSize((float) (textSize * visibility * width * GenreGraph.TEXT_FACTOR));
+//		if(parent != null && drawLines) canvas.drawLine(
+//				x, y + translation, 
+//				parent.x, parent.y + translation, 
+//				paintLine);
+		
+		// draw point larger if we are the root
+//		float radiusNew = (isRoot) ? radius * 1.2f : radius;
+		
+		// real circle
+//		paintNode.setColor(Color.HSVToColor(alpha, new float[]{ 
+//				GenreGraph.COLOR_HUE,
+//				GenreGraph.COLOR_SAT,
+//				GenreGraph.COLOR_VAL - (level * 0.05f)}));
+		
+//		if(isRoot){
+//		canvas.drawCircle(
+//				x, y + translation, 
+//				radiusNew, paintNode);
+//		} else {
+//			
+//			float textWith = paintText.measureText(name);
+//			float padding = 2.0f;
+//			canvas.drawRect(
+//					new RectF(x - (textWith * 0.5f) - padding,
+//								y - radiusNew * 0.5f,
+//								x + (textWith * 0.5f) + padding,
+//								y + radiusNew * 0.5f), 
+//								paintNode);
+//		}
+		
+		// set text paint and get text metrics
+//		if(isRoot){
+//			paintText.setTextSize((float) (textSize * visibility * width * GenreGraph.TEXT_FACTOR * ROOT_NODE_FACTOR));
+//		} else {
+			paintText.setTextSize((float) (textSize * visibility * width * GenreGraph.TEXT_FACTOR));
+//		}
 		paintText.setARGB(alpha, 220, 220, 220);
-		
-		if(parent != null && drawLines) canvas.drawLine(
-				x, y + translation, 
-				parent.x, parent.y + translation, 
-				paintLine);
-		
-		canvas.drawCircle(
-				x, y + translation, 
-				radius, paintNode);
+		paintText.getFontMetrics(fontMetrics);
+
+		// set bounds to match the text
+		updateBoundary(translation);
+		nodeDrawable.setBounds(
+				(int)(boundary[0]),
+				(int)(boundary[1]),
+				(int)(boundary[2]),
+				(int)(boundary[3])
+				);
+		nodeDrawable.draw(canvas);
 		
 		canvas.drawText(name, 
-				(x - (radius / 2)), y + translation, 
+				x, y + -(fontMetrics.ascent + fontMetrics.descent) / 2 + translation, 
 				paintText);
 		
 		drawLines = true;
@@ -434,5 +509,15 @@ public class GenreNode implements IGraph, GraphDrawable{
 				);
 			}
 		}
+	}
+	
+	private void updateBoundary(float translation){
+		float textWidth = paintText.measureText(name);
+		float labelHeight = isRoot ? height * LABEL_HEIGHT_ROOT_FACTOR : height * LABEL_HEIGHT_FACTOR;
+		float labelPadding = width * LABEL_PADDING_HORIZONTAL_FACTOR;
+		boundary[0] = x - textWidth - labelPadding;
+		boundary[1] = y - labelHeight / 2 + translation;
+		boundary[2] = x + labelPadding;
+		boundary[3] = y + labelHeight / 2 + translation;
 	}
 }

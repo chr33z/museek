@@ -267,7 +267,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			// we measure the click time and decide if its a click or a swipe
 			long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
 			if(clickDuration < MAX_CLICK_DURATION) {
-				Log.d(TAG, "Node click event!");
+				Log.d(TAG, "Node click event at "+ eventX + " "+ eventY +"!");
 
 				final GenreNode node = graph.testForTouch(eventX, eventY);
 

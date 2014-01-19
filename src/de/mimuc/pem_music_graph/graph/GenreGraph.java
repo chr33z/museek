@@ -15,7 +15,7 @@ import android.util.Log;
  * @author Christopher Gebhardt
  *
  */
-public class GenreGraph implements IGraph, GenreGraphValues {
+public class GenreGraph implements IGraph, GenreGraphConstants {
 
 	private static final String TAG = GenreNode.class.getName();
 	
@@ -77,17 +77,34 @@ public class GenreGraph implements IGraph, GenreGraphValues {
 		// Level 2
 		GenreNode rock_hard = buildNode("Hard Rock");
 		GenreNode rock_progressive = buildNode("Progressive");
-		GenreNode rock_alternative = buildNode("Alternative");
+		GenreNode rock_alternative = buildNode("Metal");
+		
 		root.addChildTo(rock_hard, "Rock/Metal");
 		root.addChildTo(rock_progressive, "Rock/Metal");
 		root.addChildTo(rock_alternative, "Rock/Metal");
 		
+		GenreNode metal_death = buildNode("Death Metal");
+		GenreNode metal_thrash = buildNode("Trash Metal");
+		GenreNode metal_core = buildNode("Metalcore");
+		root.addChildTo(metal_death, "Metal");
+		root.addChildTo(metal_thrash, "Metal");
+		root.addChildTo(metal_core, "Metal");
+		
+		// LEVEL 2  - ELECTRO
 		GenreNode electro_dubstep = buildNode("Dubstep");
 		GenreNode electro_techno = buildNode("Techno");
 		GenreNode electro_extrem = buildNode("Extrem");
 		root.addChildTo(electro_dubstep, "Dance/Electro");
 		root.addChildTo(electro_techno, "Dance/Electro");
 		root.addChildTo(electro_extrem, "Dance/Electro");
+		
+		// LEVEL 2  - ALTERNATIVE
+		GenreNode alternative_brit = buildNode("Brit Pop");
+		GenreNode alternative_industrial = buildNode("Industrial");
+		GenreNode alternative_punk = buildNode("Punk");
+		root.addChildTo(alternative_brit, "Alternative");
+		root.addChildTo(alternative_industrial, "Alternative");
+		root.addChildTo(alternative_punk, "Alternative");
 		
 		currentRoot = setAsRoot("Music");
 		

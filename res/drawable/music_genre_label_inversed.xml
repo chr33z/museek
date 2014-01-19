@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <item
-        android:left="2dp"
-        android:top="2dp">
+    <item>
         <shape android:shape="rectangle" >
-            <solid android:color="@color/graph_node_maroon_dark" />
+            <solid android:color="@color/graph_node_maroon" />
             <corners android:radius="7dp"/>
         </shape>
     </item>
     <item
-        android:bottom="2dp"
-        android:right="2dp">
+        android:bottom="1dp"
+        android:top="1dp"
+        android:left="1dp"
+        android:right="1dp">
         <shape
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:shape="rectangle" >
-            <solid android:color="@color/graph_node_maroon"/>
+            <solid android:color="@color/graph_node_white"/>
             <corners android:radius="7dp"/>
 
         </shape>

@@ -2,7 +2,7 @@ package de.mimuc.pem_music_graph.graph;
 
 import android.graphics.Color;
 
-public interface GenreGraphValues {
+public interface GenreGraphConstants {
 	
 	public static final float PARENT_Y_FACTOR = 0.0f;
 	public static final float ROOT_Y_FACTOR = 0.13f;
@@ -11,11 +11,16 @@ public interface GenreGraphValues {
 	public static final float TEXT_FACTOR = 0.005f;
 	public static final float LINE_FACTOR = 0.005f;
 	
-	// Colors used for nodes
+	// Node Color
 	public static final float COLOR_HUE = 310.0f;
 	public static final float COLOR_HUE_STEP = -5.0f;
 	public static final float COLOR_SAT = 0.73f;
 	public static final float COLOR_VAL = 0.69f;
+	
+	// Text Color
+	public static final float COLOR_ROOT_HUE = 0f;
+	public static final float COLOR_ROOT_SAT = 0f;
+	public static final float COLOR_ROOT_VAL = 1f;
 	
 	// colors used for the rest
 	public static final int COLOR_TEXT = Color.WHITE;
@@ -35,7 +40,7 @@ public interface GenreGraphValues {
 	public static final float TRANSLATION_SNAP_FACTOR = 0.1f;
 	
 	// relevant for drawing
-	public static final float LABEL_PADDING_HORIZONTAL_FACTOR = 0.022f;
+	public static final float LABEL_PADDING_HORIZONTAL_FACTOR = 0.027f;
 	public static final float LABEL_HEIGHT_FACTOR = 0.08f;
 	public static final float LABEL_HEIGHT_ROOT_FACTOR = 0.09f;
 	

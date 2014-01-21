@@ -1,18 +1,13 @@
 package de.mimuc.pem_music_graph.list;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.R.id;
-import de.mimuc.pem_music_graph.R.layout;
 import de.mimuc.pem_music_graph.utils.LocationControllerListener;
-
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -22,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodSession.EventCallback;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
@@ -33,41 +27,45 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private static final String TAG = ExpandableListAdapter2.class.getName();
 
 	private Context context;
-	private boolean isStarFilled;
-	// TODO in LocationController speichern
-	private List<String> favorites;
 	private boolean isTextExpanded;
 
 	private List<Event> eventList;
-	
-	private LocationControllerListener callbackReceiver;
 
-	public ExpandableListAdapter2(Context context, List<Event> eventList) {
+	private EventControllerListener callbackReceiver;
+
+	public ExpandableListAdapter2(Context context, Map<String, Event> eventList) {
 		this.context = context;
-		this.eventList = eventList;
-		this.callbackReceiver = (LocationControllerListener) context;
-		favorites = new ArrayList<String>();
+		this.eventList = new ArrayList<Event>(eventList.values());
+		this.eventList = sortEventsDistance(this.eventList);
+		this.callbackReceiver = (EventControllerListener) context;
 	}
 
-	public void updateEventList(List<Event> eL) {
-		this.eventList = sortEventsDistance(eL);
-	}
+//	public void updateEventList(List<Event> eL) {
+//		this.eventList = sortEventsDistance(eL);
+//	}
 
 	private List<Event> sortEventsDistance(List<Event> eL) {
 		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
+		Event currentEvent;
+		float distance;
 		for (int i = 0; i < eL.size(); i++) {
+			currentEvent = eL.get(i);
 			Location destination = new Location("destination");
 			destination
-					.setLatitude(Double.parseDouble(eL.get(i).locationLatitude));
+					.setLatitude(Double.parseDouble(currentEvent.locationLatitude));
 			destination
-					.setLongitude(Double.parseDouble(eL.get(i).locationLongitude));
-			Location currentLocation = eL.get(i).currentLocation;
-			float distance = currentLocation.distanceTo(destination);
-			unsortedList.put(distance, eL.get(i));
+					.setLongitude(Double.parseDouble(currentEvent.locationLongitude));
+			Location currentLocation = currentEvent.currentLocation;
+			distance = currentLocation.distanceTo(destination);
+			unsortedList.put(distance, currentEvent);
 		}
 		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
-		eL.addAll(sortedList.values());
-		return eL;
+		List<Event> eventList = new ArrayList<Event>();
+//		for (Event event : sortedList.values()) {
+//			eventList.add(event);
+//		}
+		eventList.addAll(sortedList.values());
+		return eventList;
 	}
 
 	@Override
@@ -261,8 +259,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (currentDistance != null) {
 			currentDistance.setText(roundDistance(distance));
 		}
+		if (eventList.get(groupPosition).isFavorite) 
+			star.setImageResource(R.drawable.ic_action_important);
 
-		final int gP = groupPosition;
 		final boolean iE = isExpanded;
 		final ExpandableListView listView = (ExpandableListView) parent;
 
@@ -270,11 +269,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 			@Override
 			public void onClick(View v) {
+				//TODO über update wie star
 				if (iE) {
 					listView.collapseGroup(groupPosition);
 					arrow.setImageResource(R.drawable.ic_action_expand);
 				} else {
-					listView.expandGroup(gP);
+					listView.expandGroup(groupPosition);
 					arrow.setImageResource(R.drawable.ic_action_collapse);
 				}
 			}
@@ -286,10 +286,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			public void onClick(View v) {
 				if (!eventList.get(groupPosition).isFavorite) {
 					star.setImageResource(R.drawable.ic_action_not_important);
-					callbackReceiver.onAddFavorites(eventList.get(groupPosition).locationID);
+					callbackReceiver.onAddFavorites(eventList
+							.get(groupPosition).locationID);
 				} else {
 					star.setImageResource(R.drawable.ic_action_important);
-					setStarFilled(false);
+					callbackReceiver.onRemoveFavorites(eventList.get(groupPosition).locationID);
 				}
 			}
 
@@ -323,24 +324,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return false;
 	}
 
-	public boolean isStarFilled() {
-		return isStarFilled;
-	}
-
-	public void setStarFilled(boolean isStarFilled) {
-		this.isStarFilled = isStarFilled;
-	}
-
 	public boolean isTextExpanded() {
 		return isTextExpanded;
 	}
 
 	public void setTextExpanded(boolean isTextExpanded) {
 		this.isTextExpanded = isTextExpanded;
-	}
-
-	public List<String> getFavorites() {
-		return favorites;
 	}
 
 }

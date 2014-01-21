@@ -1,5 +1,8 @@
 package de.mimuc.pem_music_graph;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
@@ -13,6 +16,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,27 +33,24 @@ import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
+import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
-import de.mimuc.pem_music_graph.list.LocationController;
+import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
-import de.mimuc.pem_music_graph.utils.LocationControllerListener;
 
 /**
  * Shows both the music graph and the location list in one place
  * 
  * @author Christopher Gebhardt
- *
+ * 
  */
-public class CombinedView extends Activity 
-implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerListener {
+public class CombinedView extends Activity implements ConnectionCallbacks,
+		OnConnectionFailedListener, EventControllerListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
-	private static final long DEFAULT_UPDATE_LOCATION_INTERVAL = 60 * 1000; // update every 60 seconds
-	private static final long DEFAULT_TERMINATE_SAT_FINDING = 1 * 60 * 60 * 1000; // for 1 hour
-
 	private Context context;
-	
+
 	private SlidingUpPanelLayout layout;
 
 	private MusicGraphView graphView;
@@ -58,16 +59,16 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	private ExpandableListView locationListView;
 	private FrameLayout listHandle;
 
-	private LocationController mLocationController;
+	private EventController mEventController;
 	private Location mLocation;
 
 	private LocationClient mLocationClient;
 
 	// coordinates for moving the view
 	private double dy;
-	
+
 	boolean updated = false;
-	
+
 	private SharedPreferences sharedPreferences;
 
 	/**
@@ -77,21 +78,20 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 
 		@Override
 		public void onLocationChanged(Location location) {
-			if(location == null)
+			if (location == null)
 				return;
 
-			if(mLocation != null &&
-					location.getLatitude() == mLocation.getLatitude() && 
-					location.getLongitude() == mLocation.getLongitude()){
-
+			if (mLocation != null
+					&& location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE) {
 				Log.i(TAG, "Location not changed.");
 				return;
 			}
 
-			Log.i(TAG, "Location changed to (" + location.getLatitude() + ", " + location.getLongitude() + ")");
-			mLocationController.updateLocation(location);
-			
-			sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+			Log.i(TAG, "Location changed to (" + location.getLatitude() + ", "
+					+ location.getLongitude() + ")");
+			mEventController.updateEvents(location);
+
+			mEventController.updateEvents(location);
 		}
 	};
 
@@ -100,13 +100,40 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
 
-		this.context = this;
+		// sharedPreferences = getSharedPreferences("prefs", MODE_PRIVATE);
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+//		sharedPreferences.edit().clear().commit();
+		String loadLastEvents = sharedPreferences.getString("events", "");
 
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
 
-		// initialize controller
-		mLocationController = new LocationController(this);
+		if (getIntent().getStringExtra("json") != null) {
+
+			// initialize controller
+			String json = getIntent().getStringExtra("json");
+			double latitude = getIntent().getDoubleExtra("latitude", 0.0);
+			double longitude = getIntent().getDoubleExtra("longitude", 0.0);
+			Location location = new Location("location");
+			location.setLatitude(latitude);
+			location.setLongitude(longitude);
+			try {
+				mEventController = new EventController(this, new JSONObject(
+						json), location);
+			} catch (JSONException e) {
+				Log.w(TAG, "Could not create json from string");
+				e.printStackTrace();
+				mEventController = new EventController(this);
+				// mEventController = new EventController(this, new
+				// JSONObject(loadLastEvents));
+			}
+		} else {
+			mEventController = new EventController(this);
+			// mEventController = new EventController(this, new
+			// JSONObject(loadLastEvents));
+		}
+
+		this.context = this;
 
 		// get list handle
 		listHandle = (FrameLayout) findViewById(R.id.list_handle);
@@ -117,30 +144,34 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		frame.addView(graphView);
 		graphView.onThreadResume();
 
-		//intialize listview
+		// intialize listview
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
-		ExpandableListAdapter2 adapter = 
-				new ExpandableListAdapter2(this, mLocationController.getEventList());
+		ExpandableListAdapter2 adapter = new ExpandableListAdapter2(this,
+				mEventController.getEventList());
 		locationListView.setAdapter(adapter);
 
+		// Update once per hand
+		onEventControllerUpdate();
+
 		// initialize dimensions
-		DisplayMetrics metrics = ApplicationController
-				.getInstance().getResources().getDisplayMetrics();
+		DisplayMetrics metrics = ApplicationController.getInstance()
+				.getResources().getDisplayMetrics();
 		int width = metrics.widthPixels;
 		int height = metrics.heightPixels;
 
 		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-		layout.setPanelHeight((int)(height * 0.5));
+		layout.setPanelHeight((int) (height * 0.5));
 		layout.setDragView(listHandle);
-		layout.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
+		layout.setCoveredFadeColor(getResources().getColor(
+				android.R.color.transparent));
 		layout.setPanelSlideListener(new PanelSlideListener() {
 
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
 				graphView.onThreadPause();
-				
-				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
+
+				if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
 					if (slideOffset < 0.2) {
 						if (getActionBar().isShowing()) {
 							getActionBar().hide();
@@ -156,21 +187,23 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@Override
 			public void onPanelExpanded(View panel) {
 				graphView.onThreadPause();
-				
+
 				// FIXME find other method for Android 2.3
-				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
-					((FrameLayout)layout.findViewById(R.id.graph_view_frame)).removeAllViews();
+				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+					((FrameLayout) layout.findViewById(R.id.graph_view_frame))
+							.removeAllViews();
 				}
 			}
 
 			@Override
 			public void onPanelCollapsed(View panel) {
 				graphView.onThreadResume();
-				
+
 				// FIXME find other method for Android 2.3
-				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
-					FrameLayout frame = ((FrameLayout)layout.findViewById(R.id.graph_view_frame));
-					if(frame.getChildCount() == 0){
+				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+					FrameLayout frame = ((FrameLayout) layout
+							.findViewById(R.id.graph_view_frame));
+					if (frame.getChildCount() == 0) {
 						frame.addView(graphView);
 					}
 				}
@@ -179,9 +212,12 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 			@Override
 			public void onPanelAnchored(View panel) {
 
-
 			}
 		});
+
+		String favorites = sharedPreferences.getString("favorites", "");
+		if (!(favorites.isEmpty()))
+			mEventController.writeInFavorites(favorites);
 	}
 
 	@Override
@@ -195,36 +231,37 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	protected void onResume() {
 		super.onResume();
 
-		graphView.onThreadResume();
+		if (graphView != null)
+			graphView.onThreadResume();
 
-		if(mLocationClient != null)
+		if (mLocationClient != null)
 			mLocationClient.connect();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		
+
 		graphView.onThreadPause();
 
-		if(mLocationClient != null)
+		if (mLocationClient != null)
 			mLocationClient.disconnect();
 	}
-	
+
 	@Override
 	protected void onStop() {
 		super.onStop();
-		
-		String json = mLocationController.getJsonForSharedPreferences().toString();
+		String json = mEventController.getJsonForSharedPreferences().toString();
 		sharedPreferences.edit().putString("events", json).commit();
-		Log.v(TAG, adapter.getFavorites().toString());
-		String favorites = mLocationController.getFavorites().toString();
+		String favorites = mEventController.getFavorites().toString();
 		sharedPreferences.edit().putString("favorites", favorites).commit();
 		Log.v(TAG, favorites);
-		
-		graphView.onThreadPause();
 
-		if(mLocationClient != null)
+		graphView.onThreadPause();
+		if (graphView != null)
+			graphView.onThreadPause();
+
+		if (mLocationClient != null)
 			mLocationClient.disconnect();
 	}
 
@@ -242,11 +279,18 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 		mLocationListener.onLocationChanged(lastLocation);
 
 		// Create location request
-		LocationRequest locationRequest = LocationRequest.create()
-				.setInterval(DEFAULT_UPDATE_LOCATION_INTERVAL)
-				.setExpirationDuration(DEFAULT_TERMINATE_SAT_FINDING)
-				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY); // Accuracy of about 100m
-		mLocationClient.requestLocationUpdates(locationRequest, mLocationListener);
+		LocationRequest locationRequest = LocationRequest
+				.create()
+				.setInterval(
+						ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
+				.setExpirationDuration(
+						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
+				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY); // Accuracy
+																				// of
+																				// about
+																				// 100m
+		mLocationClient.requestLocationUpdates(locationRequest,
+				mLocationListener);
 	}
 
 	@Override
@@ -256,44 +300,49 @@ implements ConnectionCallbacks, OnConnectionFailedListener, LocationControllerLi
 	}
 
 	@Override
-	public void onLocationControllerUpdate() {
+	public void onEventControllerUpdate() {
 		Log.d(TAG, "Update ListAdapter");
 
-		this.runOnUiThread(new Runnable() 
-		{
+		this.runOnUiThread(new Runnable() {
 			@Override
-			public void run() {                                                
+			public void run() {
 				graphView.onThreadPause();
-				adapter = new ExpandableListAdapter2(context, mLocationController.getEventList());
+				adapter = new ExpandableListAdapter2(context, mEventController
+						.getEventList());
 				locationListView.setAdapter(adapter);
 				graphView.onThreadResume();
-			}});
+			}
+		});
 	}
-	
+
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		
+
 		// hijack back button to do what we want
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-	       
-			if(!layout.isExpanded() && !graphView.isAtRoot()){
+
+			if (!layout.isExpanded() && !graphView.isAtRoot()) {
 				graphView.graphNavigateBack();
 				return true;
-			} 
-			else if(layout.isExpanded()) {
+			} else if (layout.isExpanded()) {
 				layout.collapsePane();
 				return true;
 			} else {
 				moveTaskToBack(true);
 				return true;
 			}
-	    }
-	    return super.onKeyDown(keyCode, event);
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	@Override
 	public void onAddFavorites(String locationID) {
-		mLocationController.onAddFavorites(locationID);
+		mEventController.onAddFavorites(locationID);
+	}
+
+	@Override
+	public void onRemoveFavorites(String locationID) {
+		mEventController.onRemoveFavorites(locationID);
 	}
 
 }

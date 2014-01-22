@@ -36,6 +36,7 @@ public abstract class GraphAnimation {
 		if(time - (startTime + delay) > duration){
 			animate(duration);
 			callbackReceiver.animationFinished(tag);
+			return;
 		}
 			
 		animate(time - (startTime + delay));

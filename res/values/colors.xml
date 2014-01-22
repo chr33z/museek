@@ -8,6 +8,8 @@
     <color name="graph_node_mint">#7ccd7c</color>
     <color name="graph_node_purple">#b03060</color>
     <color name="graph_node_maroon">#8b1c62</color>
+    <color name="graph_node_maroon_dark">#3B0B29</color>
+    <color name="graph_node_white">#ffffff</color>
     <color name="graph_node_lila">#cb4f39</color>
 
 </resources>

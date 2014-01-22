@@ -32,19 +32,21 @@ public class EventController implements JsonConstants {
 
 	private JSONObject jsonForSharedPreferences;
 	private List<String> favorites;
+	private List<String> expandedItems;
 
 	public EventController(EventControllerListener callbackReceiver) {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
-		favorites = new ArrayList<String>();
+		this.favorites = new ArrayList<String>();
+		this.expandedItems = new ArrayList<String>();
 	}
 
-	// public EventController(EventControllerListener callbackReceiver,
-	// JSONObject json) {
-	// this.callbackReceiver = callbackReceiver;
-	// this.eventList = new HashMap<String, Event>();
-	// favorites = new ArrayList<String>();
-	// }
+	public EventController(EventControllerListener callbackReceiver,
+			JSONObject json) {
+		this.callbackReceiver = callbackReceiver;
+		this.eventList = new HashMap<String, Event>();
+		favorites = new ArrayList<String>();
+	}
 
 	public EventController(EventControllerListener callbackReceiver,
 			JSONObject json, Location location) {
@@ -80,7 +82,7 @@ public class EventController implements JsonConstants {
 				new JSONObject(params), new Response.Listener<JSONObject>() {
 					@Override
 					public void onResponse(JSONObject response) {
-//						Log.d(TAG, response.toString());
+						// Log.d(TAG, response.toString());
 						readJson(response);
 						setJsonForSharedPreferences(response);
 						Log.i(TAG, "...success!");
@@ -133,6 +135,7 @@ public class EventController implements JsonConstants {
 		String addressPostcode = null;
 		String locationWebsite = null;
 		boolean isFavorite = false;
+		boolean isExpanded = false;
 
 		try {
 			eventList.clear();
@@ -141,6 +144,7 @@ public class EventController implements JsonConstants {
 			JSONArray jsonArray = json.getJSONArray("events");
 
 			for (int i = 0; i < jsonArray.length(); i++) {
+				Log.v("anzahl in for", i+"");
 				JSONObject event = jsonArray.getJSONObject(i);
 
 				resultTime = json.getString(TAG_RESULT_TIME);
@@ -169,12 +173,26 @@ public class EventController implements JsonConstants {
 						.getString(TAG_LOCATION_ADDRESS_POSTCODE);
 				locationWebsite = event.getString(TAG_LOCATION_WEBSITE);
 
+				isFavorite = false;
 				// schaut bei jedem Mal, wenn die Liste neu geladen wird, ob der
 				// aktuelle Eintrag schon zu den Favoriten hinzugefuegt wurde
 				for (int j = 0; j < favorites.size(); j++) {
-					if (favorites.get(j).equals(locationID))
+					Log.v("favoritesEqualsID", favorites.get(j).equals(locationID)+"");
+					if (favorites.get(j).equals(locationID)){
+						Log.v("readJson1", isFavorite + " " + locationID);
 						isFavorite = true;
-					Log.v("readJson", isFavorite + " " + locationID);
+						Log.v("readJson2", isFavorite + " " + locationID);
+					}
+				}
+
+				isExpanded = false;
+				if (expandedItems != null) {
+					for (int j = 0; j < expandedItems.size(); j++) {
+						if (expandedItems.get(j).equals(locationID)) {
+							isExpanded = true;
+//							Log.v("expandedItem", isExpanded + " " + locationID);
+						}
+					}
 				}
 
 				Event newEvent = new Event(resultTime, resultRadius,
@@ -184,14 +202,14 @@ public class EventController implements JsonConstants {
 						locationLatitude, locationLongitude,
 						locationDescription, addressStreet, addressNumber,
 						addressCity, addressPostcode, locationWebsite,
-						currentLocation, isFavorite);
+						currentLocation, isFavorite, isExpanded);
 
 				// TODO boolean fuer isFavorite aus SharedPreferences auslesen
 				// und setzen
 				// Log.d(TAG, newEvent.eventName);
 				eventList.put(locationID, newEvent);
-				// Log.d(TAG, eventList.size() + "");
 			}
+			Log.v("eventListSizeController", eventList.size()+"");
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());
 		}
@@ -256,7 +274,9 @@ public class EventController implements JsonConstants {
 
 	public void updateFavorites() {
 		for (int i = 0; i < favorites.size(); i++) {
-			if (eventList.get(favorites.get(i)) != null){
+			if (eventList.get(favorites.get(i)) != null) {
+				Log.v("before", eventList.get(favorites.get(i)) + " "
+						+ eventList.get(favorites.get(i)).isFavorite);
 				eventList.get(favorites.get(i)).isFavorite = true;
 //				Log.v("updateFavorites", eventList.toString());
 			}
@@ -264,20 +284,32 @@ public class EventController implements JsonConstants {
 	}
 
 	public void writeInFavorites(String fav) {
-		Log.v("fav", fav);
-		fav = fav.replaceAll("\\s+","");
+//		Log.v("fav", fav);
+		fav = fav.replaceAll("\\s+", "");
 		String lF = fav.substring(1, fav.length() - 1);
-		Log.v("fav2", lF);
+//		Log.v("fav2", lF);
 		String[] singleFavorites = lF.split(",");
-		Log.v("woiehweohii", singleFavorites.length+"");
-		Log.v("Eintrag1", singleFavorites[0]);
-		Log.v("Eintrag2", singleFavorites[1]);
+//		Log.v("woiehweohii", singleFavorites.length + "");
+//		Log.v("Eintrag1", singleFavorites[0]);
+//		Log.v("Eintrag2", singleFavorites[1]);
 		for (int i = 0; i < singleFavorites.length; i++) {
 			this.favorites.add(singleFavorites[i]);
-			Log.v("split", singleFavorites[i]);
+//			Log.v("split", singleFavorites[i]);
 		}
-		Log.v("woiehweohii", singleFavorites.length+"");
+//		Log.v("woiehweohii", singleFavorites.length + "");
 		updateFavorites();
-		Log.v("writeInFavorites", favorites.toString());
+//		Log.v("writeInFavorites", favorites.toString());
+	}
+
+	public void onExpandedItem(String locationID, boolean b) {
+		if (expandedItems != null) {
+			for (int i = 0; i < expandedItems.size(); i++) {
+				if (eventList.get(expandedItems.get(i)) != null) {
+					eventList.get(expandedItems.get(i)).isExpanded = b;
+					// Log.v("onExpandedItem",
+					// b + "" + eventList.get(expandedItems.get(i)));
+				}
+			}
+		}
 	}
 }

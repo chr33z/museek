@@ -164,7 +164,7 @@ public class LocationController implements JsonConstants {
 						locationLatitude, locationLongitude,
 						locationDescription, addressStreet, addressNumber,
 						addressCity, addressPostcode, locationWebsite,
-						currentLocation, false);
+						currentLocation, false, false);
 
 				// TODO boolean fuer isFavorite aus SharedPreferences auslesen
 				// und setzen

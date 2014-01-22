@@ -7,4 +7,6 @@ public interface EventControllerListener {
 	public void onAddFavorites(String locationID);
 
 	public void onRemoveFavorites(String locationID);
+
+	public void onExpandedItem(String locationID, boolean b);
 }

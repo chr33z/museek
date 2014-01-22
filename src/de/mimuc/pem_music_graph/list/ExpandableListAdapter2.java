@@ -19,6 +19,9 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnGroupClickListener;
+import android.widget.ExpandableListView.OnGroupCollapseListener;
+import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -40,9 +43,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		this.callbackReceiver = (EventControllerListener) context;
 	}
 
-//	public void updateEventList(List<Event> eL) {
-//		this.eventList = sortEventsDistance(eL);
-//	}
+	// public void updateEventList(List<Event> eL) {
+	// this.eventList = sortEventsDistance(eL);
+	// }
 
 	private List<Event> sortEventsDistance(List<Event> eL) {
 		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
@@ -51,19 +54,19 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		for (int i = 0; i < eL.size(); i++) {
 			currentEvent = eL.get(i);
 			Location destination = new Location("destination");
-			destination
-					.setLatitude(Double.parseDouble(currentEvent.locationLatitude));
-			destination
-					.setLongitude(Double.parseDouble(currentEvent.locationLongitude));
+			destination.setLatitude(Double
+					.parseDouble(currentEvent.locationLatitude));
+			destination.setLongitude(Double
+					.parseDouble(currentEvent.locationLongitude));
 			Location currentLocation = currentEvent.currentLocation;
 			distance = currentLocation.distanceTo(destination);
 			unsortedList.put(distance, currentEvent);
 		}
 		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
 		List<Event> eventList = new ArrayList<Event>();
-//		for (Event event : sortedList.values()) {
-//			eventList.add(event);
-//		}
+		// for (Event event : sortedList.values()) {
+		// eventList.add(event);
+		// }
 		eventList.addAll(sortedList.values());
 		return eventList;
 	}
@@ -212,6 +215,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
+		Log.v("eventListSize", eventList.size()+"");
 		return eventList.size();
 	}
 
@@ -259,23 +263,54 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (currentDistance != null) {
 			currentDistance.setText(roundDistance(distance));
 		}
-		if (eventList.get(groupPosition).isFavorite) 
+		if (eventList.get(groupPosition).isFavorite)
 			star.setImageResource(R.drawable.ic_action_important);
-
-		final boolean iE = isExpanded;
 		final ExpandableListView listView = (ExpandableListView) parent;
+		if (eventList.get(groupPosition).isExpanded) {
+			listView.expandGroup(groupPosition);
+			arrow.setImageResource(R.drawable.ic_action_collapse);
+		}
 
+//		listView.setOnGroupClickListener(new OnGroupClickListener() {
+//
+//			@Override
+//			public boolean onGroupClick(ExpandableListView parent, View v,
+//					int groupPosition, long id) {
+//				if (eventList.get(groupPosition).isExpanded) {
+//					parent.collapseGroup(groupPosition);
+//					arrow.setImageResource(R.drawable.ic_action_expand);
+//					eventList.get(groupPosition).isExpanded = false;
+//					callbackReceiver.onExpandedItem(
+//							eventList.get(groupPosition).locationID, false);
+//				} else {
+//					parent.expandGroup(groupPosition);
+//					arrow.setImageResource(R.drawable.ic_action_collapse);
+//					eventList.get(groupPosition).isExpanded = true;
+//					callbackReceiver.onExpandedItem(
+//							eventList.get(groupPosition).locationID, true);
+//				}
+//				return false;
+//			}
+//		});
 		arrow.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				//TODO über update wie star
-				if (iE) {
+				// Log.v("arrowClick", eventList.get(groupPosition).isExpanded
+				// + "");
+				// TODO über update wie star
+				if (eventList.get(groupPosition).isExpanded) {
 					listView.collapseGroup(groupPosition);
 					arrow.setImageResource(R.drawable.ic_action_expand);
+					eventList.get(groupPosition).isExpanded = false;
+					callbackReceiver.onExpandedItem(
+							eventList.get(groupPosition).locationID, false);
 				} else {
 					listView.expandGroup(groupPosition);
 					arrow.setImageResource(R.drawable.ic_action_collapse);
+					eventList.get(groupPosition).isExpanded = true;
+					callbackReceiver.onExpandedItem(
+							eventList.get(groupPosition).locationID, true);
 				}
 			}
 		});
@@ -290,7 +325,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 							.get(groupPosition).locationID);
 				} else {
 					star.setImageResource(R.drawable.ic_action_important);
-					callbackReceiver.onRemoveFavorites(eventList.get(groupPosition).locationID);
+					callbackReceiver.onRemoveFavorites(eventList
+							.get(groupPosition).locationID);
 				}
 			}
 

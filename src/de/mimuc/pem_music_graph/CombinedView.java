@@ -345,4 +345,9 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 		mEventController.onRemoveFavorites(locationID);
 	}
 
+	@Override
+	public void onExpandedItem(String locationID, boolean b) {
+		mEventController.onExpandedItem(locationID, b);
+	}
+
 }

@@ -89,14 +89,14 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	@Override
 	public View getChildView(int groupPosition, int childPosition,
 			boolean isLastChild, View convertView, ViewGroup parent) {
+		final Event currentEvent = eventList.get(groupPosition);
 		if (convertView == null) {
 			LayoutInflater layoutInflater = (LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			// TODO Abfrage, wie gross der Bildschirm ist
 			convertView = layoutInflater.inflate(R.layout.listitembig, null);
 		}
-		final Event event = eventList.get(groupPosition);
-		if (event != null) {
+		if (currentEvent != null) {
 			TextView openingHours = (TextView) convertView
 					.findViewById(R.id.openinghours);
 			final TextView eventDescription = (TextView) convertView
@@ -117,19 +117,20 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 			// setting the Informations of the EventLocation
 			if (openingHours != null) {
-				if (event.endTime.equals("0"))
-					event.endTime = "";
-				if (stringNotEmpty(event.endTime))
+				if (currentEvent.endTime.equals("0"))
+					currentEvent.endTime = "";
+				if (stringNotEmpty(currentEvent.endTime))
 					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + event.startTime + " - "
-							+ event.endTime + " Uhr");
-				else if (stringNotEmpty(event.startTime))
+							+ "ffnet: " + currentEvent.startTime + " - "
+							+ currentEvent.endTime + " Uhr");
+				else if (stringNotEmpty(currentEvent.startTime))
 					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + " ab " + event.startTime + " Uhr");
+							+ "ffnet: " + " ab " + currentEvent.startTime
+							+ " Uhr");
 			}
 			if (eventDescription != null)
-				if (stringNotEmpty(event.endTime))
-					eventDescription.setText(event.eventDescription);
+				if (stringNotEmpty(currentEvent.endTime))
+					eventDescription.setText(currentEvent.eventDescription);
 				else {
 					eventDescription.setMaxLines(0);
 					eventDescription.setPadding(0, 0, 0, 0);
@@ -140,25 +141,25 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			if (admissionPriceBoys != null)
 				admissionPriceBoys.setText("Jungs: " + ",-");
 			if (addressStreet != null)
-				if (stringNotEmpty(event.addressStreet)
-						&& stringNotEmpty(event.addressNumber))
-					addressStreet.setText(event.addressStreet + " "
-							+ event.addressNumber);
+				if (stringNotEmpty(currentEvent.addressStreet)
+						&& stringNotEmpty(currentEvent.addressNumber))
+					addressStreet.setText(currentEvent.addressStreet + " "
+							+ currentEvent.addressNumber);
 			if (addressCity != null)
-				if (stringNotEmpty(event.addressPostcode)
-						&& stringNotEmpty(event.addressCity))
-					addressCity.setText(event.addressPostcode + " "
-							+ event.addressCity);
+				if (stringNotEmpty(currentEvent.addressPostcode)
+						&& stringNotEmpty(currentEvent.addressCity))
+					addressCity.setText(currentEvent.addressPostcode + " "
+							+ currentEvent.addressCity);
 
 			loadWebsite.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
-					if (event.locationWebsite != null) {
-						if (stringNotEmpty(event.locationWebsite)) {
+					if (currentEvent.locationWebsite != null) {
+						if (stringNotEmpty(currentEvent.locationWebsite)) {
 							Intent browserIntent = new Intent(
-									Intent.ACTION_VIEW, Uri
-											.parse(event.locationWebsite));
+									Intent.ACTION_VIEW,
+									Uri.parse(currentEvent.locationWebsite));
 							context.startActivity(browserIntent);
 						}
 					}
@@ -215,7 +216,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
-		Log.v("eventListSize", eventList.size()+"");
+		Log.v("eventListSize", eventList.size() + "");
 		return eventList.size();
 	}
 
@@ -227,6 +228,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	@Override
 	public View getGroupView(final int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
+		final ExpandableListView listView = (ExpandableListView) parent;
+		Event currentEvent = eventList.get(groupPosition);
+
 		if (convertView == null) {
 			LayoutInflater layoutInflater = (LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -235,11 +239,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 		// compute distance
 		Location destination = new Location("destination");
-		destination
-				.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
-		destination.setLongitude(Double.parseDouble(eventList
-				.get(groupPosition).locationLongitude));
-		Location currentLocation = eventList.get(groupPosition).currentLocation;
+		destination.setLatitude(Double
+				.parseDouble(currentEvent.locationLatitude));
+		destination.setLongitude(Double
+				.parseDouble(currentEvent.locationLongitude));
+		Location currentLocation = currentEvent.currentLocation;
 		float distance = currentLocation.distanceTo(destination);
 
 		TextView locationName = (TextView) convertView
@@ -248,57 +252,61 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				.findViewById(R.id.eventname);
 		TextView currentDistance = (TextView) convertView
 				.findViewById(R.id.currentdistance);
-		final ImageView arrow = (ImageView) convertView
-				.findViewById(R.id.arrow);
-		final ImageView star = (ImageView) convertView.findViewById(R.id.star);
+		ImageView arrow = (ImageView) convertView.findViewById(R.id.arrow);
+		arrow.setTag(groupPosition);
+		ImageView star = (ImageView) convertView.findViewById(R.id.star);
+		star.setTag(groupPosition);
 
 		if (locationName != null) {
-			if (stringNotEmpty(eventList.get(groupPosition).locationName))
+			if (stringNotEmpty(currentEvent.locationName))
 				locationName.setText(eventList.get(groupPosition).locationName);
 		}
 		if (eventName != null) {
-			if (stringNotEmpty(eventList.get(groupPosition).eventName))
-				eventName.setText(eventList.get(groupPosition).eventName);
+			if (stringNotEmpty(currentEvent.eventName))
+				eventName.setText(currentEvent.eventName);
 		}
 		if (currentDistance != null) {
 			currentDistance.setText(roundDistance(distance));
 		}
-		if (eventList.get(groupPosition).isFavorite)
+		if (currentEvent.isFavorite) {
 			star.setImageResource(R.drawable.ic_action_important);
-		final ExpandableListView listView = (ExpandableListView) parent;
-		if (eventList.get(groupPosition).isExpanded) {
+		} else {
+			star.setImageResource(R.drawable.ic_action_not_important);
+		}
+
+		if (currentEvent.isExpanded) {
 			listView.expandGroup(groupPosition);
 			arrow.setImageResource(R.drawable.ic_action_collapse);
 		}
 
-//		listView.setOnGroupClickListener(new OnGroupClickListener() {
-//
-//			@Override
-//			public boolean onGroupClick(ExpandableListView parent, View v,
-//					int groupPosition, long id) {
-//				if (eventList.get(groupPosition).isExpanded) {
-//					parent.collapseGroup(groupPosition);
-//					arrow.setImageResource(R.drawable.ic_action_expand);
-//					eventList.get(groupPosition).isExpanded = false;
-//					callbackReceiver.onExpandedItem(
-//							eventList.get(groupPosition).locationID, false);
-//				} else {
-//					parent.expandGroup(groupPosition);
-//					arrow.setImageResource(R.drawable.ic_action_collapse);
-//					eventList.get(groupPosition).isExpanded = true;
-//					callbackReceiver.onExpandedItem(
-//							eventList.get(groupPosition).locationID, true);
-//				}
-//				return false;
-//			}
-//		});
+		listView.setOnGroupClickListener(new OnGroupClickListener() {
+
+			@Override
+			public boolean onGroupClick(ExpandableListView parent, View v,
+					int groupPosition, long id) {
+				ImageView arrow = (ImageView) v.findViewById(R.id.arrow);
+				Event currentEvent = eventList.get(groupPosition);
+				if (currentEvent.isExpanded) {
+					arrow.setImageResource(R.drawable.ic_action_expand);
+					currentEvent.isExpanded = false;
+					callbackReceiver.onExpandedItem(currentEvent.locationID,
+							false);
+				} else {
+					arrow.setImageResource(R.drawable.ic_action_collapse);
+					currentEvent.isExpanded = true;
+					callbackReceiver.onExpandedItem(currentEvent.locationID,
+							true);
+				}
+				return false;
+			}
+		});
 		arrow.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				// Log.v("arrowClick", eventList.get(groupPosition).isExpanded
-				// + "");
-				// TODO über update wie star
+				int groupPosition = (Integer) v.getTag();
+				ImageView arrow = (ImageView) v;
+				
 				if (eventList.get(groupPosition).isExpanded) {
 					listView.collapseGroup(groupPosition);
 					arrow.setImageResource(R.drawable.ic_action_expand);
@@ -319,6 +327,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 			@Override
 			public void onClick(View v) {
+				int groupPosition = (Integer) v.getTag();
+				ImageView star = (ImageView) v;
+				
 				if (!eventList.get(groupPosition).isFavorite) {
 					star.setImageResource(R.drawable.ic_action_not_important);
 					callbackReceiver.onAddFavorites(eventList

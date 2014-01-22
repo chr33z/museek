@@ -31,13 +31,13 @@ public class EventController implements JsonConstants {
 	private Location currentLocation;
 
 	private JSONObject jsonForSharedPreferences;
-	private List<String> favorites;
+	private Map<String, FavoriteLocation> favorites;
 	private List<String> expandedItems;
 
 	public EventController(EventControllerListener callbackReceiver) {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
-		this.favorites = new ArrayList<String>();
+		this.favorites = new HashMap<String, FavoriteLocation>();
 		this.expandedItems = new ArrayList<String>();
 	}
 
@@ -45,7 +45,7 @@ public class EventController implements JsonConstants {
 			JSONObject json) {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
-		favorites = new ArrayList<String>();
+		this.favorites = new HashMap<String, FavoriteLocation>();
 	}
 
 	public EventController(EventControllerListener callbackReceiver,
@@ -53,7 +53,7 @@ public class EventController implements JsonConstants {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
 		this.currentLocation = location;
-		favorites = new ArrayList<String>();
+		this.favorites = new HashMap<String, FavoriteLocation>();
 		readJson(json);
 	}
 
@@ -134,6 +134,7 @@ public class EventController implements JsonConstants {
 		String addressCity = null;
 		String addressPostcode = null;
 		String locationWebsite = null;
+
 		boolean isFavorite = false;
 		boolean isExpanded = false;
 
@@ -144,7 +145,7 @@ public class EventController implements JsonConstants {
 			JSONArray jsonArray = json.getJSONArray("events");
 
 			for (int i = 0; i < jsonArray.length(); i++) {
-				Log.v("anzahl in for", i+"");
+				Log.v("anzahl in for", i + "");
 				JSONObject event = jsonArray.getJSONObject(i);
 
 				resultTime = json.getString(TAG_RESULT_TIME);
@@ -176,21 +177,32 @@ public class EventController implements JsonConstants {
 				isFavorite = false;
 				// schaut bei jedem Mal, wenn die Liste neu geladen wird, ob der
 				// aktuelle Eintrag schon zu den Favoriten hinzugefuegt wurde
-				for (int j = 0; j < favorites.size(); j++) {
-					Log.v("favoritesEqualsID", favorites.get(j).equals(locationID)+"");
-					if (favorites.get(j).equals(locationID)){
-						Log.v("readJson1", isFavorite + " " + locationID);
-						isFavorite = true;
-						Log.v("readJson2", isFavorite + " " + locationID);
+				for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
+					if (eventList.get(entry.getKey()) != null) {
+						if (eventList.get(entry.getKey()).equals(locationID)) {
+							isFavorite = true;
+						}
 					}
 				}
+				
+//				for (int j = 0; j < favorites.size(); j++) {
+////					Log.v("favoritesEqualsID",
+////							favorites.get(j).equals(locationID) + "");
+//					if (favorites.get(j).equals(locationID)) {
+////						Log.v("readJson1", isFavorite + " " + locationID);
+//						isFavorite = true;
+////						Log.v("readJson2", isFavorite + " " + locationID);
+//					}
+//				}
 
+				//TODO foreach?
 				isExpanded = false;
 				if (expandedItems != null) {
 					for (int j = 0; j < expandedItems.size(); j++) {
 						if (expandedItems.get(j).equals(locationID)) {
 							isExpanded = true;
-//							Log.v("expandedItem", isExpanded + " " + locationID);
+							// Log.v("expandedItem", isExpanded + " " +
+							// locationID);
 						}
 					}
 				}
@@ -204,12 +216,9 @@ public class EventController implements JsonConstants {
 						addressCity, addressPostcode, locationWebsite,
 						currentLocation, isFavorite, isExpanded);
 
-				// TODO boolean fuer isFavorite aus SharedPreferences auslesen
-				// und setzen
-				// Log.d(TAG, newEvent.eventName);
 				eventList.put(locationID, newEvent);
 			}
-			Log.v("eventListSizeController", eventList.size()+"");
+			Log.v("eventListSizeController", eventList.size() + "");
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());
 		}
@@ -222,7 +231,6 @@ public class EventController implements JsonConstants {
 	 */
 	public Map<String, Event> getEventList() {
 		updateFavorites();
-		// Log.v(TAG, eventList.size() + "");
 		return eventList;
 	}
 
@@ -241,15 +249,20 @@ public class EventController implements JsonConstants {
 	 * @param locationID
 	 */
 	public void onAddFavorites(String locationID) {
-		favorites.add(locationID);
+		FavoriteLocation fLocation = new FavoriteLocation(locationID,
+				eventList.get(locationID).locationName,
+				eventList.get(locationID).locationLatitude,
+				eventList.get(locationID).locationLongitude,
+				eventList.get(locationID).locationDescription,
+				eventList.get(locationID).addressStreet,
+				eventList.get(locationID).addressNumber,
+				eventList.get(locationID).addressCity,
+				eventList.get(locationID).addressPostcode,
+				eventList.get(locationID).locationWebsite);
+
+		favorites.put(locationID, fLocation);
 		eventList.get(locationID).isFavorite = true;
 		callbackReceiver.onEventControllerUpdate();
-
-		// TODO als Map speichern und im Adapter nur als ArrayList
-		// for (int i = 0; i < eventList.size(); i++) {
-		// if(eventList.get(i).locationID.equals(locationID))
-		// eventList.get(i).isFavorite = true;
-		// }
 	}
 
 	/**
@@ -259,46 +272,43 @@ public class EventController implements JsonConstants {
 	 * @param locationID
 	 */
 	public void onRemoveFavorites(String locationID) {
-		for (int i = 0; i < favorites.size(); i++) {
-			if (favorites.get(i).equals(locationID)) {
-				favorites.remove(i);
-				eventList.get(locationID).isFavorite = false;
+		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
+			if (eventList.get(entry.getKey()) != null) {
+				eventList.get(entry.getKey()).isFavorite = false;
+				favorites.remove(entry);
 			}
 			callbackReceiver.onEventControllerUpdate();
 		}
+		
+//		for (int i = 0; i < favorites.size(); i++) {
+//			if (favorites.get(i).equals(locationID)) {
+//				favorites.remove(i);
+//				eventList.get(locationID).isFavorite = false;
+//			}
+//			callbackReceiver.onEventControllerUpdate();
+//		}
 	}
 
-	public List<String> getFavorites() {
+	public Map<String, FavoriteLocation> getFavorites() {
 		return favorites;
 	}
 
 	public void updateFavorites() {
-		for (int i = 0; i < favorites.size(); i++) {
-			if (eventList.get(favorites.get(i)) != null) {
-				Log.v("before", eventList.get(favorites.get(i)) + " "
-						+ eventList.get(favorites.get(i)).isFavorite);
-				eventList.get(favorites.get(i)).isFavorite = true;
-//				Log.v("updateFavorites", eventList.toString());
+		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
+			Log.v("updateFavorites", entry.toString());
+			if (eventList.get(entry.getKey()) != null) {
+				eventList.get(entry.getKey()).isFavorite = true;
 			}
 		}
-	}
 
-	public void writeInFavorites(String fav) {
-//		Log.v("fav", fav);
-		fav = fav.replaceAll("\\s+", "");
-		String lF = fav.substring(1, fav.length() - 1);
-//		Log.v("fav2", lF);
-		String[] singleFavorites = lF.split(",");
-//		Log.v("woiehweohii", singleFavorites.length + "");
-//		Log.v("Eintrag1", singleFavorites[0]);
-//		Log.v("Eintrag2", singleFavorites[1]);
-		for (int i = 0; i < singleFavorites.length; i++) {
-			this.favorites.add(singleFavorites[i]);
-//			Log.v("split", singleFavorites[i]);
-		}
-//		Log.v("woiehweohii", singleFavorites.length + "");
-		updateFavorites();
-//		Log.v("writeInFavorites", favorites.toString());
+		// for (int i = 0; i < favorites.size(); i++) {
+		// if (eventList.get(favorites.get(i)) != null) {
+		// Log.v("before", eventList.get(favorites.get(i)) + " "
+		// + eventList.get(favorites.get(i)).isFavorite);
+		// eventList.get(favorites.get(i)).isFavorite = true;
+		// // Log.v("updateFavorites", eventList.toString());
+		// }
+		// }
 	}
 
 	public void onExpandedItem(String locationID, boolean b) {
@@ -306,10 +316,12 @@ public class EventController implements JsonConstants {
 			for (int i = 0; i < expandedItems.size(); i++) {
 				if (eventList.get(expandedItems.get(i)) != null) {
 					eventList.get(expandedItems.get(i)).isExpanded = b;
-					// Log.v("onExpandedItem",
-					// b + "" + eventList.get(expandedItems.get(i)));
 				}
 			}
 		}
+	}
+	
+	public void setFavorites(Map<String, FavoriteLocation> favorites) {
+		this.favorites = favorites;
 	}
 }

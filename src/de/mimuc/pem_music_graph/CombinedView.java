@@ -36,6 +36,7 @@ import de.mimuc.pem_music_graph.graph.MusicGraphView;
 import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
 import de.mimuc.pem_music_graph.list.EventController;
+import de.mimuc.pem_music_graph.list.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
 /**
@@ -89,7 +90,6 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 
 			Log.i(TAG, "Location changed to (" + location.getLatitude() + ", "
 					+ location.getLongitude() + ")");
-			mEventController.updateEvents(location);
 
 			mEventController.updateEvents(location);
 		}
@@ -102,7 +102,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 
 		// sharedPreferences = getSharedPreferences("prefs", MODE_PRIVATE);
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-//		sharedPreferences.edit().clear().commit();
+		// sharedPreferences.edit().clear().commit();
 		String loadLastEvents = sharedPreferences.getString("events", "");
 
 		// get location updates
@@ -150,8 +150,8 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 				mEventController.getEventList());
 		locationListView.setAdapter(adapter);
 
-		// Update once per hand
-		onEventControllerUpdate();
+//		// Update once per hand
+//		onEventControllerUpdate();
 
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController.getInstance()
@@ -216,9 +216,13 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 		});
 
 		String favorites = sharedPreferences.getString("favorites", "");
-		if (!(favorites.isEmpty()))
-			mEventController.writeInFavorites(favorites);
-	}
+		if (!(favorites.isEmpty())){
+			mEventController.setFavorites(JsonPreferences.createFavoritesFromJson(favorites));
+			mEventController.updateFavorites();
+			
+			Log.v("Favorites", favorites);
+		}
+		}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -253,7 +257,8 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 		super.onStop();
 		String json = mEventController.getJsonForSharedPreferences().toString();
 		sharedPreferences.edit().putString("events", json).commit();
-		String favorites = mEventController.getFavorites().toString();
+		String favorites = JsonPreferences
+				.createJsonFromFavorites(mEventController.getFavorites());
 		sharedPreferences.edit().putString("favorites", favorites).commit();
 		Log.v(TAG, favorites);
 

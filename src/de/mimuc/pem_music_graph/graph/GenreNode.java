@@ -454,26 +454,28 @@ public class GenreNode implements IGraph, GraphDrawable, GenreGraphConstants {
 		paintText.getFontMetrics(fontMetrics);
 		updateBoundary(translation);
 		
+		nodeDrawable.setBounds(
+				(int)(boundary[0]),
+				(int)(boundary[1]),
+				(int)(boundary[2]),
+				(int)(boundary[3])
+				);
+		nodeDrawable.draw(canvas);
+
+		nodeInverseDrawable.setBounds(
+				(int)(boundary[0]),
+				(int)(boundary[1]),
+				(int)(boundary[2]),
+				(int)(boundary[3])
+				);
+		
 		if(fadeRoot){
 			paintText.setColor(Color.HSVToColor(255, new float[]{ 
 					GenreGraph.COLOR_ROOT_HUE,
 					GenreGraph.COLOR_ROOT_SAT,
 					GenreGraph.COLOR_ROOT_VAL}));
-
-			nodeDrawable.setBounds(
-					(int)(boundary[0]),
-					(int)(boundary[1]),
-					(int)(boundary[2]),
-					(int)(boundary[3])
-					);
+			
 			nodeDrawable.draw(canvas);
-
-			nodeInverseDrawable.setBounds(
-					(int)(boundary[0]),
-					(int)(boundary[1]),
-					(int)(boundary[2]),
-					(int)(boundary[3])
-					);
 			nodeInverseDrawable.setAlpha(normalizeAlpha(rootVisibility));
 			nodeInverseDrawable.draw(canvas);
 
@@ -483,23 +485,9 @@ public class GenreNode implements IGraph, GraphDrawable, GenreGraphConstants {
 						GenreGraph.COLOR_HUE,
 						GenreGraph.COLOR_SAT,
 						GenreGraph.COLOR_VAL}));
-
-				nodeInverseDrawable.setBounds(
-						(int)(boundary[0]),
-						(int)(boundary[1]),
-						(int)(boundary[2]),
-						(int)(boundary[3])
-						);
 				nodeInverseDrawable.draw(canvas);
 			} else {
 				paintText.setARGB(alpha, 220, 220, 220);
-
-				nodeDrawable.setBounds(
-						(int)(boundary[0]),
-						(int)(boundary[1]),
-						(int)(boundary[2]),
-						(int)(boundary[3])
-						);
 				nodeDrawable.draw(canvas);
 			}
 		}

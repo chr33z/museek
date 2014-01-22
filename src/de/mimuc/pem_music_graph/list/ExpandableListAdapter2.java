@@ -120,13 +120,16 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				if (currentEvent.endTime.equals("0"))
 					currentEvent.endTime = "";
 				if (stringNotEmpty(currentEvent.endTime))
-					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + currentEvent.startTime + " - "
-							+ currentEvent.endTime + " Uhr");
+					openingHours.setText(
+							context.getString(R.string.list_detail_open)+" " + 
+							currentEvent.startTime + " - " + 
+							currentEvent.endTime + " " +
+							context.getString(R.string.list_detail_clock));
 				else if (stringNotEmpty(currentEvent.startTime))
-					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + " ab " + currentEvent.startTime
-							+ " Uhr");
+					openingHours.setText(
+							context.getString(R.string.list_detail_open_from) + " " + 
+							currentEvent.startTime + " " +
+							context.getString(R.string.list_detail_clock));
 			}
 			if (eventDescription != null)
 				if (stringNotEmpty(currentEvent.endTime))
@@ -136,10 +139,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					eventDescription.setPadding(0, 0, 0, 0);
 				}
 			if (admissionPriceGirls != null)
-				admissionPriceGirls.setText("M"
-						+ context.getString(R.string.ae) + "dels: " + ",-");
+				admissionPriceGirls.setText(
+						context.getString(R.string.list_detail_girls));
 			if (admissionPriceBoys != null)
-				admissionPriceBoys.setText("Jungs: " + ",-");
+				admissionPriceBoys.setText(
+						context.getString(R.string.list_detail_boys));
 			if (addressStreet != null)
 				if (stringNotEmpty(currentEvent.addressStreet)
 						&& stringNotEmpty(currentEvent.addressNumber))
@@ -165,7 +169,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					}
 				}
 			});
-
+			
 			direction.setOnClickListener(new OnClickListener() {
 
 				@Override
@@ -216,7 +220,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
-		Log.v("eventListSize", eventList.size() + "");
 		return eventList.size();
 	}
 
@@ -277,6 +280,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (currentEvent.isExpanded) {
 			listView.expandGroup(groupPosition);
 			arrow.setImageResource(R.drawable.ic_action_collapse);
+		} else {
+			arrow.setImageResource(R.drawable.ic_action_expand);
 		}
 
 		listView.setOnGroupClickListener(new OnGroupClickListener() {
@@ -286,6 +291,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					int groupPosition, long id) {
 				ImageView arrow = (ImageView) v.findViewById(R.id.arrow);
 				Event currentEvent = eventList.get(groupPosition);
+				
 				if (currentEvent.isExpanded) {
 					arrow.setImageResource(R.drawable.ic_action_expand);
 					currentEvent.isExpanded = false;
@@ -330,13 +336,13 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				int groupPosition = (Integer) v.getTag();
 				ImageView star = (ImageView) v;
 				
-				if (!eventList.get(groupPosition).isFavorite) {
+				if (eventList.get(groupPosition).isFavorite) {
 					star.setImageResource(R.drawable.ic_action_not_important);
-					callbackReceiver.onAddFavorites(eventList
+					callbackReceiver.onRemoveFavorites(eventList
 							.get(groupPosition).locationID);
 				} else {
 					star.setImageResource(R.drawable.ic_action_important);
-					callbackReceiver.onRemoveFavorites(eventList
+					callbackReceiver.onAddFavorites(eventList
 							.get(groupPosition).locationID);
 				}
 			}
@@ -345,7 +351,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 		return convertView;
 	}
-
+	
 	/**
 	 * if distance >=1000m, information in km, else in m
 	 * 

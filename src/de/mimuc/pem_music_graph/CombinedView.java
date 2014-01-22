@@ -108,6 +108,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
 
+		// try to load a json file we got from start screen
 		if (getIntent().getStringExtra("json") != null) {
 
 			// initialize controller
@@ -117,15 +118,15 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 			Location location = new Location("location");
 			location.setLatitude(latitude);
 			location.setLongitude(longitude);
+			mLocation = location;
 			try {
-				mEventController = new EventController(this, new JSONObject(
-						json), location);
+				mEventController = new EventController(this, new JSONObject(json), location);
 			} catch (JSONException e) {
 				Log.w(TAG, "Could not create json from string");
 				e.printStackTrace();
 				mEventController = new EventController(this);
-				// mEventController = new EventController(this, new
-				// JSONObject(loadLastEvents));
+//				 mEventController = new EventController(this, new
+//				 JSONObject(loadLastEvents));
 			}
 		} else {
 			mEventController = new EventController(this);
@@ -150,15 +151,13 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 				mEventController.getEventList());
 		locationListView.setAdapter(adapter);
 
-//		// Update once per hand
-//		onEventControllerUpdate();
-
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController.getInstance()
 				.getResources().getDisplayMetrics();
 		int width = metrics.widthPixels;
 		int height = metrics.heightPixels;
 
+		// initialize slide panel
 		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
 		layout.setPanelHeight((int) (height * 0.5));
 		layout.setDragView(listHandle);
@@ -222,7 +221,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 			
 			Log.v("Favorites", favorites);
 		}
-		}
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -290,17 +289,14 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 						ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
 				.setExpirationDuration(
 						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
-				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY); // Accuracy
-																				// of
-																				// about
-																				// 100m
+				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+		
 		mLocationClient.requestLocationUpdates(locationRequest,
 				mLocationListener);
 	}
 
 	@Override
 	public void onDisconnected() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -312,9 +308,19 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 			@Override
 			public void run() {
 				graphView.onThreadPause();
+				
+				// save last scroll position
+				int index = locationListView.getFirstVisiblePosition();
+				View v = locationListView.getChildAt(0);
+				int top = (v == null) ? 0 : v.getTop();
+
 				adapter = new ExpandableListAdapter2(context, mEventController
 						.getEventList());
 				locationListView.setAdapter(adapter);
+
+				// restore scroll position
+				locationListView.setSelectionFromTop(index, top);
+				
 				graphView.onThreadResume();
 			}
 		});

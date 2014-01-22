@@ -24,16 +24,41 @@ public class EventController implements JsonConstants {
 
 	private static final String TAG = EventController.class.getSimpleName();
 
+	/**
+	 * Save events in locationId-Event pairs
+	 */
 	public Map<String, Event> eventList;
 
+	/**
+	 * The activity that handles all callbacks (parent Activity)
+	 */
 	private EventControllerListener callbackReceiver;
 
+	/**
+	 * The last known location
+	 */
 	private Location currentLocation;
 
+	/**
+	 * save last event list in shared preferences 
+	 */
 	private JSONObject jsonForSharedPreferences;
+	
+	/**
+	 * save favorites in locationId-FavoriteLocation pairs
+	 */
 	private Map<String, FavoriteLocation> favorites;
+	
+	/**
+	 * Keep track of expanded views to reset them on a adapter reload
+	 */
 	private List<String> expandedItems;
 
+	/**
+	 * initialize event controller
+	 * 
+	 * @param callbackReceiver
+	 */
 	public EventController(EventControllerListener callbackReceiver) {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
@@ -41,20 +66,23 @@ public class EventController implements JsonConstants {
 		this.expandedItems = new ArrayList<String>();
 	}
 
-	public EventController(EventControllerListener callbackReceiver,
-			JSONObject json) {
-		this.callbackReceiver = callbackReceiver;
-		this.eventList = new HashMap<String, Event>();
-		this.favorites = new HashMap<String, FavoriteLocation>();
-	}
-
+	/**
+	 * initialize event controller when we already have json data and 
+	 * location
+	 * 
+	 * @param callbackReceiver
+	 * @param json
+	 * @param location
+	 */
 	public EventController(EventControllerListener callbackReceiver,
 			JSONObject json, Location location) {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
 		this.currentLocation = location;
 		this.favorites = new HashMap<String, FavoriteLocation>();
+		
 		readJson(json);
+		setJsonForSharedPreferences(json);
 	}
 
 	public void setLocation(Location location) {
@@ -145,7 +173,6 @@ public class EventController implements JsonConstants {
 			JSONArray jsonArray = json.getJSONArray("events");
 
 			for (int i = 0; i < jsonArray.length(); i++) {
-				Log.v("anzahl in for", i + "");
 				JSONObject event = jsonArray.getJSONObject(i);
 
 				resultTime = json.getString(TAG_RESULT_TIME);
@@ -272,21 +299,27 @@ public class EventController implements JsonConstants {
 	 * @param locationID
 	 */
 	public void onRemoveFavorites(String locationID) {
-		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
-			if (eventList.get(entry.getKey()) != null) {
-				eventList.get(entry.getKey()).isFavorite = false;
-				favorites.remove(entry);
+		
+		/*
+		 * TODO bei maps muss man nicht über alle einträge iterieren.
+		 * dadurch ist der fehler entstanden, dass der eintrag nicht aus der 
+		 * favorite liste entfernt wurde
+		 */
+		if(favorites.containsKey(locationID)){
+			if(eventList.get(locationID) != null){
+				eventList.get(locationID).isFavorite = false;
+				favorites.remove(locationID);
 			}
-			callbackReceiver.onEventControllerUpdate();
 		}
 		
-//		for (int i = 0; i < favorites.size(); i++) {
-//			if (favorites.get(i).equals(locationID)) {
-//				favorites.remove(i);
-//				eventList.get(locationID).isFavorite = false;
+		// alt
+//		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
+//			if (eventList.get(entry.getKey()) != null) {
+//				eventList.get(entry.getKey()).isFavorite = false;
+//				favorites.remove(entry);
 //			}
-//			callbackReceiver.onEventControllerUpdate();
 //		}
+//		callbackReceiver.onEventControllerUpdate();
 	}
 
 	public Map<String, FavoriteLocation> getFavorites() {

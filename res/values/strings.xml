@@ -14,5 +14,11 @@
     <string name="oe">\u00F6</string>
     <string name="ae">\u00E4</string>
     
+    <string name="list_detail_open">Geöffnet:</string>
+    <string name="list_detail_open_from">Geöffnet: ab</string>
+    <string name="list_detail_clock">Uhr</string>
+    <string name="list_detail_girls">Mädels:</string>
+    <string name="list_detail_boys">Jungs:</string>
+    
 
 </resources>

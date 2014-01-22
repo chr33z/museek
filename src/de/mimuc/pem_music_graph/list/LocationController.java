@@ -164,7 +164,7 @@ public class LocationController implements JsonConstants {
 						locationLatitude, locationLongitude,
 						locationDescription, addressStreet, addressNumber,
 						addressCity, addressPostcode, locationWebsite,
-						currentLocation, false, false);
+						currentLocation, 0, false, false);
 
 				// TODO boolean fuer isFavorite aus SharedPreferences auslesen
 				// und setzen
@@ -197,9 +197,9 @@ public class LocationController implements JsonConstants {
 
 	public void onAddFavorites(String locationID) {
 		favorites.add(locationID);
-		//TODO als Map speichern und im Adapter nur als ArrayList
+		// TODO als Map speichern und im Adapter nur als ArrayList
 		for (int i = 0; i < eventList.size(); i++) {
-			if(eventList.get(i).locationID.equals(locationID))
+			if (eventList.get(i).locationID.equals(locationID))
 				eventList.get(i).isFavorite = true;
 		}
 		Log.v(TAG, locationID);

@@ -16,22 +16,17 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
 import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
@@ -100,9 +95,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
 
-		// sharedPreferences = getSharedPreferences("prefs", MODE_PRIVATE);
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		// sharedPreferences.edit().clear().commit();
 		String loadLastEvents = sharedPreferences.getString("events", "");
 
 		// get location updates
@@ -254,7 +247,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 	@Override
 	protected void onStop() {
 		super.onStop();
-		String json = mEventController.getJsonForSharedPreferences().toString();
+		String json = mEventController.getJsonForSharedPreferences();
 		sharedPreferences.edit().putString("events", json).commit();
 		String favorites = JsonPreferences
 				.createJsonFromFavorites(mEventController.getFavorites());

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,7 +56,12 @@ public class EventController implements JsonConstants {
 	private List<String> expandedItems;
 
 	/**
+<<<<<<< HEAD
 	 * initialize event controller
+=======
+	 * constructor if no connection to the internet and no json available in
+	 * sharedpreferences
+>>>>>>> branch 'sharedPreferences' of https://github.com/chr33z/pem-project.git
 	 * 
 	 * @param callbackReceiver
 	 */
@@ -67,8 +73,28 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
+<<<<<<< HEAD
 	 * initialize event controller when we already have json data and 
 	 * location
+=======
+	 * constructor if no connection to the internet and json available in
+	 * sharedpreferences
+	 * 
+	 * @param callbackReceiver
+	 * @param json
+	 */
+	public EventController(EventControllerListener callbackReceiver,
+			JSONObject json) {
+		this.callbackReceiver = callbackReceiver;
+		this.eventList = new HashMap<String, Event>();
+		this.favorites = new HashMap<String, FavoriteLocation>();
+		this.expandedItems = new ArrayList<String>();
+		readJson(json);
+	}
+
+	/**
+	 * constructor
+>>>>>>> branch 'sharedPreferences' of https://github.com/chr33z/pem-project.git
 	 * 
 	 * @param callbackReceiver
 	 * @param json
@@ -80,18 +106,16 @@ public class EventController implements JsonConstants {
 		this.eventList = new HashMap<String, Event>();
 		this.currentLocation = location;
 		this.favorites = new HashMap<String, FavoriteLocation>();
-		
+		this.expandedItems = new ArrayList<String>();
 		readJson(json);
 		setJsonForSharedPreferences(json);
 	}
 
-	public void setLocation(Location location) {
-		currentLocation = location;
-	}
-
 	/**
-	 * stellt eine Anfrage an den Server, um die aktuelle Liste der
-	 * EventLocations in einem bestimmten Radius abzufragen
+	 * puts a question to the server to get the current list of events with a
+	 * certain radius
+	 * 
+	 * @param location
 	 */
 	public void updateEvents(Location location) {
 		Log.d(TAG, "Try to retrieve locations from server...");
@@ -134,7 +158,7 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
-	 * liest json aus und speichert die Elemente als neue EventLocation
+	 * reads the json and stores the elements as new event
 	 * 
 	 * @param json
 	 */
@@ -163,6 +187,7 @@ public class EventController implements JsonConstants {
 		String addressPostcode = null;
 		String locationWebsite = null;
 
+		float currentDistance = 0;
 		boolean isFavorite = false;
 		boolean isExpanded = false;
 
@@ -202,27 +227,18 @@ public class EventController implements JsonConstants {
 				locationWebsite = event.getString(TAG_LOCATION_WEBSITE);
 
 				isFavorite = false;
-				// schaut bei jedem Mal, wenn die Liste neu geladen wird, ob der
-				// aktuelle Eintrag schon zu den Favoriten hinzugefuegt wurde
-				for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
+				// looks if the current entry is part of favorites
+				// and sets isFavorite on true if it is
+				for (Map.Entry<String, FavoriteLocation> entry : favorites
+						.entrySet()) {
 					if (eventList.get(entry.getKey()) != null) {
 						if (eventList.get(entry.getKey()).equals(locationID)) {
 							isFavorite = true;
 						}
 					}
 				}
-				
-//				for (int j = 0; j < favorites.size(); j++) {
-////					Log.v("favoritesEqualsID",
-////							favorites.get(j).equals(locationID) + "");
-//					if (favorites.get(j).equals(locationID)) {
-////						Log.v("readJson1", isFavorite + " " + locationID);
-//						isFavorite = true;
-////						Log.v("readJson2", isFavorite + " " + locationID);
-//					}
-//				}
 
-				//TODO foreach?
+				// TODO foreach?
 				isExpanded = false;
 				if (expandedItems != null) {
 					for (int j = 0; j < expandedItems.size(); j++) {
@@ -241,7 +257,8 @@ public class EventController implements JsonConstants {
 						locationLatitude, locationLongitude,
 						locationDescription, addressStreet, addressNumber,
 						addressCity, addressPostcode, locationWebsite,
-						currentLocation, isFavorite, isExpanded);
+						currentLocation, currentDistance, isFavorite,
+						isExpanded);
 
 				eventList.put(locationID, newEvent);
 			}
@@ -252,26 +269,8 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
-	 * Getter fuer die aktuelle Liste der EventLocations
-	 * 
-	 * @return List<EventLocation>
-	 */
-	public Map<String, Event> getEventList() {
-		updateFavorites();
-		return eventList;
-	}
-
-	public JSONObject getJsonForSharedPreferences() {
-		return jsonForSharedPreferences;
-	}
-
-	public void setJsonForSharedPreferences(JSONObject jsonForSharedPreferences) {
-		this.jsonForSharedPreferences = jsonForSharedPreferences;
-	}
-
-	/**
-	 * aktualisiert den Wert von isFavorite, wenn eine Location zu Favoriten
-	 * hinzugefuegt wurde und updatet
+	 * updates the valule of isFavorite when a new location was marked as
+	 * favorite; it updates the list of events
 	 * 
 	 * @param locationID
 	 */
@@ -293,8 +292,8 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
-	 * entfernt die LocationID aus Favoriten, wenn eine Location aus den
-	 * Favoriten entfernt wurde und updatet
+	 * removes the locationID from favorites when the location was removed from
+	 * favorites; it updates the list
 	 * 
 	 * @param locationID
 	 */
@@ -311,21 +310,11 @@ public class EventController implements JsonConstants {
 				favorites.remove(locationID);
 			}
 		}
-		
-		// alt
-//		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
-//			if (eventList.get(entry.getKey()) != null) {
-//				eventList.get(entry.getKey()).isFavorite = false;
-//				favorites.remove(entry);
-//			}
-//		}
-//		callbackReceiver.onEventControllerUpdate();
 	}
 
-	public Map<String, FavoriteLocation> getFavorites() {
-		return favorites;
-	}
-
+	/**
+	 * updates the entries of the favorite-value of the eventlist
+	 */
 	public void updateFavorites() {
 		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
 			Log.v("updateFavorites", entry.toString());
@@ -333,17 +322,14 @@ public class EventController implements JsonConstants {
 				eventList.get(entry.getKey()).isFavorite = true;
 			}
 		}
-
-		// for (int i = 0; i < favorites.size(); i++) {
-		// if (eventList.get(favorites.get(i)) != null) {
-		// Log.v("before", eventList.get(favorites.get(i)) + " "
-		// + eventList.get(favorites.get(i)).isFavorite);
-		// eventList.get(favorites.get(i)).isFavorite = true;
-		// // Log.v("updateFavorites", eventList.toString());
-		// }
-		// }
 	}
 
+	/**
+	 * stores if listitems are expanded or collapsed in a list
+	 * 
+	 * @param locationID
+	 * @param b
+	 */
 	public void onExpandedItem(String locationID, boolean b) {
 		if (expandedItems != null) {
 			for (int i = 0; i < expandedItems.size(); i++) {
@@ -353,8 +339,59 @@ public class EventController implements JsonConstants {
 			}
 		}
 	}
-	
+
+	/**
+	 * getter for the current map of events
+	 * 
+	 * @return List<EventLocation>
+	 */
+	public Map<String, Event> getEventList() {
+		updateFavorites();
+		return eventList;
+	}
+
+	/**
+	 * getter for the list of favorites
+	 * 
+	 * @return
+	 */
+	public Map<String, FavoriteLocation> getFavorites() {
+		return favorites;
+	}
+
+	/**
+	 * getter for the string of json which is stored in shared preferenced
+	 * 
+	 * @return
+	 */
+	public String getJsonForSharedPreferences() {
+		return jsonForSharedPreferences.toString();
+	}
+
+	/**
+	 * sets the json for shared preferences
+	 * 
+	 * @param jsonForSharedPreferences
+	 */
+	public void setJsonForSharedPreferences(JSONObject jsonForSharedPreferences) {
+		this.jsonForSharedPreferences = jsonForSharedPreferences;
+	}
+
+	/**
+	 * sets the map of favorites
+	 * 
+	 * @param favorites
+	 */
 	public void setFavorites(Map<String, FavoriteLocation> favorites) {
 		this.favorites = favorites;
+	}
+
+	/**
+	 * sets the current location
+	 * 
+	 * @param location
+	 */
+	public void setLocation(Location location) {
+		currentLocation = location;
 	}
 }

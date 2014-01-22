@@ -28,6 +28,7 @@ public class Event {
 	public String addressPostcode;
 	public String locationWebsite;
 	public Location currentLocation;
+	public float currentDistance;
 	public boolean isFavorite;
 	public boolean isExpanded;
 
@@ -39,7 +40,8 @@ public class Event {
 			String locationLongitude, String locationDescription,
 			String addressStreet, String addressNumber, String addressCity,
 			String addressPostcode, String locationWebsite,
-			Location currentLocation, boolean isFavorite, boolean isExpanded) {
+			Location currentLocation, float currentDistance,
+			boolean isFavorite, boolean isExpanded) {
 		this.resultTime = resultTime;
 		this.resultRadius = resultRadius;
 		this.resultLatitude = resultLatitude;
@@ -65,6 +67,7 @@ public class Event {
 		this.locationWebsite = locationWebsite;
 
 		this.currentLocation = currentLocation;
+		this.currentDistance = currentDistance;
 		this.isFavorite = isFavorite;
 		this.isExpanded = isExpanded;
 	}

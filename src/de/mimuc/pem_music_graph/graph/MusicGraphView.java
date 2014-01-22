@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.graph.animation.FadeRootAnimation;
 import de.mimuc.pem_music_graph.graph.animation.GraphAnimationQueue;
 import de.mimuc.pem_music_graph.graph.animation.MoveAnimation;
 import de.mimuc.pem_music_graph.graph.animation.ShrinkAnimation;
@@ -474,6 +475,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		animationQueue.add(new MoveAnimation(
 				node, GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, node.getParent().y), "root");
 		animationQueue.add(new TouchAnimation(node, GenreGraph.ANIM_MOVE_DURATION), "roottouch");
+		animationQueue.add(new FadeRootAnimation(node, GenreGraph.ANIM_MOVE_DURATION, FadeRootAnimation.SHOW), "rootfade");
 
 		// move root further up
 		animationQueue.add(new MoveAnimation(

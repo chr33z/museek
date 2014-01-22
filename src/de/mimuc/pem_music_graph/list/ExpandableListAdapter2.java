@@ -30,29 +30,35 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private static final String TAG = ExpandableListAdapter2.class.getName();
 
 	private Context context;
-	private boolean isTextExpanded;
-
+	private boolean isDescriptionExpanded;
 	private List<Event> eventList;
-
 	private EventControllerListener callbackReceiver;
 
 	public ExpandableListAdapter2(Context context, Map<String, Event> eventList) {
 		this.context = context;
+		this.eventList = new ArrayList<Event>();
 		this.eventList = new ArrayList<Event>(eventList.values());
 		this.eventList = sortEventsDistance(this.eventList);
+		for (Event e : this.eventList) {
+			Log.v("konstruktor", e.currentDistance + "");
+		}
+
 		this.callbackReceiver = (EventControllerListener) context;
 	}
 
-	// public void updateEventList(List<Event> eL) {
-	// this.eventList = sortEventsDistance(eL);
-	// }
-
+	/**
+	 * sorts the list items according to their distance to the current location
+	 * and stores this value in the eventlist
+	 * 
+	 * @param eL
+	 * @return
+	 */
 	private List<Event> sortEventsDistance(List<Event> eL) {
 		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
 		Event currentEvent;
 		float distance;
-		for (int i = 0; i < eL.size(); i++) {
-			currentEvent = eL.get(i);
+		for (Event event : eL) {
+			currentEvent = event;
 			Location destination = new Location("destination");
 			destination.setLatitude(Double
 					.parseDouble(currentEvent.locationLatitude));
@@ -61,14 +67,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			Location currentLocation = currentEvent.currentLocation;
 			distance = currentLocation.distanceTo(destination);
 			unsortedList.put(distance, currentEvent);
+			unsortedList.get(distance).currentDistance = distance;
 		}
 		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
-		List<Event> eventList = new ArrayList<Event>();
-		// for (Event event : sortedList.values()) {
-		// eventList.add(event);
-		// }
-		eventList.addAll(sortedList.values());
-		return eventList;
+		List<Event> sortedEventList = new ArrayList<Event>();
+		for (Event event : sortedList.values()) {
+			sortedEventList.add(event);
+			Log.v("distance", event.currentDistance + "");
+		}
+		return sortedEventList;
 	}
 
 	@Override
@@ -178,7 +185,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 				@Override
 				public void onClick(View v) {
-					if (!isTextExpanded) {
+					if (!isDescriptionExpanded) {
 						eventDescription.setMaxLines(10);
 						setTextExpanded(true);
 					} else {
@@ -216,7 +223,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
-		Log.v("eventListSize", eventList.size() + "");
 		return eventList.size();
 	}
 
@@ -236,15 +242,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = layoutInflater.inflate(R.layout.headlinelist, null);
 		}
-
-		// compute distance
-		Location destination = new Location("destination");
-		destination.setLatitude(Double
-				.parseDouble(currentEvent.locationLatitude));
-		destination.setLongitude(Double
-				.parseDouble(currentEvent.locationLongitude));
-		Location currentLocation = currentEvent.currentLocation;
-		float distance = currentLocation.distanceTo(destination);
 
 		TextView locationName = (TextView) convertView
 				.findViewById(R.id.eventlocationname);
@@ -266,7 +263,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				eventName.setText(currentEvent.eventName);
 		}
 		if (currentDistance != null) {
-			currentDistance.setText(roundDistance(distance));
+			currentDistance
+					.setText(roundDistance(currentEvent.currentDistance));
 		}
 		if (currentEvent.isFavorite) {
 			star.setImageResource(R.drawable.ic_action_important);
@@ -306,7 +304,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			public void onClick(View v) {
 				int groupPosition = (Integer) v.getTag();
 				ImageView arrow = (ImageView) v;
-				
+
 				if (eventList.get(groupPosition).isExpanded) {
 					listView.collapseGroup(groupPosition);
 					arrow.setImageResource(R.drawable.ic_action_expand);
@@ -329,7 +327,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			public void onClick(View v) {
 				int groupPosition = (Integer) v.getTag();
 				ImageView star = (ImageView) v;
-				
+
 				if (!eventList.get(groupPosition).isFavorite) {
 					star.setImageResource(R.drawable.ic_action_not_important);
 					callbackReceiver.onAddFavorites(eventList
@@ -344,6 +342,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		});
 
 		return convertView;
+	}
+
+	@Override
+	public boolean isChildSelectable(int groupPosition, int childPosition) {
+		return false;
 	}
 
 	/**
@@ -366,17 +369,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return "ca. " + (int) distance + " " + distanceUnity;
 	}
 
-	@Override
-	public boolean isChildSelectable(int groupPosition, int childPosition) {
-		return false;
-	}
-
 	public boolean isTextExpanded() {
-		return isTextExpanded;
+		return isDescriptionExpanded;
 	}
 
 	public void setTextExpanded(boolean isTextExpanded) {
-		this.isTextExpanded = isTextExpanded;
+		this.isDescriptionExpanded = isTextExpanded;
 	}
 
 }

@@ -450,45 +450,11 @@ public class GenreNode implements IGraph, GraphDrawable, GenreGraphConstants {
 			alpha = (int) (255 * visibility);
 		}
 
-		//
-
-		//		paintLine.setStrokeWidth(width * GenreGraph.LINE_FACTOR);
-		//		paintLine.setARGB(alpha, 20, 20, 20);
-
-		//		if(parent != null && drawLines) canvas.drawLine(
-		//				x, y + translation, 
-		//				parent.x, parent.y + translation, 
-		//				paintLine);
-
-		// draw point larger if we are the root
-		//		float radiusNew = (isRoot) ? radius * 1.2f : radius;
-
-		// real circle
-		//		paintNode.setColor(Color.HSVToColor(alpha, new float[]{ 
-		//				GenreGraph.COLOR_HUE,
-		//				GenreGraph.COLOR_SAT,
-		//				GenreGraph.COLOR_VAL - (level * 0.05f)}));
-
-		//		if(isRoot){
-		//		canvas.drawCircle(
-		//				x, y + translation, 
-		//				radiusNew, paintNode);
-		//		} else {
-		//			
-		//			float textWith = paintText.measureText(name);
-		//			float padding = 2.0f;
-		//			canvas.drawRect(
-		//					new RectF(x - (textWith * 0.5f) - padding,
-		//								y - radiusNew * 0.5f,
-		//								x + (textWith * 0.5f) + padding,
-		//								y + radiusNew * 0.5f), 
-		//								paintNode);
-		//		}
-
 		// set bounds to match the text
 		paintText.getFontMetrics(fontMetrics);
 		updateBoundary(translation);
-		if(false){ // FIXME make it real
+		
+		if(fadeRoot){
 			paintText.setColor(Color.HSVToColor(255, new float[]{ 
 					GenreGraph.COLOR_ROOT_HUE,
 					GenreGraph.COLOR_ROOT_SAT,
@@ -512,15 +478,30 @@ public class GenreNode implements IGraph, GraphDrawable, GenreGraphConstants {
 			nodeInverseDrawable.draw(canvas);
 
 		} else {
-			paintText.setARGB(alpha, 220, 220, 220);
+			if(isRoot){
+				paintText.setColor(Color.HSVToColor(255, new float[]{ 
+						GenreGraph.COLOR_HUE,
+						GenreGraph.COLOR_SAT,
+						GenreGraph.COLOR_VAL}));
 
-			nodeDrawable.setBounds(
-					(int)(boundary[0]),
-					(int)(boundary[1]),
-					(int)(boundary[2]),
-					(int)(boundary[3])
-					);
-			nodeDrawable.draw(canvas);
+				nodeInverseDrawable.setBounds(
+						(int)(boundary[0]),
+						(int)(boundary[1]),
+						(int)(boundary[2]),
+						(int)(boundary[3])
+						);
+				nodeInverseDrawable.draw(canvas);
+			} else {
+				paintText.setARGB(alpha, 220, 220, 220);
+
+				nodeDrawable.setBounds(
+						(int)(boundary[0]),
+						(int)(boundary[1]),
+						(int)(boundary[2]),
+						(int)(boundary[3])
+						);
+				nodeDrawable.draw(canvas);
+			}
 		}
 
 		canvas.drawText(name, 

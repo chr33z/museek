@@ -41,27 +41,23 @@ public class EventController implements JsonConstants {
 	private Location currentLocation;
 
 	/**
-	 * save last event list in shared preferences 
+	 * save last event list in shared preferences
 	 */
 	private JSONObject jsonForSharedPreferences;
-	
+
 	/**
 	 * save favorites in locationId-FavoriteLocation pairs
 	 */
 	private Map<String, FavoriteLocation> favorites;
-	
+
 	/**
 	 * Keep track of expanded views to reset them on a adapter reload
 	 */
 	private List<String> expandedItems;
 
 	/**
-<<<<<<< HEAD
-	 * initialize event controller
-=======
-	 * constructor if no connection to the internet and no json available in
-	 * sharedpreferences
->>>>>>> branch 'sharedPreferences' of https://github.com/chr33z/pem-project.git
+	 * initialize event controller constructor if no connection to the internet
+	 * and no json available in sharedpreferences
 	 * 
 	 * @param callbackReceiver
 	 */
@@ -73,10 +69,7 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * initialize event controller when we already have json data and 
-	 * location
-=======
+	 * initialize event controller when we already have json data and location
 	 * constructor if no connection to the internet and json available in
 	 * sharedpreferences
 	 * 
@@ -94,7 +87,6 @@ public class EventController implements JsonConstants {
 
 	/**
 	 * constructor
->>>>>>> branch 'sharedPreferences' of https://github.com/chr33z/pem-project.git
 	 * 
 	 * @param callbackReceiver
 	 * @param json
@@ -298,18 +290,14 @@ public class EventController implements JsonConstants {
 	 * @param locationID
 	 */
 	public void onRemoveFavorites(String locationID) {
-		
-		/*
-		 * TODO bei maps muss man nicht über alle einträge iterieren.
-		 * dadurch ist der fehler entstanden, dass der eintrag nicht aus der 
-		 * favorite liste entfernt wurde
-		 */
-		if(favorites.containsKey(locationID)){
-			if(eventList.get(locationID) != null){
+
+		if (favorites.containsKey(locationID)) {
+			if (eventList.get(locationID) != null) {
 				eventList.get(locationID).isFavorite = false;
 				favorites.remove(locationID);
 			}
 		}
+		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**
@@ -341,13 +329,74 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
-	 * getter for the current map of events
+	 * sorts the list items according to their distance to the current location
+	 * and stores this value in the eventlist
+	 * 
+	 * @param eL
+	 * @return
+	 */
+	private List<Event> sortEventsDistance(Map<String, Event> eL) {
+		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
+		Event currentEvent;
+		float distance;
+		for (Map.Entry<String, Event> entry : eventList.entrySet()) {
+			currentEvent = entry.getValue();
+			Location destination = new Location("destination");
+			destination.setLatitude(Double
+					.parseDouble(currentEvent.locationLatitude));
+			destination.setLongitude(Double
+					.parseDouble(currentEvent.locationLongitude));
+			Location currentLocation = currentEvent.currentLocation;
+			distance = currentLocation.distanceTo(destination);
+			unsortedList.put(distance, currentEvent);
+			unsortedList.get(distance).currentDistance = distance;
+		}
+		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
+		List<Event> sortedEventList = new ArrayList<Event>();
+		for (Event event : sortedList.values()) {
+			sortedEventList.add(event);
+			Log.v("distance", event.currentDistance + "");
+		}
+		return sortFavoriteEvents(sortedEventList);
+	}
+
+	/**
+	 * reads first the favorites, stores the corresponding events in a list and
+	 * removes the item from the eventlist; after that it stores the remaining
+	 * events also in the sorted list
+	 * 
+	 * @param events
+	 * @return
+	 */
+	private List<Event> sortFavoriteEvents(List<Event> events) {
+		List<Event> localEvents = events;
+		List<Event> favoriteLocations = new ArrayList<Event>();
+		for (int i = 0; i < events.size(); i++) {
+			if (favorites.containsKey(events.get(i).locationID)) {
+				favoriteLocations.add(events.get(i));
+				localEvents.remove(i);
+			}
+		}
+		for (int i = 0; i < localEvents.size(); i++) {
+			favoriteLocations.add(localEvents.get(i));
+		}
+//		for (int i = 0; i < favoriteLocations.size(); i++) {
+//			Log.v("sortiert nach distance und favorite",
+//					favoriteLocations.get(i).currentDistance + " "
+//							+ favoriteLocations.get(i).locationName);
+//		}
+		return favoriteLocations;
+	}
+
+	/**
+	 * getter for the current list of events
 	 * 
 	 * @return List<EventLocation>
 	 */
-	public Map<String, Event> getEventList() {
+	public List<Event> getEventList() {
 		updateFavorites();
-		return eventList;
+		List<Event> eL = new ArrayList<Event>(sortEventsDistance(eventList));
+		return eL;
 	}
 
 	/**
@@ -394,4 +443,5 @@ public class EventController implements JsonConstants {
 	public void setLocation(Location location) {
 		currentLocation = location;
 	}
+
 }

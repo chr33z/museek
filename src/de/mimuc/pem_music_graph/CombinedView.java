@@ -113,18 +113,28 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 			location.setLongitude(longitude);
 			mLocation = location;
 			try {
-				mEventController = new EventController(this, new JSONObject(json), location);
+				mEventController = new EventController(this, new JSONObject(
+						json), location);
 			} catch (JSONException e) {
 				Log.w(TAG, "Could not create json from string");
 				e.printStackTrace();
 				mEventController = new EventController(this);
-//				 mEventController = new EventController(this, new
-//				 JSONObject(loadLastEvents));
+				// mEventController = new EventController(this, new
+				// JSONObject(loadLastEvents));
 			}
 		} else {
 			mEventController = new EventController(this);
 			// mEventController = new EventController(this, new
 			// JSONObject(loadLastEvents));
+		}
+
+		String favorites = sharedPreferences.getString("favorites", "");
+		if (!(favorites.isEmpty())) {
+			mEventController.setFavorites(JsonPreferences
+					.createFavoritesFromJson(favorites));
+			mEventController.updateFavorites();
+
+			Log.v("Favorites", favorites);
 		}
 
 		this.context = this;
@@ -206,14 +216,6 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 
 			}
 		});
-
-		String favorites = sharedPreferences.getString("favorites", "");
-		if (!(favorites.isEmpty())){
-			mEventController.setFavorites(JsonPreferences.createFavoritesFromJson(favorites));
-			mEventController.updateFavorites();
-			
-			Log.v("Favorites", favorites);
-		}
 	}
 
 	@Override
@@ -283,7 +285,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 				.setExpirationDuration(
 						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
 				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-		
+
 		mLocationClient.requestLocationUpdates(locationRequest,
 				mLocationListener);
 	}
@@ -301,7 +303,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 			@Override
 			public void run() {
 				graphView.onThreadPause();
-				
+
 				// save last scroll position
 				int index = locationListView.getFirstVisiblePosition();
 				View v = locationListView.getChildAt(0);
@@ -313,7 +315,7 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 
 				// restore scroll position
 				locationListView.setSelectionFromTop(index, top);
-				
+
 				graphView.onThreadResume();
 			}
 		});

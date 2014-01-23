@@ -1,16 +1,11 @@
 package de.mimuc.pem_music_graph.list;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.utils.LocationControllerListener;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
-import android.widget.ExpandableListView.OnGroupCollapseListener;
-import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -34,48 +27,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private List<Event> eventList;
 	private EventControllerListener callbackReceiver;
 
-	public ExpandableListAdapter2(Context context, Map<String, Event> eventList) {
+	public ExpandableListAdapter2(Context context, List<Event> eventList) {
 		this.context = context;
 		this.eventList = new ArrayList<Event>();
-		this.eventList = new ArrayList<Event>(eventList.values());
-		this.eventList = sortEventsDistance(this.eventList);
-		for (Event e : this.eventList) {
-			Log.v("konstruktor", e.currentDistance + "");
-		}
-
+		this.eventList = eventList;
 		this.callbackReceiver = (EventControllerListener) context;
-	}
-
-	/**
-	 * sorts the list items according to their distance to the current location
-	 * and stores this value in the eventlist
-	 * 
-	 * @param eL
-	 * @return
-	 */
-	private List<Event> sortEventsDistance(List<Event> eL) {
-		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
-		Event currentEvent;
-		float distance;
-		for (Event event : eL) {
-			currentEvent = event;
-			Location destination = new Location("destination");
-			destination.setLatitude(Double
-					.parseDouble(currentEvent.locationLatitude));
-			destination.setLongitude(Double
-					.parseDouble(currentEvent.locationLongitude));
-			Location currentLocation = currentEvent.currentLocation;
-			distance = currentLocation.distanceTo(destination);
-			unsortedList.put(distance, currentEvent);
-			unsortedList.get(distance).currentDistance = distance;
-		}
-		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
-		List<Event> sortedEventList = new ArrayList<Event>();
-		for (Event event : sortedList.values()) {
-			sortedEventList.add(event);
-			Log.v("distance", event.currentDistance + "");
-		}
-		return sortedEventList;
 	}
 
 	@Override
@@ -127,16 +83,21 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				if (currentEvent.endTime.equals("0"))
 					currentEvent.endTime = "";
 				if (stringNotEmpty(currentEvent.endTime))
-					openingHours.setText(
-							context.getString(R.string.list_detail_open)+" " + 
-							currentEvent.startTime + " - " + 
-							currentEvent.endTime + " " +
-							context.getString(R.string.list_detail_clock));
+					openingHours.setText(context
+							.getString(R.string.list_detail_open)
+							+ " "
+							+ currentEvent.startTime
+							+ " - "
+							+ currentEvent.endTime
+							+ " "
+							+ context.getString(R.string.list_detail_clock));
 				else if (stringNotEmpty(currentEvent.startTime))
-					openingHours.setText(
-							context.getString(R.string.list_detail_open_from) + " " + 
-							currentEvent.startTime + " " +
-							context.getString(R.string.list_detail_clock));
+					openingHours.setText(context
+							.getString(R.string.list_detail_open_from)
+							+ " "
+							+ currentEvent.startTime
+							+ " "
+							+ context.getString(R.string.list_detail_clock));
 			}
 			if (eventDescription != null)
 				if (stringNotEmpty(currentEvent.endTime))
@@ -146,11 +107,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					eventDescription.setPadding(0, 0, 0, 0);
 				}
 			if (admissionPriceGirls != null)
-				admissionPriceGirls.setText(
-						context.getString(R.string.list_detail_girls));
+				admissionPriceGirls.setText(context
+						.getString(R.string.list_detail_girls));
 			if (admissionPriceBoys != null)
-				admissionPriceBoys.setText(
-						context.getString(R.string.list_detail_boys));
+				admissionPriceBoys.setText(context
+						.getString(R.string.list_detail_boys));
 			if (addressStreet != null)
 				if (stringNotEmpty(currentEvent.addressStreet)
 						&& stringNotEmpty(currentEvent.addressNumber))
@@ -176,7 +137,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					}
 				}
 			});
-			
+
 			direction.setOnClickListener(new OnClickListener() {
 
 				@Override
@@ -239,6 +200,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public View getGroupView(final int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
 		final ExpandableListView listView = (ExpandableListView) parent;
+//		Event currentEvent = (sortGenre()).get(groupPosition);
 		Event currentEvent = eventList.get(groupPosition);
 
 		if (convertView == null) {
@@ -290,7 +252,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					int groupPosition, long id) {
 				ImageView arrow = (ImageView) v.findViewById(R.id.arrow);
 				Event currentEvent = eventList.get(groupPosition);
-				
+
 				if (currentEvent.isExpanded) {
 					arrow.setImageResource(R.drawable.ic_action_expand);
 					currentEvent.isExpanded = false;
@@ -334,7 +296,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			public void onClick(View v) {
 				int groupPosition = (Integer) v.getTag();
 				ImageView star = (ImageView) v;
-				
+
 				if (eventList.get(groupPosition).isFavorite) {
 					star.setImageResource(R.drawable.ic_action_not_important);
 					callbackReceiver.onRemoveFavorites(eventList
@@ -355,7 +317,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public boolean isChildSelectable(int groupPosition, int childPosition) {
 		return false;
 	}
-	
+
 	/**
 	 * if distance >=1000m, information in km, else in m
 	 * 
@@ -374,6 +336,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		} else
 			distance = Math.round(distance);
 		return "ca. " + (int) distance + " " + distanceUnity;
+	}
+
+	private List<Event> sortGenre() {
+		List<Event> genreList = new ArrayList<Event>();
+		// TODO
+		return genreList;
 	}
 
 	public boolean isTextExpanded() {

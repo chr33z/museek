@@ -33,7 +33,7 @@ public interface IGraph {
 	/**
 	 * Set all nodes invisible.
 	 */
-	public void setInvisibleCascading();
+	public void resetCascading();
 
 	/**
 	 * Set a color intervall for the children

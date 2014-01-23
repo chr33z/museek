@@ -15,43 +15,20 @@ import android.util.Log;
  * @author Christopher Gebhardt
  *
  */
-public class GenreGraph implements IGraph {
+public class GenreGraph implements IGraph, GenreGraphConstants {
 
 	private static final String TAG = GenreNode.class.getName();
-	
-	public static final float PARENT_Y_FACTOR = 0.0f;
-	public static final float ROOT_Y_FACTOR = 0.15f;
-	public static final float CHILD_Y_FACTOR = 0.30f;
-	public static final float RADIUS_FACTOR = 0.1f;
-	public static final float TEXT_FACTOR = 0.005f;
-	public static final float LINE_FACTOR = 0.005f;
-	
-	// Colors used for nodes
-	public static final float COLOR_HUE = 158.0f;
-	public static final float COLOR_HUE_STEP = -15.0f;
-	public static final float COLOR_SAT = 0.73f;
-	public static final float COLOR_VAL = 0.69f;
-	
-	// colors used for the rest
-	public static final int COLOR_TEXT = Color.WHITE;
-	public static final int COLOR_BACKGROUND = Color.DKGRAY;
-	public static final int COLOR_LINE = Color.BLACK;
-	
-	// Animation Times
-	public static final int ANIM_MOVE_DURATION = 300;
-	public static final int ANIM_TOUCH_DURATION = 100;
-	public static final int ANIM_DELAY = 50;
-	
-	// value between 0 and 1
-	public static final float TRANSLATION_SNAP_FACTOR = 0.1f;
-	
-	public static float TRANSLATION_MAX;
 	
 	/*
 	 * screen dimensions
 	 */
-	private float width;
-	private float height;
+	protected float width;
+	protected float height;
+	
+	/**
+	 * maximal translation of the graph during swipe. dependent on height
+	 */
+	public float translationMax = 0;
 	
 	/**
 	 * vertical translation of entire graph view
@@ -74,7 +51,7 @@ public class GenreGraph implements IGraph {
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
 		
-		TRANSLATION_MAX = (height * ROOT_Y_FACTOR) - (height * PARENT_Y_FACTOR);
+		translationMax = (height * ROOT_Y_FACTOR) - (height * PARENT_Y_FACTOR);
 		
 		buildGraph();
 	}
@@ -90,29 +67,48 @@ public class GenreGraph implements IGraph {
 		root = buildNode("Music");
 		root.level = 0;
 		
-		root.addChild(buildNode("Rock"));
+		root.addChild(buildNode("Dance/Electro"));
+		root.addChild(buildNode("Alternative"));
 		root.addChild(buildNode("Pop"));
-		root.addChild(buildNode("Electro"));
-		root.addChild(buildNode("House"));
+		root.addChild(buildNode("Black"));
+		root.addChild(buildNode("HipHop/Rap"));
+		root.addChild(buildNode("Rock/Metal"));
 		
 		// Level 2
 		GenreNode rock_hard = buildNode("Hard Rock");
 		GenreNode rock_progressive = buildNode("Progressive");
-		GenreNode rock_alternative = buildNode("Alternative");
-		root.addChildTo(rock_hard, "Rock");
-		root.addChildTo(rock_progressive, "Rock");
-		root.addChildTo(rock_alternative, "Rock");
+		GenreNode rock_alternative = buildNode("Metal");
 		
+		root.addChildTo(rock_hard, "Rock/Metal");
+		root.addChildTo(rock_progressive, "Rock/Metal");
+		root.addChildTo(rock_alternative, "Rock/Metal");
+		
+		GenreNode metal_death = buildNode("Death Metal");
+		GenreNode metal_thrash = buildNode("Trash Metal");
+		GenreNode metal_core = buildNode("Metalcore");
+		root.addChildTo(metal_death, "Metal");
+		root.addChildTo(metal_thrash, "Metal");
+		root.addChildTo(metal_core, "Metal");
+		
+		// LEVEL 2  - ELECTRO
 		GenreNode electro_dubstep = buildNode("Dubstep");
 		GenreNode electro_techno = buildNode("Techno");
 		GenreNode electro_extrem = buildNode("Extrem");
-		root.addChildTo(electro_dubstep, "Electro");
-		root.addChildTo(electro_techno, "Electro");
-		root.addChildTo(electro_extrem, "Electro");
+		root.addChildTo(electro_dubstep, "Dance/Electro");
+		root.addChildTo(electro_techno, "Dance/Electro");
+		root.addChildTo(electro_extrem, "Dance/Electro");
+		
+		// LEVEL 2  - ALTERNATIVE
+		GenreNode alternative_brit = buildNode("Brit Pop");
+		GenreNode alternative_industrial = buildNode("Industrial");
+		GenreNode alternative_punk = buildNode("Punk");
+		root.addChildTo(alternative_brit, "Alternative");
+		root.addChildTo(alternative_industrial, "Alternative");
+		root.addChildTo(alternative_punk, "Alternative");
 		
 		currentRoot = setAsRoot("Music");
 		
-		setColorIntervall(0.3f, 0.5f);
+//		setColorIntervall(0.3f, 0.5f);
 		
 		Log.d(TAG, "...finished in "+(System.currentTimeMillis() - startTime)+" ms!");
 	}
@@ -121,7 +117,7 @@ public class GenreGraph implements IGraph {
 	 * Helper method for shortening the code
 	 */
 	private GenreNode buildNode(String name){
-		return new GenreNode(0, 0, width * RADIUS_FACTOR, name);
+		return new GenreNode(0, 0, width * RADIUS_FACTOR, name, width, height);
 	}
 	
 	@Override
@@ -132,13 +128,14 @@ public class GenreGraph implements IGraph {
 		 *  set all nodes invisible.
 		 *  setRoot() makes a node and its children visible
 		 */
-		setInvisibleCascading();
+		resetCascading();
 		
 		if(root.name.equalsIgnoreCase(name)){
 			root.setRoot(true);
 			result =  root;
 		}
 		else {
+			root.isRoot = false;
 			root.setVisible(false);
 			for (GenreNode child : root.getChildren()) {
 				result = child.setAsRoot(name);
@@ -163,27 +160,46 @@ public class GenreGraph implements IGraph {
 	 * @param node
 	 */
 	private void positionNodes(GenreNode newRoot){
+		float paddingScreen = width * SCREEN_MARGIN_FACTOR;
+		float paddingLabel = width * LABEL_PADDING_HORIZONTAL_FACTOR;
+		float labelHeight = height * LABEL_HEIGHT_FACTOR;
 		
-		newRoot.x = width / 2.0f;
+		newRoot.x = width - paddingScreen - paddingLabel;
 		newRoot.y = height * ROOT_Y_FACTOR;
 		newRoot.radius = width * RADIUS_FACTOR;
 		newRoot.setVisibility(1);
 		
 		if(newRoot.getParent() != null){
-			newRoot.getParent().x = width / 2.0f;
+			newRoot.getParent().x = newRoot.x;
 			newRoot.getParent().y = height * PARENT_Y_FACTOR;
 			newRoot.getParent().radius = width * RADIUS_FACTOR;
 			newRoot.getParent().setVisibility(1);
 		}
 		
 		int size = newRoot.getChildren().size();
+		float currentX = newRoot.x;
+		float currentY = height * CHILD_Y_FACTOR;
+		
 		for (int i = 0; i < size ; i++) {
 			GenreNode child = newRoot.getChildren().get(i);
 			
-			child.x = ((width * i) / size) + ((width * 0.5f) / size);
-			child.y = height * CHILD_Y_FACTOR;
-			child.radius = width * RADIUS_FACTOR;
-			child.setVisibility(1);
+			child.x = currentX;
+			child.y = currentY;
+			
+			// determine position of next child
+			if((i+1 < size)){
+				GenreNode nextChild = newRoot.getChildren().get(i+1);
+				String nextName = nextChild.name;
+				float textLength = nextChild.paintText.measureText(nextName);
+				
+				Log.d(TAG, child.origPaintText.getTextSize()+"");
+				currentX -= (child.origPaintText.measureText(child.name)
+						+ paddingLabel * 2 + paddingScreen);
+				if(currentX < textLength + paddingScreen * 2 + paddingLabel * 2){
+					currentX = newRoot.x;
+					currentY += labelHeight + paddingScreen;
+				}
+			}
 		}
 	}
 	
@@ -193,8 +209,8 @@ public class GenreGraph implements IGraph {
 	}
 
 	@Override
-	public void setInvisibleCascading() {
-		root.setInvisibleCascading();
+	public void resetCascading() {
+		root.resetCascading();
 	}
 
 	@Override

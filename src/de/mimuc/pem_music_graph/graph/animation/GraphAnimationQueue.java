@@ -22,29 +22,29 @@ import android.util.Log;
  *
  */
 public class GraphAnimationQueue implements GraphAnimationListener {
-	
+
 	private static final String TAG = GraphAnimationQueue.class.getSimpleName();
-	
+
 	/**
 	 * 
 	 */
 	private static final String MAIN_QUEUE = "main";
-	
+
 	/**
 	 * A HashMap containing all queues
 	 */
 	private HashMap<String, LinkedList<GraphAnimation>> queues;
-	
+
 	public GraphAnimationQueue(){
 		queues = new HashMap<String, LinkedList<GraphAnimation>>();
 	}
-	
+
 	/**
 	 * Update all animation queues
 	 * @param time
 	 */
 	public void update(long time){
-		
+
 		/*
 		 *  remove empty queues - store values in list first before you remove
 		 *  otherwise prepare for exception
@@ -61,7 +61,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 			for (String queue : queuesToRemove) {
 				queues.remove(queue);
 			}
-			
+
 			// update rest of the queues
 			for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
 				if(queue.getValue().size() > 0){
@@ -70,7 +70,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 					queues.remove(queue.getKey());
 				}
 			}
-		
+
 		} catch(ConcurrentModificationException e){
 			/*
 			 * catch this exception and just skip this frame
@@ -78,7 +78,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 			Log.w(TAG, "Unsynchronized access on queues. Skip this frame!");
 		}
 	}
-	
+
 	/**
 	 * Add an animation in the queue specified by tag.
 	 * Animations with different tags run simultaniosly
@@ -88,7 +88,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 	public void add(GraphAnimation animation, String tag){
 		animation.setAnimationListener(this);
 		animation.setTag(tag);
-		
+
 		if(queues.get(tag) == null){
 			LinkedList<GraphAnimation> newQueue = new LinkedList<GraphAnimation>();
 			newQueue.add(animation);
@@ -96,9 +96,9 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 		} else {
 			queues.get(tag).add(animation);
 		}
-//		Log.d(TAG, "Animation added to queue "+tag);
+		//		Log.d(TAG, "Animation added to queue "+tag);
 	}
-	
+
 	/**
 	 * Add an animation to the main queue
 	 * @param animation
@@ -106,7 +106,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 	public void add(GraphAnimation animation){
 		animation.setAnimationListener(this);
 		animation.setTag(MAIN_QUEUE);
-		
+
 		if(queues.get(MAIN_QUEUE) == null){
 			LinkedList<GraphAnimation> newQueue = new LinkedList<GraphAnimation>();
 			newQueue.add(animation);
@@ -114,7 +114,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 		} else {
 			queues.get(MAIN_QUEUE).add(animation);
 		}
-//		Log.d(TAG, "Animation added to queue "+MAIN_QUEUE);
+		//		Log.d(TAG, "Animation added to queue "+MAIN_QUEUE);
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 			queues.get(tag).clear();
 		}
 	}
-	
+
 	/**
 	 * Get animation length in milliseconds of queue with tag 
 	 * @param tag
@@ -138,22 +138,22 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 	 */
 	public long getQueueLength(String tag){
 		if(tag == null) tag = MAIN_QUEUE;
-		
+
 		long duration = 0;
 		if(queues.get(tag) != null){
 			for (GraphAnimation animation : queues.get(tag)) {
 				duration += animation.duration;
 			}
 		}
-		
+
 		return duration;
 	}
-	
+
 	public long getLongestQueue(){
 		long duration = 0;
-		
+
 		for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
-			
+
 			long tmpDuration = 0;
 			for (GraphAnimation animation : queue.getValue()) {
 				tmpDuration += animation.duration;
@@ -163,5 +163,24 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 			}
 		}
 		return duration;
+	}
+
+	public String toString(){
+		String result = "";
+		
+		try{
+			for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
+				result += "[";
+				for (GraphAnimation animation : queue.getValue()) {
+					result += animation.duration +",";
+				}
+				result += "]\n";
+				result = result.replace(",]", "]");
+			}
+		} catch(ConcurrentModificationException e){
+			Log.w(TAG, "Unsynchronized access on queues. Skip this frame!");
+		}
+
+		return result;
 	}
 }

@@ -82,13 +82,12 @@
             android:clickable="true"
             android:src="@drawable/ic_action_directions" />
     </LinearLayout>
-    
-	<FrameLayout
-	    android:id="@+id/map_container"
-	    android:layout_width="match_parent"
-	    android:layout_height="100dp"
-	    android:background="@android:color/background_dark">
-	    
-	</FrameLayout>    
+
+    <fragment
+        android:id="@+id/map_container"
+        android:name="com.google.android.gms.maps.MapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@android:color/background_dark" />
 
 </LinearLayout>

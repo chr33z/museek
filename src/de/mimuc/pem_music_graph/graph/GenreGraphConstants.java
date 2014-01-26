@@ -37,7 +37,7 @@ public interface GenreGraphConstants {
 	public static final float SHADOW_OFFSET_Y = 0.01f;
 	
 	// value between 0 and 1
-	public static final float TRANSLATION_SNAP_FACTOR = 0.1f;
+	public static final float TRANSLATION_SNAP_FACTOR = 0.22f;
 	
 	// relevant for drawing
 	public static final float LABEL_PADDING_HORIZONTAL_FACTOR = 0.027f;

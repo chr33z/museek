@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import org.joda.time.DateTime;
 
 import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.utils.ApplicationController;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -360,17 +361,17 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	}
 	
 	private String formatTime(long time){
-		String[] days = {"Mo","Di","Mi","Do", "Fr", "Sa", "So"};
-		String[] months = {"Jan","Febr","März","Apr", "Mai", "Juni", "Juli","Aug", "Sept", "Okt", "Nov", "Dez"};
+		String[] weekdays = context.getResources().getStringArray(R.array.weekdays);
+		String[] months = context.getResources().getStringArray(R.array.months);
 		
 		DateTime date = new DateTime(time);
 		Log.d(TAG, date.getDayOfWeek()+"");
 		Log.d(TAG, date.getDayOfMonth()+"");
 		Log.d(TAG, date.getMonthOfYear()+"");
 		
-		String dayWeek = days[date.getDayOfWeek()-1];
+		String dayWeek = weekdays[date.getDayOfWeek()-1];
 		String dayMonth = date.getDayOfMonth()+"";
-		String month = months[date.getMonthOfYear()];
+		String month = months[date.getMonthOfYear()-1];
 		String hours = (date.getHourOfDay() < 10) ? "0"+date.getHourOfDay() : date.getHourOfDay()+"";
 		String minutes = (date.getMinuteOfHour() < 10) ? "0"+date.getMinuteOfHour() : date.getMinuteOfHour()+""; 
 		

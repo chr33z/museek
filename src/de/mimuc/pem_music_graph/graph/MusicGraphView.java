@@ -2,12 +2,9 @@ package de.mimuc.pem_music_graph.graph;
 
 import java.util.Calendar;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -15,7 +12,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.graph.animation.FadeRootAnimation;
 import de.mimuc.pem_music_graph.graph.animation.GraphAnimationQueue;
 import de.mimuc.pem_music_graph.graph.animation.MoveAnimation;
 import de.mimuc.pem_music_graph.graph.animation.ShrinkAnimation;
@@ -94,13 +90,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	public MusicGraphView(Context context){
 		super(context);
 
-		paintFps.setColor(Color.RED);
-		paintFps.setTextSize(paintFps.getTextSize() * 3);
-
-		paintNode.setColor(context.getResources().getColor(R.color.graph_node_lila));
-		paintText.setColor(Color.WHITE);
-		paintText.setTextSize(paintText.getTextSize() * textSizeScale);
-
 		// Build GenreGraph and add nodes
 		graph = new GenreGraph();
 
@@ -112,7 +101,14 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				.getInstance().getResources().getDisplayMetrics();
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
+		
+		paintFps.setColor(Color.RED);
+		paintFps.setTextSize(paintFps.getTextSize() * width * GenreGraph.TEXT_FACTOR * 0.5f);
 
+		paintNode.setColor(context.getResources().getColor(R.color.graph_node_lila));
+		paintText.setColor(Color.WHITE);
+		paintText.setTextSize(paintText.getTextSize() * textSizeScale);
+		
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(new SurfaceHolder.Callback() {
 
@@ -153,7 +149,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			fpsTimer = 0;
 		}
 		fpsTimer += (time - lastTime);
-		canvas.drawText("FPS: "+fps , 10, height * 0.10f, paintFps);
+		canvas.drawText("FPS: "+fps , 10, height * GenreGraph.ROOT_Y_FACTOR, paintFps);
 
 		// update the animations
 		animationQueue.update(time);
@@ -482,7 +478,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 		// move root further up
 		animationQueue.add(new MoveAnimation(
-				node.getParent(), GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, 0), "rootparent");
+				node.getParent(), GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, width * GenreGraphConstants.PARENT_Y_FACTOR), "rootparent");
 
 		// fade in new children
 		int size = node.getChildren().size();

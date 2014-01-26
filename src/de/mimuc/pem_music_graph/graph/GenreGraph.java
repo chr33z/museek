@@ -17,7 +17,7 @@ import android.util.Log;
  */
 public class GenreGraph implements IGraph, GenreGraphConstants {
 
-	private static final String TAG = GenreNode.class.getSimpleName();
+	private static final String TAG = GenreGraph.class.getSimpleName();
 	
 	/*
 	 * screen dimensions
@@ -190,7 +190,6 @@ public class GenreGraph implements IGraph, GenreGraphConstants {
 				String nextName = nextChild.name;
 				float textLength = nextChild.paintText.measureText(nextName);
 				
-				Log.d(TAG, child.origPaintText.getTextSize()+"");
 				currentX -= (child.origPaintText.measureText(child.name)
 						+ paddingLabel * 2 + paddingScreen);
 				if(currentX < textLength + paddingScreen * 2 + paddingLabel * 2){

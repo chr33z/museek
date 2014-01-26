@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".CombinedView" >
-    
+
     <com.sothree.slidinguppanel.SlidingUpPanelLayout
         android:id="@+id/sliding_layout"
         android:layout_width="match_parent"
@@ -21,21 +21,42 @@
             android:layout_height="match_parent"
             android:background="#eee"
             android:orientation="vertical" >
-            
-            <FrameLayout
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_above="@+id/list_handle"
+                android:scaleType="fitXY"
+                android:src="@drawable/shadow_layer" />
+
+            <RelativeLayout
                 android:id="@+id/list_handle"
                 android:layout_width="match_parent"
                 android:layout_height="34dp"
-                android:background="#aaa" />
+                android:background="@drawable/list_handle_background" >
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="15dp"
+                    android:layout_centerVertical="true"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/icon_listview_handle" />
+            </RelativeLayout>
 
             <ExpandableListView
                 android:id="@+id/list_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_below="@+id/list_handle"
-                android:groupIndicator="@null"
-                android:padding="10dp" />
+                android:groupIndicator="@null" />
         </RelativeLayout>
     </com.sothree.slidinguppanel.SlidingUpPanelLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_alignParentBottom="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/shadow_layer" />
 
 </RelativeLayout>

@@ -40,7 +40,7 @@ public class ApplicationController extends Application {
 	/**
 	 * If user has not moved at least this distance, there is no update from the server
 	 */
-	public static final int MAX_UPDATE_DISTANCE = 250;
+	public static final int MAX_UPDATE_DISTANCE = 1000;
 	
 	public static final long DEFAULT_UPDATE_LOCATION_INTERVAL = 60 * 1000; // update every 60 seconds
 	

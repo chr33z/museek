@@ -435,10 +435,6 @@ public class GenreNode implements IGraph, GraphDrawable, GenreGraphConstants {
 
 	@Override
 	public void draw(Canvas canvas, int width, int height, float translation) {
-		float newY = y + translation;
-
-		//Resources res = ApplicationController.getInstance().getResources();
-
 		// normailze alpha value
 		int alpha = 0;
 		if(visibility > 1){

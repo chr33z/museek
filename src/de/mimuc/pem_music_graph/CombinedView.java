@@ -12,14 +12,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
-import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -27,15 +24,10 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
-import de.mimuc.pem_music_graph.graph.GenreGraphConstants;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
@@ -63,7 +55,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 
 	private ExpandableListAdapter2 adapter;
 	private ExpandableListView locationListView;
-	private FrameLayout listHandle;
+	private RelativeLayout listHandle;
 
 	private EventController mEventController;
 	private Location mLocation;
@@ -133,9 +125,6 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 
 		this.context = this;
 
-		// get list handle
-		listHandle = (FrameLayout) findViewById(R.id.list_handle);
-
 		// Put graph in framelayout because otherwise there is an error
 		FrameLayout frame = (FrameLayout) findViewById(R.id.graph_view_frame);
 		graphView = new MusicGraphView(this);
@@ -157,6 +146,9 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 				.getInstance().getResources().getDisplayMetrics();
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
+		
+		// get list handle
+		listHandle = (RelativeLayout) findViewById(R.id.list_handle);
 
 		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
 		layout.setPanelHeight((int)(height * 0.5));
@@ -169,17 +161,17 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 			public void onPanelSlide(View panel, float slideOffset) {
 				graphView.onThreadPause();
 
-				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
-					if (slideOffset < 0.2) {
-						if (getActionBar().isShowing()) {
-							getActionBar().hide();
-						}
-					} else {
-						if (!getActionBar().isShowing()) {
-							getActionBar().show();
-						}
-					}
-				}
+//				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
+//					if (slideOffset < 0.2) {
+//						if (getActionBar().isShowing()) {
+//							getActionBar().hide();
+//						}
+//					} else {
+//						if (!getActionBar().isShowing()) {
+//							getActionBar().show();
+//						}
+//					}
+//				}
 			}
 
 			@Override

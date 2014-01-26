@@ -17,7 +17,7 @@ import android.util.Log;
  */
 public class GenreGraph implements IGraph, GenreGraphConstants {
 
-	private static final String TAG = GenreNode.class.getName();
+	private static final String TAG = GenreNode.class.getSimpleName();
 	
 	/*
 	 * screen dimensions
@@ -31,7 +31,7 @@ public class GenreGraph implements IGraph, GenreGraphConstants {
 	public float translationMax = 0;
 	
 	/**
-	 * vertical translation of entire graph view
+	 * current vertical translation of entire graph view
 	 */
 	public float translation = 0;
 	
@@ -107,8 +107,6 @@ public class GenreGraph implements IGraph, GenreGraphConstants {
 		root.addChildTo(alternative_punk, "Alternative");
 		
 		currentRoot = setAsRoot("Music");
-		
-//		setColorIntervall(0.3f, 0.5f);
 		
 		Log.d(TAG, "...finished in "+(System.currentTimeMillis() - startTime)+" ms!");
 	}
@@ -244,5 +242,21 @@ public class GenreGraph implements IGraph, GenreGraphConstants {
 	@Override
 	public void setColorIntervall(float min, float max) {
 		root.setColorIntervall(min, max);
+	}
+	
+	/**
+	 * 
+	 * @return Get the lower boundary of the graph from the top
+	 */
+	public int measureHeight(){
+		int size = currentRoot.getChildren().size();
+		GenreNode node;
+		
+		if(size > 0){
+			return (int) currentRoot.getChildren()
+					.get(size -1).boundary[3];
+		} else {
+			return (int) currentRoot.boundary[3];
+		}
 	}
 }

@@ -12,6 +12,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -19,6 +20,9 @@ import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,9 +30,14 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import de.mimuc.pem_music_graph.graph.GenreGraphConstants;
+import de.mimuc.pem_music_graph.graph.GenreGraphListener;
+import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
 import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
@@ -41,8 +50,8 @@ import de.mimuc.pem_music_graph.utils.ApplicationController;
  * @author Christopher Gebhardt
  *
  */
-public class CombinedView extends Activity 
-implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListener {
+public class CombinedView extends FragmentActivity 
+implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListener, GenreGraphListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -60,11 +69,18 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	private Location mLocation;
 
 	private LocationClient mLocationClient;
+	
+	private FragmentManager fragmentManager;
+	
+	private Fragment mapsFragment;
 
 	// coordinates for moving the view
 	private double dy;
 
 	boolean updated = false;
+	
+	int width = 0;
+	int height = 0;
 
 	/**
 	 * Is called when location updates arrive
@@ -123,6 +139,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 		// Put graph in framelayout because otherwise there is an error
 		FrameLayout frame = (FrameLayout) findViewById(R.id.graph_view_frame);
 		graphView = new MusicGraphView(this);
+		graphView.setGenreGraphListener(this);
 		frame.addView(graphView);
 		graphView.onThreadResume();
 
@@ -138,8 +155,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController
 				.getInstance().getResources().getDisplayMetrics();
-		int width = metrics.widthPixels;
-		int height = metrics.heightPixels;
+		width = metrics.widthPixels;
+		height = metrics.heightPixels;
 
 		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
 		layout.setPanelHeight((int)(height * 0.5));
@@ -194,6 +211,9 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 
 			}
 		});
+//		
+//		fragmentManager = getSupportFragmentManager();
+//		fragmentManager.beginTransaction().replace(R.id.map_fragment_container, new MapTestFragment()).commit();
 	}
 
 	@Override
@@ -288,4 +308,10 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 		return super.onKeyDown(keyCode, event);
 	}
 
+	@SuppressLint("NewApi")
+	@Override
+	public void onGraphUpdate(GenreNode node, int newHeight) {
+//		layout.animatePanelHeight((int)(newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
+		Log.d(TAG, "Click on node "+node.name);
+	}
 }

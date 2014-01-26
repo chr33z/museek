@@ -3,11 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".CombinedView" >
-
+    
     <com.sothree.slidinguppanel.SlidingUpPanelLayout
         android:id="@+id/sliding_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom" >
 
         <FrameLayout
             android:id="@+id/graph_view_frame"
@@ -20,7 +21,7 @@
             android:layout_height="match_parent"
             android:background="#eee"
             android:orientation="vertical" >
-
+            
             <FrameLayout
                 android:id="@+id/list_handle"
                 android:layout_width="match_parent"

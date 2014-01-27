@@ -2,10 +2,16 @@ package de.mimuc.pem_music_graph.list;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
+import org.joda.time.DateTime;
 
 import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.utils.ApplicationController;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +23,7 @@ import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
@@ -98,13 +105,23 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 							+ currentEvent.startTime
 							+ " "
 							+ context.getString(R.string.list_detail_clock));
+				if (currentEvent.endTime.equals("0"))
+					currentEvent.endTime = "";
+				if (stringNotEmpty(currentEvent.endTime))
+					openingHours.setText("Ge" + context.getString(R.string.oe)
+							+ "ffnet: " + formatTime(Long.parseLong(currentEvent.startTime)) + " - "
+							+ currentEvent.endTime + " Uhr");
+				else if (stringNotEmpty(currentEvent.startTime))
+					openingHours.setText("Ge" + context.getString(R.string.oe)
+							+ "ffnet: " + " ab " + formatTime(Long.parseLong(currentEvent.startTime)) + " Uhr");
 			}
 			if (eventDescription != null)
 				if (stringNotEmpty(currentEvent.endTime))
 					eventDescription.setText(currentEvent.eventDescription);
+				if (stringNotEmpty(currentEvent.eventDescription))
+					eventDescription.setText(currentEvent.eventDescription);
 				else {
-					eventDescription.setMaxLines(0);
-					eventDescription.setPadding(0, 0, 0, 0);
+					eventDescription.setVisibility(View.GONE);
 				}
 			if (admissionPriceGirls != null)
 				admissionPriceGirls.setText(context
@@ -112,6 +129,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			if (admissionPriceBoys != null)
 				admissionPriceBoys.setText(context
 						.getString(R.string.list_detail_boys));
+			// FIXME Abfrage, ob Preise vorhanden
+			admissionPriceGirls.setVisibility(View.GONE);
+			admissionPriceBoys.setVisibility(View.GONE);
+//			if (admissionPriceGirls != null)
+//				admissionPriceGirls.setText("M"
+//						+ context.getString(R.string.ae) + "dels: " + ",-");
+//			if (admissionPriceBoys != null)
+//				admissionPriceBoys.setText("Jungs: " + ",-");
+			
 			if (addressStreet != null)
 				if (stringNotEmpty(currentEvent.addressStreet)
 						&& stringNotEmpty(currentEvent.addressNumber))
@@ -208,6 +234,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = layoutInflater.inflate(R.layout.headlinelist, null);
 		}
+
+		// compute distance
+		Location destination = new Location("destination");
+		destination
+		.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
+		destination.setLongitude(Double.parseDouble(eventList
+				.get(groupPosition).locationLongitude));
+		Location currentLocation = eventList.get(groupPosition).currentLocation;
+		float distance = currentLocation.distanceTo(destination);
 
 		TextView locationName = (TextView) convertView
 				.findViewById(R.id.eventlocationname);
@@ -343,6 +378,30 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		// TODO
 		return genreList;
 	}
+		
+
+	public void openMap()
+	{
+		String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f, "Where the party is at");
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+		intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+		try
+		{
+			context.startActivity(intent);
+		}
+		catch(ActivityNotFoundException ex)
+		{
+			try
+			{
+				Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+				context.startActivity(unrestrictedIntent);
+			}
+			catch(ActivityNotFoundException innerEx)
+			{
+				Toast.makeText(context, "Please install a maps application", Toast.LENGTH_LONG).show();
+			}
+		}
+	}
 
 	public boolean isTextExpanded() {
 		return isDescriptionExpanded;
@@ -351,5 +410,23 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public void setTextExpanded(boolean isTextExpanded) {
 		this.isDescriptionExpanded = isTextExpanded;
 	}
-
+	
+	private String formatTime(long time){
+		String[] weekdays = context.getResources().getStringArray(R.array.weekdays);
+		String[] months = context.getResources().getStringArray(R.array.months);
+		
+		DateTime date = new DateTime(time);
+		Log.d(TAG, date.getDayOfWeek()+"");
+		Log.d(TAG, date.getDayOfMonth()+"");
+		Log.d(TAG, date.getMonthOfYear()+"");
+		
+		String dayWeek = weekdays[date.getDayOfWeek()-1];
+		String dayMonth = date.getDayOfMonth()+"";
+		String month = months[date.getMonthOfYear()-1];
+		String hours = (date.getHourOfDay() < 10) ? "0"+date.getHourOfDay() : date.getHourOfDay()+"";
+		String minutes = (date.getMinuteOfHour() < 10) ? "0"+date.getMinuteOfHour() : date.getMinuteOfHour()+""; 
+		
+		return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":" + minutes;
+		
+	}
 }

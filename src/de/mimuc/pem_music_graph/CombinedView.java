@@ -13,13 +13,15 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -27,6 +29,9 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+import de.mimuc.pem_music_graph.graph.GenreGraphListener;
+import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
 import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
@@ -40,8 +45,8 @@ import de.mimuc.pem_music_graph.utils.ApplicationController;
  * @author Christopher Gebhardt
  * 
  */
-public class CombinedView extends Activity implements ConnectionCallbacks,
-		OnConnectionFailedListener, EventControllerListener {
+public class CombinedView extends FragmentActivity 
+implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListener, GenreGraphListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -53,17 +58,24 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 
 	private ExpandableListAdapter2 adapter;
 	private ExpandableListView locationListView;
-	private FrameLayout listHandle;
+	private RelativeLayout listHandle;
 
 	private EventController mEventController;
 	private Location mLocation;
 
 	private LocationClient mLocationClient;
+	
+	private FragmentManager fragmentManager;
+	
+	private Fragment mapsFragment;
 
 	// coordinates for moving the view
 	private double dy;
 
 	boolean updated = false;
+	
+	int width = 0;
+	int height = 0;
 
 	private SharedPreferences sharedPreferences;
 
@@ -139,12 +151,10 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 
 		this.context = this;
 
-		// get list handle
-		listHandle = (FrameLayout) findViewById(R.id.list_handle);
-
 		// Put graph in framelayout because otherwise there is an error
 		FrameLayout frame = (FrameLayout) findViewById(R.id.graph_view_frame);
 		graphView = new MusicGraphView(this);
+		graphView.setGenreGraphListener(this);
 		frame.addView(graphView);
 		graphView.onThreadResume();
 
@@ -157,8 +167,11 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController.getInstance()
 				.getResources().getDisplayMetrics();
-		int width = metrics.widthPixels;
-		int height = metrics.heightPixels;
+		width = metrics.widthPixels;
+		height = metrics.heightPixels;
+		
+		// get list handle
+		listHandle = (RelativeLayout) findViewById(R.id.list_handle);
 
 		// initialize slide panel
 		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
@@ -184,6 +197,17 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 						}
 					}
 				}
+//				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
+//					if (slideOffset < 0.2) {
+//						if (getActionBar().isShowing()) {
+//							getActionBar().hide();
+//						}
+//					} else {
+//						if (!getActionBar().isShowing()) {
+//							getActionBar().show();
+//						}
+//					}
+//				}
 			}
 
 			@Override
@@ -216,6 +240,9 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 
 			}
 		});
+//		
+//		fragmentManager = getSupportFragmentManager();
+//		fragmentManager.beginTransaction().replace(R.id.map_fragment_container, new MapTestFragment()).commit();
 	}
 
 	@Override
@@ -356,4 +383,10 @@ public class CombinedView extends Activity implements ConnectionCallbacks,
 		mEventController.onExpandedItem(locationID, b);
 	}
 
+	@SuppressLint("NewApi")
+	@Override
+	public void onGraphUpdate(GenreNode node, int newHeight) {
+//		layout.animatePanelHeight((int)(newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
+		Log.d(TAG, "Click on node "+node.name);
+	}
 }

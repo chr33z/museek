@@ -33,6 +33,18 @@ public class FadeRootAnimation extends GraphAnimation {
 		}
 	}
 	
+	public FadeRootAnimation(GenreNode node, long duration, int mode, long delay){
+		this.duration = duration;
+		this.delay = delay;
+		
+		nodes = new ArrayList<GenreNode>();
+		nodes.add(node);
+		
+		if(mode == SHOW || mode == HIDE){
+			this.mode = mode;
+		}
+	}
+	
 	public FadeRootAnimation(List<GenreNode> node, long duration, int mode){
 		nodes = new ArrayList<GenreNode>();
 		nodes.addAll(node);

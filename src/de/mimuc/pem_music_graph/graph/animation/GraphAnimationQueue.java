@@ -152,15 +152,22 @@ public class GraphAnimationQueue implements GraphAnimationListener {
 	public long getLongestQueue(){
 		long duration = 0;
 
-		for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
-
-			long tmpDuration = 0;
-			for (GraphAnimation animation : queue.getValue()) {
-				tmpDuration += animation.duration;
+		try {
+			for (Entry<String, LinkedList<GraphAnimation>> queue : queues.entrySet()) {
+	
+				long tmpDuration = 0;
+				for (GraphAnimation animation : queue.getValue()) {
+					tmpDuration += animation.duration;
+				}
+				if(tmpDuration > duration){
+					duration = tmpDuration;
+				}
 			}
-			if(tmpDuration > duration){
-				duration = tmpDuration;
-			}
+		} catch(ConcurrentModificationException e){
+			/*
+			 * catch this exception and just skip this frame
+			 */
+			Log.w(TAG, "Unsynchronized access on queues. Skip this frame!");
 		}
 		return duration;
 	}

@@ -20,5 +20,29 @@
     <string name="list_detail_girls">Mädels:</string>
     <string name="list_detail_boys">Jungs:</string>
     
+    <string-array name="weekdays">
+        <item>Mo</item>
+        <item>Di</item>
+        <item>Mi</item>
+        <item>Do</item>
+        <item>Fr</item>
+        <item>Sa</item>
+        <item>So</item>
+    </string-array>
+    
+    <string-array name="months">
+        <item>Jan</item>
+        <item>Febr</item>
+        <item>März</item>
+        <item>Apr</item>
+        <item>Mai</item>
+        <item>Juni</item>
+        <item>Juli</item>
+        <item>Aug</item>
+        <item>Sept</item>
+        <item>Okt</item>
+        <item>Nov</item>
+        <item>Dez</item>
+    </string-array>
 
 </resources>

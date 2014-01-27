@@ -11,5 +11,8 @@
     <color name="graph_node_maroon_dark">#3B0B29</color>
     <color name="graph_node_white">#ffffff</color>
     <color name="graph_node_lila">#cb4f39</color>
+    
+    <color name="list_head_primary">#8b1c62</color>
+    <color name="list_head_secondary">#656565</color>
 
 </resources>

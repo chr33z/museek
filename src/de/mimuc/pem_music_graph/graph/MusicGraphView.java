@@ -2,11 +2,9 @@ package de.mimuc.pem_music_graph.graph;
 
 import java.util.Calendar;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -14,7 +12,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.graph.animation.FadeRootAnimation;
 import de.mimuc.pem_music_graph.graph.animation.GraphAnimationQueue;
 import de.mimuc.pem_music_graph.graph.animation.MoveAnimation;
 import de.mimuc.pem_music_graph.graph.animation.ShrinkAnimation;
@@ -37,6 +34,8 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	 * The genre graph contains all genre nodes
 	 */
 	GenreGraph graph;
+	
+	GenreGraphListener graphListener;
 
 	/**
 	 * manages all animations that are played
@@ -91,13 +90,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	public MusicGraphView(Context context){
 		super(context);
 
-		paintFps.setColor(Color.RED);
-		paintFps.setTextSize(paintFps.getTextSize() * 3);
-
-		paintNode.setColor(context.getResources().getColor(R.color.graph_node_lila));
-		paintText.setColor(Color.WHITE);
-		paintText.setTextSize(paintText.getTextSize() * textSizeScale);
-
 		// Build GenreGraph and add nodes
 		graph = new GenreGraph();
 
@@ -109,7 +101,14 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				.getInstance().getResources().getDisplayMetrics();
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
+		
+		paintFps.setColor(Color.RED);
+		paintFps.setTextSize(paintFps.getTextSize() * width * GenreGraph.TEXT_FACTOR * 0.5f);
 
+		paintNode.setColor(context.getResources().getColor(R.color.graph_node_lila));
+		paintText.setColor(Color.WHITE);
+		paintText.setTextSize(paintText.getTextSize() * textSizeScale);
+		
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(new SurfaceHolder.Callback() {
 
@@ -150,7 +149,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			fpsTimer = 0;
 		}
 		fpsTimer += (time - lastTime);
-		canvas.drawText("FPS: "+fps , 10, height * 0.10f, paintFps);
+		canvas.drawText("FPS: "+fps , 10, height * GenreGraph.ROOT_Y_FACTOR, paintFps);
 
 		// update the animations
 		animationQueue.update(time);
@@ -243,7 +242,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			return true;
 
 		case MotionEvent.ACTION_MOVE:
-			Log.d(TAG, "Node moved!");
 			/*
 			 *  determine the relative move direction 
 			 *  and move nodes accordingly in y direction only
@@ -268,8 +266,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			// we measure the click time and decide if its a click or a swipe
 			long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
 			if(clickDuration < MAX_CLICK_DURATION) {
-				Log.d(TAG, "Node click event at "+ eventX + " "+ eventY +"!");
-
 				final GenreNode node = graph.testForTouch(eventX, eventY);
 
 				// touch event on child nodes
@@ -291,7 +287,10 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 						{
 							graph.setAsRoot(node.name);
 							touchLocked = false;
-							Log.d(TAG, animationQueue.getLongestQueue()+"");
+							
+							if(graphListener != null) {
+								graphListener.onGraphUpdate(node, graph.measureHeight());
+							}
 						}
 					}, animationQueue.getLongestQueue()+50);
 				}
@@ -312,6 +311,9 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 							if(node.getParent() != null){
 								graph.setAsRoot(node.getParent().name);
 							}
+							if(graphListener != null) {
+								graphListener.onGraphUpdate(node, graph.measureHeight());
+							}
 							touchLocked = false;
 						}
 					}, animationQueue.getLongestQueue()+50);
@@ -320,7 +322,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 			// else it was a move gesture
 			else {
-				if(graph.translation > graph.translationMax * 0.8f){
+				if(graph.translation > graph.translationMax * 0.6f){
 					final GenreNode node = graph.getCurrentRoot();
 
 					graphUpAnimation(node);
@@ -334,6 +336,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 						{
 							if(node.getParent() != null){
 								graph.setAsRoot(node.getParent().name);
+								graphListener.onGraphUpdate(node.getParent(), graph.measureHeight());
 							}
 							touchLocked = false;
 						}
@@ -417,8 +420,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 					String nextName = nextChild.name;
 					float textLength = nextChild.origPaintText.measureText(nextName);
 					
-					Log.d(TAG, sibling.origPaintText.measureText(sibling.name)+"");
-					Log.d(TAG, sibling.origPaintText.getTextSize()+"");
 					currentX -= (sibling.origPaintText.measureText(sibling.name)
 							+ paddingLabel * 2 + paddingScreen);
 					if(currentX < textLength + paddingScreen * 2 + paddingLabel * 2){
@@ -426,7 +427,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 						currentY += labelHeight + paddingScreen;
 					}
 				}
-				Log.d(TAG, "x: "+ currentX+"; y: "+currentY);
 			}
 
 			// shrink out current children
@@ -475,11 +475,10 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		animationQueue.add(new MoveAnimation(
 				node, GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, node.getParent().y), "root");
 		animationQueue.add(new TouchAnimation(node, GenreGraph.ANIM_MOVE_DURATION), "roottouch");
-		animationQueue.add(new FadeRootAnimation(node, GenreGraph.ANIM_MOVE_DURATION, FadeRootAnimation.SHOW), "rootfade");
 
 		// move root further up
 		animationQueue.add(new MoveAnimation(
-				node.getParent(), GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, 0), "rootparent");
+				node.getParent(), GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, width * GenreGraphConstants.PARENT_Y_FACTOR), "rootparent");
 
 		// fade in new children
 		int size = node.getChildren().size();
@@ -562,6 +561,10 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			}
 		}
 	}
+	
+	public void setGenreGraphListener(GenreGraphListener listener){
+		this.graphListener = listener;
+	}
 
 	/**
 	 * True if the root node is the highest possible root node
@@ -570,7 +573,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	public boolean isAtRoot(){
 		return (graph.getCurrentRoot().getParent() == null);
 	}
-
+	
 	/**
 	 * Navigate the graph to the upper root if possible
 	 */

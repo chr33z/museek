@@ -28,6 +28,7 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import de.mimuc.pem_music_graph.graph.GenreGraphConstants;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
@@ -73,6 +74,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	
 	int width = 0;
 	int height = 0;
+	
+	View rootView;
 
 	/**
 	 * Is called when location updates arrive
@@ -99,6 +102,9 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
+		
+		// to get the height of our view
+		rootView = findViewById(R.id.root);
 
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
@@ -159,7 +165,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
-				graphView.onThreadPause();
+//				graphView.onThreadPause();
 
 //				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
 //					if (slideOffset < 0.2) {
@@ -176,7 +182,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 
 			@Override
 			public void onPanelExpanded(View panel) {
-				graphView.onThreadPause();
+//				graphView.onThreadPause();
 
 				// FIXME find other method for Android 2.3
 				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
@@ -186,7 +192,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-				graphView.onThreadResume();
+//				graphView.onThreadResume();
 
 				// FIXME find other method for Android 2.3
 				if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
@@ -300,10 +306,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 		return super.onKeyDown(keyCode, event);
 	}
 
-	@SuppressLint("NewApi")
 	@Override
 	public void onGraphUpdate(GenreNode node, int newHeight) {
-//		layout.animatePanelHeight((int)(newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
-		Log.d(TAG, "Click on node "+node.name);
+		layout.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
 	}
 }

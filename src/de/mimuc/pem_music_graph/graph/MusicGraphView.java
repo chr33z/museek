@@ -312,7 +312,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 								graph.setAsRoot(node.getParent().name);
 							}
 							if(graphListener != null) {
-								graphListener.onGraphUpdate(node, graph.measureHeight());
+								graphListener.onGraphUpdate(node.getParent(), graph.measureHeight());
 							}
 							touchLocked = false;
 						}
@@ -527,6 +527,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	 * Start the drawing thread
 	 */
 	public void onThreadResume(){
+		Log.d(TAG, "Thread started running");
 		running = true;
 		thread = new Thread(this);
 		thread.start();
@@ -542,6 +543,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			try {
 				thread.join();
 				retry = false;
+				Log.d(TAG, "Thread stopped running");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

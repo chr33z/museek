@@ -375,7 +375,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	@SuppressLint("NewApi")
 	@Override
 	public void onGraphUpdate(GenreNode node, int newHeight) {
-		mEventController.setGenreNode(node.name);
+		mEventController.setGenreNode(node);
 //		adapter.setGenreNode(node.name);
 		onEventControllerUpdate();
 //		layout.animatePanelHeight((int)(newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));

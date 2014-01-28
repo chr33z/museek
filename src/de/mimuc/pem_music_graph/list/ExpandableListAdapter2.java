@@ -11,7 +11,6 @@ import de.mimuc.pem_music_graph.graph.GenreNode;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,7 +32,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private boolean isDescriptionExpanded;
 	private List<Event> eventList;
 	private EventControllerListener callbackReceiver;
-	private String genreNode;
+	private GenreNode genreNode;
 
 	public ExpandableListAdapter2(Context context, List<Event> eventList) {
 		this.eventList = new ArrayList<Event>();
@@ -82,7 +81,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					.findViewById(R.id.city);
 			ImageView loadWebsite = (ImageView) convertView
 					.findViewById(R.id.website);
-			ImageView pig = (ImageView) convertView.findViewById(R.id.pig);
 			ImageView direction = (ImageView) convertView
 					.findViewById(R.id.direction);
 
@@ -246,13 +244,14 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		}
 
 		// compute distance
-//		Location destination = new Location("destination");
-//		destination
-//				.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
-//		destination.setLongitude(Double.parseDouble(eventList
-//				.get(groupPosition).locationLongitude));
-//		Location currentLocation = eventList.get(groupPosition).currentLocation;
-//		float distance = currentLocation.distanceTo(destination);
+		// Location destination = new Location("destination");
+		// destination
+		// .setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
+		// destination.setLongitude(Double.parseDouble(eventList
+		// .get(groupPosition).locationLongitude));
+		// Location currentLocation =
+		// eventList.get(groupPosition).currentLocation;
+		// float distance = currentLocation.distanceTo(destination);
 
 		TextView locationName = (TextView) convertView
 				.findViewById(R.id.eventlocationname);
@@ -383,104 +382,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return "ca. " + (int) distance + " " + distanceUnity;
 	}
 
-	private List<Event> sortGenre() {
-		List<Event> genreList = new ArrayList<Event>();
-		// TODO
-		if (getGenreNode().equals("Music")) {
-			return eventList;
-		}
-		for (int i = 0; i < eventList.size(); i++) {
-			switch (getGenreEnum(eventList.get(i).eventGenre)) {
-			case POP:
-				genreList.add(eventList.get(i));
-				break;
-			case ALTERNATIVE:
-				genreList.add(eventList.get(i));
-				break;
-			case PUNK:
-				genreList.add(eventList.get(i));
-				break;
-			case INDUSTRIAL:
-				genreList.add(eventList.get(i));
-				break;
-			case BRITPOP:
-				genreList.add(eventList.get(i));
-				break;
-			case DANCEELECTRO:
-				genreList.add(eventList.get(i));
-				break;
-			case EXTREM:
-				genreList.add(eventList.get(i));
-				break;
-			case TECHNO:
-				genreList.add(eventList.get(i));
-				break;
-			case DUBSTEP:
-				genreList.add(eventList.get(i));
-				break;
-			case HIPHOPRAP:
-				genreList.add(eventList.get(i));
-				break;
-			case BLACK:
-				genreList.add(eventList.get(i));
-				break;
-			case ROCKMETAL:
-				genreList.add(eventList.get(i));
-				break;
-			case METAL:
-				genreList.add(eventList.get(i));
-				break;
-			case PROGRESSIVE:
-				genreList.add(eventList.get(i));
-				break;
-			case HARDROCK:
-				genreList.add(eventList.get(i));
-				break;
-			default:
-				break;
-			}
-		}
-		return genreList;
-	}
-
-	public Genre getGenreEnum(String genre) {
-		if (genre.equals("Music")) {
-			return Genre.MUSIC;
-		} else if (genre.equals("Pop")) {
-			return Genre.POP;
-		} else if (genre.equals("Alternative")) {
-			return Genre.ALTERNATIVE;
-		} else if (genre.equals("Punk")) {
-			return Genre.PUNK;
-		} else if (genre.equals("Industrial")) {
-			return Genre.INDUSTRIAL;
-		} else if (genre.equals("Britpop")) {
-			return Genre.BRITPOP;
-		} else if (genre.equals("Danceelectro")) {
-			return Genre.DANCEELECTRO;
-		} else if (genre.equals("Extrem")) {
-			return Genre.EXTREM;
-		} else if (genre.equals("Techno")) {
-			return Genre.TECHNO;
-		} else if (genre.equals("Dubstep")) {
-			return Genre.DUBSTEP;
-		} else if (genre.equals("HipHopRap")) {
-			return Genre.HIPHOPRAP;
-		} else if (genre.equals("Black")) {
-			return Genre.BLACK;
-		} else if (genre.equals("RockMetal")) {
-			return Genre.ROCKMETAL;
-		} else if (genre.equals("Metal")) {
-			return Genre.METAL;
-		} else if (genre.equals("Progressive")) {
-			return Genre.PROGRESSIVE;
-		} else if (genre.equals("Hardrock")) {
-			return Genre.HARDROCK;
-		}
-		return null;
-
-	}
-
 	public void openMap() {
 		String uri = String.format(Locale.ENGLISH,
 				"http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f,
@@ -533,11 +434,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	}
 
-	public String getGenreNode() {
+	public GenreNode getGenreNode() {
 		return genreNode;
 	}
 
-	public void setGenreNode(String genreNode) {
+	public void setGenreNode(GenreNode genreNode) {
 		this.genreNode = genreNode;
 	}
 }

@@ -18,6 +18,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
 
@@ -55,7 +56,7 @@ public class EventController implements JsonConstants {
 	 */
 	private List<String> expandedItems;
 
-	private String genreNode = "Music";
+	private GenreNode genreNode;
 
 	/**
 	 * initialize event controller constructor if no connection to the internet
@@ -355,8 +356,24 @@ public class EventController implements JsonConstants {
 		}
 		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
 		List<Event> sortedEventList = new ArrayList<Event>();
+		//TODO wenn Genre in Event gespeichert ausprobieren
+		// genre und darüberliegende Knoten speichern in Liste
+//		List<String> parentGenre = new ArrayList<String>();
+//		GenreNode currentNode = getGenreNode();
+//		if (currentNode == null) {
+//			currentNode = new GenreNode("Music", 0, 0, 0);
+//		}
+//		while (currentNode.getParent() != null) {
+//			parentGenre.add(currentNode.name);
+//			currentNode = currentNode.getParent();
+//		}
 		for (Event event : sortedList.values()) {
-			sortedEventList.add(event);
+			// nur die speichern, die mit genre in Liste übereinstimmen
+//			for (int i = 0; i < parentGenre.size(); i++) {
+//				if (event.eventGenre.equals(parentGenre.get(i))) {
+					sortedEventList.add(event);
+//				}
+//			}
 			Log.v("distance", event.currentDistance + "");
 		}
 		return sortFavoriteEvents(sortedEventList);
@@ -446,11 +463,11 @@ public class EventController implements JsonConstants {
 		currentLocation = location;
 	}
 
-	public String getGenreNode() {
+	public GenreNode getGenreNode() {
 		return genreNode;
 	}
 
-	public void setGenreNode(String genreNode) {
+	public void setGenreNode(GenreNode genreNode) {
 		this.genreNode = genreNode;
 	}
 }

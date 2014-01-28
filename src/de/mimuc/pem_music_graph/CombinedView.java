@@ -64,7 +64,6 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	private Location mLocation;
 
 	private LocationClient mLocationClient;
-	
 	private FragmentManager fragmentManager;
 	
 	private Fragment mapsFragment;
@@ -186,17 +185,6 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 			public void onPanelSlide(View panel, float slideOffset) {
 				graphView.onThreadPause();
 
-				if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-					if (slideOffset < 0.2) {
-						if (getActionBar().isShowing()) {
-							getActionBar().hide();
-						}
-					} else {
-						if (!getActionBar().isShowing()) {
-							getActionBar().show();
-						}
-					}
-				}
 //				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
 //					if (slideOffset < 0.2) {
 //						if (getActionBar().isShowing()) {
@@ -388,7 +376,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	@Override
 	public void onGraphUpdate(GenreNode node, int newHeight) {
 		mEventController.setGenreNode(node.name);
-		adapter.setGenreNode(node.name);
+//		adapter.setGenreNode(node.name);
 		onEventControllerUpdate();
 //		layout.animatePanelHeight((int)(newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
 		Log.d(TAG, "Click on node "+node.name);

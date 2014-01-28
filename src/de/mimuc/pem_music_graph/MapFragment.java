@@ -8,7 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class MapTestFragment extends Fragment{
+public class MapFragment extends Fragment{
 
 	private GoogleMap map;
 

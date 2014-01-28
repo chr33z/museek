@@ -339,6 +339,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 				adapter = new ExpandableListAdapter2(context, mEventController
 						.getEventList());
 				locationListView.setAdapter(adapter);
+				adapter.setGenreNode(mEventController.getGenreNode());
 
 				// restore scroll position
 				locationListView.setSelectionFromTop(index, top);
@@ -386,6 +387,9 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	@SuppressLint("NewApi")
 	@Override
 	public void onGraphUpdate(GenreNode node, int newHeight) {
+		mEventController.setGenreNode(node.name);
+		adapter.setGenreNode(node.name);
+		onEventControllerUpdate();
 //		layout.animatePanelHeight((int)(newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
 		Log.d(TAG, "Click on node "+node.name);
 	}

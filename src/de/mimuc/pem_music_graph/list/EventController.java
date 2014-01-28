@@ -55,6 +55,8 @@ public class EventController implements JsonConstants {
 	 */
 	private List<String> expandedItems;
 
+	private String genreNode = "Music";
+
 	/**
 	 * initialize event controller constructor if no connection to the internet
 	 * and no json available in sharedpreferences
@@ -380,11 +382,11 @@ public class EventController implements JsonConstants {
 		for (int i = 0; i < localEvents.size(); i++) {
 			favoriteLocations.add(localEvents.get(i));
 		}
-//		for (int i = 0; i < favoriteLocations.size(); i++) {
-//			Log.v("sortiert nach distance und favorite",
-//					favoriteLocations.get(i).currentDistance + " "
-//							+ favoriteLocations.get(i).locationName);
-//		}
+		// for (int i = 0; i < favoriteLocations.size(); i++) {
+		// Log.v("sortiert nach distance und favorite",
+		// favoriteLocations.get(i).currentDistance + " "
+		// + favoriteLocations.get(i).locationName);
+		// }
 		return favoriteLocations;
 	}
 
@@ -444,4 +446,11 @@ public class EventController implements JsonConstants {
 		currentLocation = location;
 	}
 
+	public String getGenreNode() {
+		return genreNode;
+	}
+
+	public void setGenreNode(String genreNode) {
+		this.genreNode = genreNode;
+	}
 }

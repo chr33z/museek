@@ -7,7 +7,7 @@ import java.util.Locale;
 import org.joda.time.DateTime;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.utils.ApplicationController;
+import de.mimuc.pem_music_graph.graph.GenreNode;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -33,12 +33,13 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private boolean isDescriptionExpanded;
 	private List<Event> eventList;
 	private EventControllerListener callbackReceiver;
+	private String genreNode;
 
 	public ExpandableListAdapter2(Context context, List<Event> eventList) {
-		this.context = context;
 		this.eventList = new ArrayList<Event>();
 		this.eventList = eventList;
 		this.callbackReceiver = (EventControllerListener) context;
+		this.context = context;
 	}
 
 	@Override
@@ -108,21 +109,31 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				if (currentEvent.endTime.equals("0"))
 					currentEvent.endTime = "";
 				if (stringNotEmpty(currentEvent.endTime))
-					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + formatTime(Long.parseLong(currentEvent.startTime)) + " - "
-							+ currentEvent.endTime + " Uhr");
+					openingHours
+							.setText("Ge"
+									+ context.getString(R.string.oe)
+									+ "ffnet: "
+									+ formatTime(Long
+											.parseLong(currentEvent.startTime))
+									+ " - " + currentEvent.endTime + " Uhr");
 				else if (stringNotEmpty(currentEvent.startTime))
-					openingHours.setText("Ge" + context.getString(R.string.oe)
-							+ "ffnet: " + " ab " + formatTime(Long.parseLong(currentEvent.startTime)) + " Uhr");
+					openingHours
+							.setText("Ge"
+									+ context.getString(R.string.oe)
+									+ "ffnet: "
+									+ " ab "
+									+ formatTime(Long
+											.parseLong(currentEvent.startTime))
+									+ " Uhr");
 			}
 			if (eventDescription != null)
 				if (stringNotEmpty(currentEvent.endTime))
 					eventDescription.setText(currentEvent.eventDescription);
-				if (stringNotEmpty(currentEvent.eventDescription))
-					eventDescription.setText(currentEvent.eventDescription);
-				else {
-					eventDescription.setVisibility(View.GONE);
-				}
+			if (stringNotEmpty(currentEvent.eventDescription))
+				eventDescription.setText(currentEvent.eventDescription);
+			else {
+				eventDescription.setVisibility(View.GONE);
+			}
 			if (admissionPriceGirls != null)
 				admissionPriceGirls.setText(context
 						.getString(R.string.list_detail_girls));
@@ -132,12 +143,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			// FIXME Abfrage, ob Preise vorhanden
 			admissionPriceGirls.setVisibility(View.GONE);
 			admissionPriceBoys.setVisibility(View.GONE);
-//			if (admissionPriceGirls != null)
-//				admissionPriceGirls.setText("M"
-//						+ context.getString(R.string.ae) + "dels: " + ",-");
-//			if (admissionPriceBoys != null)
-//				admissionPriceBoys.setText("Jungs: " + ",-");
-			
+			// if (admissionPriceGirls != null)
+			// admissionPriceGirls.setText("M"
+			// + context.getString(R.string.ae) + "dels: " + ",-");
+			// if (admissionPriceBoys != null)
+			// admissionPriceBoys.setText("Jungs: " + ",-");
+
 			if (addressStreet != null)
 				if (stringNotEmpty(currentEvent.addressStreet)
 						&& stringNotEmpty(currentEvent.addressNumber))
@@ -226,7 +237,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public View getGroupView(final int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
 		final ExpandableListView listView = (ExpandableListView) parent;
-//		Event currentEvent = (sortGenre()).get(groupPosition);
 		Event currentEvent = eventList.get(groupPosition);
 
 		if (convertView == null) {
@@ -236,13 +246,13 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		}
 
 		// compute distance
-		Location destination = new Location("destination");
-		destination
-		.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
-		destination.setLongitude(Double.parseDouble(eventList
-				.get(groupPosition).locationLongitude));
-		Location currentLocation = eventList.get(groupPosition).currentLocation;
-		float distance = currentLocation.distanceTo(destination);
+//		Location destination = new Location("destination");
+//		destination
+//				.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
+//		destination.setLongitude(Double.parseDouble(eventList
+//				.get(groupPosition).locationLongitude));
+//		Location currentLocation = eventList.get(groupPosition).currentLocation;
+//		float distance = currentLocation.distanceTo(destination);
 
 		TextView locationName = (TextView) convertView
 				.findViewById(R.id.eventlocationname);
@@ -376,29 +386,118 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	private List<Event> sortGenre() {
 		List<Event> genreList = new ArrayList<Event>();
 		// TODO
+		if (getGenreNode().equals("Music")) {
+			return eventList;
+		}
+		for (int i = 0; i < eventList.size(); i++) {
+			switch (getGenreEnum(eventList.get(i).eventGenre)) {
+			case POP:
+				genreList.add(eventList.get(i));
+				break;
+			case ALTERNATIVE:
+				genreList.add(eventList.get(i));
+				break;
+			case PUNK:
+				genreList.add(eventList.get(i));
+				break;
+			case INDUSTRIAL:
+				genreList.add(eventList.get(i));
+				break;
+			case BRITPOP:
+				genreList.add(eventList.get(i));
+				break;
+			case DANCEELECTRO:
+				genreList.add(eventList.get(i));
+				break;
+			case EXTREM:
+				genreList.add(eventList.get(i));
+				break;
+			case TECHNO:
+				genreList.add(eventList.get(i));
+				break;
+			case DUBSTEP:
+				genreList.add(eventList.get(i));
+				break;
+			case HIPHOPRAP:
+				genreList.add(eventList.get(i));
+				break;
+			case BLACK:
+				genreList.add(eventList.get(i));
+				break;
+			case ROCKMETAL:
+				genreList.add(eventList.get(i));
+				break;
+			case METAL:
+				genreList.add(eventList.get(i));
+				break;
+			case PROGRESSIVE:
+				genreList.add(eventList.get(i));
+				break;
+			case HARDROCK:
+				genreList.add(eventList.get(i));
+				break;
+			default:
+				break;
+			}
+		}
 		return genreList;
 	}
-		
 
-	public void openMap()
-	{
-		String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f, "Where the party is at");
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-		intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
-		try
-		{
-			context.startActivity(intent);
+	public Genre getGenreEnum(String genre) {
+		if (genre.equals("Music")) {
+			return Genre.MUSIC;
+		} else if (genre.equals("Pop")) {
+			return Genre.POP;
+		} else if (genre.equals("Alternative")) {
+			return Genre.ALTERNATIVE;
+		} else if (genre.equals("Punk")) {
+			return Genre.PUNK;
+		} else if (genre.equals("Industrial")) {
+			return Genre.INDUSTRIAL;
+		} else if (genre.equals("Britpop")) {
+			return Genre.BRITPOP;
+		} else if (genre.equals("Danceelectro")) {
+			return Genre.DANCEELECTRO;
+		} else if (genre.equals("Extrem")) {
+			return Genre.EXTREM;
+		} else if (genre.equals("Techno")) {
+			return Genre.TECHNO;
+		} else if (genre.equals("Dubstep")) {
+			return Genre.DUBSTEP;
+		} else if (genre.equals("HipHopRap")) {
+			return Genre.HIPHOPRAP;
+		} else if (genre.equals("Black")) {
+			return Genre.BLACK;
+		} else if (genre.equals("RockMetal")) {
+			return Genre.ROCKMETAL;
+		} else if (genre.equals("Metal")) {
+			return Genre.METAL;
+		} else if (genre.equals("Progressive")) {
+			return Genre.PROGRESSIVE;
+		} else if (genre.equals("Hardrock")) {
+			return Genre.HARDROCK;
 		}
-		catch(ActivityNotFoundException ex)
-		{
-			try
-			{
-				Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+		return null;
+
+	}
+
+	public void openMap() {
+		String uri = String.format(Locale.ENGLISH,
+				"http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f,
+				"Where the party is at");
+		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+		intent.setClassName("com.google.android.apps.maps",
+				"com.google.android.maps.MapsActivity");
+		try {
+			context.startActivity(intent);
+		} catch (ActivityNotFoundException ex) {
+			try {
+				Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW,
+						Uri.parse(uri));
 				context.startActivity(unrestrictedIntent);
-			}
-			catch(ActivityNotFoundException innerEx)
-			{
-				Toast.makeText(context, "Please install a maps application", Toast.LENGTH_LONG).show();
+			} catch (ActivityNotFoundException innerEx) {
+				Toast.makeText(context, "Please install a maps application",
+						Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -410,23 +509,35 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public void setTextExpanded(boolean isTextExpanded) {
 		this.isDescriptionExpanded = isTextExpanded;
 	}
-	
-	private String formatTime(long time){
-		String[] weekdays = context.getResources().getStringArray(R.array.weekdays);
+
+	private String formatTime(long time) {
+		String[] weekdays = context.getResources().getStringArray(
+				R.array.weekdays);
 		String[] months = context.getResources().getStringArray(R.array.months);
-		
+
 		DateTime date = new DateTime(time);
-		Log.d(TAG, date.getDayOfWeek()+"");
-		Log.d(TAG, date.getDayOfMonth()+"");
-		Log.d(TAG, date.getMonthOfYear()+"");
-		
-		String dayWeek = weekdays[date.getDayOfWeek()-1];
-		String dayMonth = date.getDayOfMonth()+"";
-		String month = months[date.getMonthOfYear()-1];
-		String hours = (date.getHourOfDay() < 10) ? "0"+date.getHourOfDay() : date.getHourOfDay()+"";
-		String minutes = (date.getMinuteOfHour() < 10) ? "0"+date.getMinuteOfHour() : date.getMinuteOfHour()+""; 
-		
-		return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":" + minutes;
-		
+		Log.d(TAG, date.getDayOfWeek() + "");
+		Log.d(TAG, date.getDayOfMonth() + "");
+		Log.d(TAG, date.getMonthOfYear() + "");
+
+		String dayWeek = weekdays[date.getDayOfWeek() - 1];
+		String dayMonth = date.getDayOfMonth() + "";
+		String month = months[date.getMonthOfYear() - 1];
+		String hours = (date.getHourOfDay() < 10) ? "0" + date.getHourOfDay()
+				: date.getHourOfDay() + "";
+		String minutes = (date.getMinuteOfHour() < 10) ? "0"
+				+ date.getMinuteOfHour() : date.getMinuteOfHour() + "";
+
+		return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
+				+ minutes;
+
+	}
+
+	public String getGenreNode() {
+		return genreNode;
+	}
+
+	public void setGenreNode(String genreNode) {
+		this.genreNode = genreNode;
 	}
 }

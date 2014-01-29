@@ -32,6 +32,35 @@ public class Event {
 	public boolean isFavorite;
 	public boolean isExpanded;
 
+	/**
+	 * constructor
+	 * 
+	 * @param resultTime
+	 * @param resultRadius
+	 * @param resultLatitude
+	 * @param resultLongitude
+	 * @param eventName
+	 * @param eventGenre
+	 * @param eventDescription
+	 * @param startTime
+	 * @param endTime
+	 * @param minAge
+	 * @param specialOffer
+	 * @param locationID
+	 * @param locationName
+	 * @param locationLatitude
+	 * @param locationLongitude
+	 * @param locationDescription
+	 * @param addressStreet
+	 * @param addressNumber
+	 * @param addressCity
+	 * @param addressPostcode
+	 * @param locationWebsite
+	 * @param currentLocation
+	 * @param currentDistance
+	 * @param isFavorite
+	 * @param isExpanded
+	 */
 	public Event(String resultTime, String resultRadius, String resultLatitude,
 			String resultLongitude, String eventName, String eventGenre,
 			String eventDescription, String startTime, String endTime,
@@ -70,6 +99,12 @@ public class Event {
 		this.currentDistance = currentDistance;
 		this.isFavorite = isFavorite;
 		this.isExpanded = isExpanded;
+	}
+
+	/**
+	 * constructor for an empty event
+	 */
+	public Event() {
 	}
 
 }

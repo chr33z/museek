@@ -210,6 +210,9 @@ public class EventController implements JsonConstants {
 
 				eventName = event.getString(TAG_EVENT_NAME);
 				eventGenre = event.getString(TAG_EVENT_GENRES);
+				eventGenre = (eventGenre.equals("") || eventGenre.equals(""))
+						? "music" : eventGenre;
+				
 				eventDescription = event.getString(TAG_EVENT_DESCRIPTION);
 				startTime = event.getString(TAG_EVENT_START_TIME);
 				endTime = event.getString(TAG_EVENT_END_TIME);
@@ -262,7 +265,7 @@ public class EventController implements JsonConstants {
 
 				eventList.put(locationID, newEvent);
 			}
-			Log.v("eventListSizeController", eventList.size() + "");
+			Log.v(TAG, "eventListSizeController " + eventList.size() + "");
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());
 		}
@@ -362,7 +365,7 @@ public class EventController implements JsonConstants {
 		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
 		List<Event> sortedEventList = new ArrayList<Event>();
 		// TODO wenn Genre in Event gespeichert ausprobieren
-		// genre und darüberliegende Knoten speichern in Liste
+		// genre und darï¿½berliegende Knoten speichern in Liste
 		List<String> parentGenre = new ArrayList<String>();
 		GenreNode currentNode = getGenreNode();
 		if (currentNode == null) {
@@ -370,12 +373,13 @@ public class EventController implements JsonConstants {
 		}
 		parentGenre.addAll(getChildGenre(currentNode));
 		parentGenre.add(currentNode.name);
+		
 		for (Event event : sortedList.values()) {
 			boolean isInList = false;
-			// nur die speichern, die mit genre in Liste übereinstimmen
+			// nur die speichern, die mit genre in Liste ï¿½bereinstimmen
 			for (int i = 0; i < parentGenre.size(); i++) {
 				for (String string : event.eventGenre.split(";")) {
-					if (string.equalsIgnoreCase(parentGenre.get(i))) {
+					if ( string.equalsIgnoreCase(parentGenre.get(i)) || string.equals("")) {
 						if (!isInList) {
 							isInList = true;
 						}

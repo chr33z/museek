@@ -14,6 +14,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Build;
@@ -33,6 +34,7 @@ import android.widget.RelativeLayout;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
+import de.mimuc.pem_music_graph.list.Event;
 import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
 import de.mimuc.pem_music_graph.list.EventController;
@@ -394,5 +396,14 @@ public class CombinedView extends FragmentActivity implements
 		// layout.animatePanelHeight((int)(newHeight +
 		// GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
 		Log.d(TAG, "Click on node " + node.name);
+	}
+
+	@Override
+	public void onShareEvent(Event event) {
+		Intent intent = new Intent(Intent.ACTION_SEND);
+	    intent.setType("text/plain");
+	    intent.putExtra(Intent.EXTRA_TITLE, event.eventName);
+	    intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "+ event.eventName+" ins "+event.locationName); 
+	    startActivity(Intent.createChooser(intent, "Share with..."));
 	}
 }

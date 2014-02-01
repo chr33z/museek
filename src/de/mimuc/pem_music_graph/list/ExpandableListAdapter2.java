@@ -7,7 +7,6 @@ import java.util.Locale;
 import org.joda.time.DateTime;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.graph.GenreNode;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -106,6 +105,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					.findViewById(R.id.website);
 			ImageView direction = (ImageView) convertView
 					.findViewById(R.id.direction);
+			ImageView share = (ImageView) convertView
+					.findViewById(R.id.share);
+			share.setTag(groupPosition);
 
 			// setting the Informations of the EventLocation
 			if (openingHours != null) {
@@ -131,20 +133,20 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					currentEvent.endTime = "";
 				if (stringNotEmpty(currentEvent.endTime))
 					openingHours
-							.setText("Ge"
-									+ context.getString(R.string.oe)
-									+ "ffnet: "
-									+ formatTime(Long
-											.parseLong(currentEvent.startTime))
+					.setText("Ge"
+							+ context.getString(R.string.oe)
+							+ "ffnet: "
+							+ formatTime(Long
+									.parseLong(currentEvent.startTime))
 									+ " - " + currentEvent.endTime + " Uhr");
 				else if (stringNotEmpty(currentEvent.startTime))
 					openingHours
-							.setText("Ge"
-									+ context.getString(R.string.oe)
-									+ "ffnet: "
-									+ " ab "
-									+ formatTime(Long
-											.parseLong(currentEvent.startTime))
+					.setText("Ge"
+							+ context.getString(R.string.oe)
+							+ "ffnet: "
+							+ " ab "
+							+ formatTime(Long
+									.parseLong(currentEvent.startTime))
 									+ " Uhr");
 			}
 			if (eventDescription != null)
@@ -181,17 +183,19 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					addressCity.setText(currentEvent.addressPostcode + " "
 							+ currentEvent.addressCity);
 
+			if(!stringNotEmpty(currentEvent.locationWebsite)){
+				loadWebsite.setVisibility(View.GONE);
+			}
+			
 			loadWebsite.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
-					if (currentEvent.locationWebsite != null) {
-						if (stringNotEmpty(currentEvent.locationWebsite)) {
-							Intent browserIntent = new Intent(
-									Intent.ACTION_VIEW,
-									Uri.parse(currentEvent.locationWebsite));
-							context.startActivity(browserIntent);
-						}
+					if (stringNotEmpty(currentEvent.locationWebsite)) {
+						Intent browserIntent = new Intent(
+								Intent.ACTION_VIEW,
+								Uri.parse(currentEvent.locationWebsite));
+						context.startActivity(browserIntent);
 					}
 				}
 			});
@@ -201,6 +205,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				@Override
 				public void onClick(View v) {
 
+				}
+			});
+
+			share.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					Event event = eventList.get((Integer) v.getTag());
+					callbackReceiver.onShareEvent(event);
 				}
 			});
 
@@ -222,6 +235,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return convertView;
 	}
 
+	/**
+	 * 
+	 * @param string
+	 * @return
+	 */
 	@Override
 	public int getChildrenCount(int groupPosition) {
 		// always only one child in the expandable ListView
@@ -467,7 +485,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		String minutes = (date.getMinuteOfHour() < 10) ? "0"
 				+ date.getMinuteOfHour() : date.getMinuteOfHour() + "";
 
-		return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
+				return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
 				+ minutes;
 
 	}
@@ -482,14 +500,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	}
 
 	/**
-	 * looks if the given string is empty or not
 	 * 
 	 * @param string
-	 * @return boolean
+	 * @return
 	 */
 	private boolean stringNotEmpty(String string) {
-		if (string.equals(""))
+		if (string.equals("") || string.equals("null") || string == null){
 			return false;
-		return true;
+		} else {
+			return true;
+		}
 	}
 }

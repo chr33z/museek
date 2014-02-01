@@ -9,4 +9,6 @@ public interface EventControllerListener {
 	public void onRemoveFavorites(String locationID);
 
 	public void onExpandedItem(String locationID, boolean b);
+	
+	public void onShareEvent(Event event);
 }

@@ -85,6 +85,9 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			ImageView pig = (ImageView) convertView.findViewById(R.id.pig);
 			ImageView direction = (ImageView) convertView
 					.findViewById(R.id.direction);
+			ImageView share = (ImageView) convertView
+					.findViewById(R.id.share);
+			share.setTag(groupPosition);
 
 			// setting the Informations of the EventLocation
 			if (openingHours != null) {
@@ -110,20 +113,20 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					currentEvent.endTime = "";
 				if (stringNotEmpty(currentEvent.endTime))
 					openingHours
-							.setText("Ge"
-									+ context.getString(R.string.oe)
-									+ "ffnet: "
-									+ formatTime(Long
-											.parseLong(currentEvent.startTime))
+					.setText("Ge"
+							+ context.getString(R.string.oe)
+							+ "ffnet: "
+							+ formatTime(Long
+									.parseLong(currentEvent.startTime))
 									+ " - " + currentEvent.endTime + " Uhr");
 				else if (stringNotEmpty(currentEvent.startTime))
 					openingHours
-							.setText("Ge"
-									+ context.getString(R.string.oe)
-									+ "ffnet: "
-									+ " ab "
-									+ formatTime(Long
-											.parseLong(currentEvent.startTime))
+					.setText("Ge"
+							+ context.getString(R.string.oe)
+							+ "ffnet: "
+							+ " ab "
+							+ formatTime(Long
+									.parseLong(currentEvent.startTime))
 									+ " Uhr");
 			}
 			if (eventDescription != null)
@@ -160,17 +163,19 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					addressCity.setText(currentEvent.addressPostcode + " "
 							+ currentEvent.addressCity);
 
+			if(!stringNotEmpty(currentEvent.locationWebsite)){
+				loadWebsite.setVisibility(View.GONE);
+			}
+			
 			loadWebsite.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
-					if (currentEvent.locationWebsite != null) {
-						if (stringNotEmpty(currentEvent.locationWebsite)) {
-							Intent browserIntent = new Intent(
-									Intent.ACTION_VIEW,
-									Uri.parse(currentEvent.locationWebsite));
-							context.startActivity(browserIntent);
-						}
+					if (stringNotEmpty(currentEvent.locationWebsite)) {
+						Intent browserIntent = new Intent(
+								Intent.ACTION_VIEW,
+								Uri.parse(currentEvent.locationWebsite));
+						context.startActivity(browserIntent);
 					}
 				}
 			});
@@ -180,6 +185,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				@Override
 				public void onClick(View v) {
 
+				}
+			});
+
+			share.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					Event event = eventList.get((Integer) v.getTag());
+					callbackReceiver.onShareEvent(event);
 				}
 			});
 
@@ -207,9 +221,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	 * @return
 	 */
 	private boolean stringNotEmpty(String string) {
-		if (string.equals(""))
+		if (string.equals("") || string.equals("null") || string == null){
 			return false;
-		return true;
+		} else {
+			return true;
+		}
 	}
 
 	@Override
@@ -246,13 +262,13 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		}
 
 		// compute distance
-//		Location destination = new Location("destination");
-//		destination
-//				.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
-//		destination.setLongitude(Double.parseDouble(eventList
-//				.get(groupPosition).locationLongitude));
-//		Location currentLocation = eventList.get(groupPosition).currentLocation;
-//		float distance = currentLocation.distanceTo(destination);
+		//		Location destination = new Location("destination");
+		//		destination
+		//				.setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
+		//		destination.setLongitude(Double.parseDouble(eventList
+		//				.get(groupPosition).locationLongitude));
+		//		Location currentLocation = eventList.get(groupPosition).currentLocation;
+		//		float distance = currentLocation.distanceTo(destination);
 
 		TextView locationName = (TextView) convertView
 				.findViewById(R.id.eventlocationname);
@@ -275,7 +291,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		}
 		if (currentDistance != null) {
 			currentDistance
-					.setText(roundDistance(currentEvent.currentDistance));
+			.setText(roundDistance(currentEvent.currentDistance));
 		}
 		if (currentEvent.isFavorite) {
 			star.setImageResource(R.drawable.ic_action_important);
@@ -528,7 +544,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		String minutes = (date.getMinuteOfHour() < 10) ? "0"
 				+ date.getMinuteOfHour() : date.getMinuteOfHour() + "";
 
-		return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
+				return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
 				+ minutes;
 
 	}

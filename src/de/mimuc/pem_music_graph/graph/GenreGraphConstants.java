@@ -30,7 +30,7 @@ public interface GenreGraphConstants {
 	public static final int COLOR_LINE = Color.BLACK;
 	
 	// Animation Times
-	public static final int ANIM_MOVE_DURATION = 300;
+	public static final int ANIM_MOVE_DURATION = 350;
 	public static final int ANIM_TOUCH_DURATION = 100;
 	public static final int ANIM_DELAY = 50;
 	

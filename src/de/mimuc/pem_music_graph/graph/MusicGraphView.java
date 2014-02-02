@@ -7,15 +7,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import de.mimuc.pem_music_graph.R;
 import de.mimuc.pem_music_graph.graph.animation.GraphAnimationQueue;
 import de.mimuc.pem_music_graph.graph.animation.MoveAnimation;
-import de.mimuc.pem_music_graph.graph.animation.ShrinkAnimation;
-import de.mimuc.pem_music_graph.graph.animation.TouchAnimation;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
 /**
@@ -143,13 +140,13 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 		canvas.drawColor(Color.DKGRAY);
 
-		// draw and update fps
-		if(fpsTimer > FPS_UPDATE_DURATION){
-			fps = (int) Math.round(1000.0 / (time - lastTime));
-			fpsTimer = 0;
-		}
-		fpsTimer += (time - lastTime);
-		canvas.drawText("FPS: "+fps , 10, height * GenreGraph.ROOT_Y_FACTOR, paintFps);
+//		// draw and update fps
+//		if(fpsTimer > FPS_UPDATE_DURATION){
+//			fps = (int) Math.round(1000.0 / (time - lastTime));
+//			fpsTimer = 0;
+//		}
+//		fpsTimer += (time - lastTime);
+//		canvas.drawText("FPS: "+fps , 10, height * GenreGraph.ROOT_Y_FACTOR, paintFps);
 
 		// update the animations
 		animationQueue.update(time);
@@ -374,7 +371,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 		// if there is no parent, we are already at the root node
 		if(parent == null){
-			animationQueue.add(new TouchAnimation(node, GenreGraph.ANIM_TOUCH_DURATION));
 			touchLocked = true;
 		} 
 		else {
@@ -401,16 +397,13 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				// save the new position of our current root and move it there
 				if(node.name.equalsIgnoreCase(sibling.name)){
 					animationQueue.add(new MoveAnimation(node, GenreGraph.ANIM_MOVE_DURATION, x_new, y_new), "root");
-					animationQueue.add(new TouchAnimation(node, GenreGraph.ANIM_MOVE_DURATION), "roottouch");
 				} else {
 					// from where they come
 					sibling.x = x_new - width;
 					sibling.y = y_new;
-					sibling.radius = width * GenreGraph.RADIUS_FACTOR;
 					sibling.setVisible(true);
 					sibling.setVisibility(1);
 					
-					animationQueue.add(new ShrinkAnimation(sibling, GenreGraph.ANIM_MOVE_DURATION, true), "sibling"+i);
 					animationQueue.add(new MoveAnimation(sibling, GenreGraph.ANIM_MOVE_DURATION, x_new, y_new), "siblingm"+i);
 				}
 				
@@ -433,15 +426,11 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			for(int i=0; i<node.getChildren().size(); i++) {
 				GenreNode child = node.getChildren().get(i);
 
-				// Add shrink and move down animations with increasing delay that run parallel;
+				// Add shrink and move down animations
 				if(!node.name.equalsIgnoreCase(child.name)){
-					animationQueue.add(new ShrinkAnimation(child, 
-							GenreGraph.ANIM_MOVE_DURATION, i*GenreGraph.ANIM_DELAY), 
-							"currchild"+i);
 					animationQueue.add(new MoveAnimation(child, 
 							GenreGraph.ANIM_MOVE_DURATION, 
-							child.x, height * GenreGraph.CHILD_Y_FACTOR * 2, 
-							i*GenreGraph.ANIM_DELAY), 
+							child.x + width, child.y), 
 							"currChildm"+i);
 				}
 			}
@@ -460,13 +449,9 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 			// Add shrink animations with increasing delay that run parallel;
 			if(!node.name.equalsIgnoreCase(sibling.name)){
-				animationQueue.add(new ShrinkAnimation(sibling, 
-						GenreGraph.ANIM_MOVE_DURATION, i*GenreGraph.ANIM_DELAY), 
-						"sibling"+i);
 				animationQueue.add(new MoveAnimation(sibling, 
 						GenreGraph.ANIM_MOVE_DURATION, 
-						sibling.x, height * GenreGraph.CHILD_Y_FACTOR * 2, 
-						i*GenreGraph.ANIM_DELAY), 
+						sibling.x - width, sibling.y), 
 						"siblingm"+i);
 			}
 		}
@@ -474,15 +459,14 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		// move touched node to root position
 		animationQueue.add(new MoveAnimation(
 				node, GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, node.getParent().y), "root");
-		animationQueue.add(new TouchAnimation(node, GenreGraph.ANIM_MOVE_DURATION), "roottouch");
 
 		// move root further up
 		animationQueue.add(new MoveAnimation(
-				node.getParent(), GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, width * GenreGraphConstants.PARENT_Y_FACTOR), "rootparent");
+				node.getParent(), GenreGraph.ANIM_MOVE_DURATION, node.getParent().x, height * GenreGraphConstants.PARENT_Y_FACTOR), "rootparent");
 
 		// fade in new children
 		int size = node.getChildren().size();
-		float currentX = node.x;
+		float currentX = node.getParent().x;
 		float currentY = height * GenreGraph.CHILD_Y_FACTOR;
 		
 		for (int i = 0; i < size; i++) {
@@ -495,15 +479,14 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			// from where they come
 			child.x = x_new + width;
 			child.y = y_new;
-			child.radius = width * GenreGraph.RADIUS_FACTOR;
 			child.setVisible(true);
+			child.setVisibility(1);
 
-			animationQueue.add(new ShrinkAnimation(child, GenreGraph.ANIM_MOVE_DURATION, true), "newchild"+i);
 			animationQueue.add(new MoveAnimation(child, GenreGraph.ANIM_MOVE_DURATION, x_new, y_new), "newchildm"+i);
 
 			// determine position of next child
 			if((i+1 < size)){
-				GenreNode nextChild = node.getParent().getChildren().get(i+1);
+				GenreNode nextChild = node.getChildren().get(i+1);
 				String nextName = nextChild.name;
 				float textLength = nextChild.origPaintText.measureText(nextName);
 				

@@ -370,8 +370,13 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	}
 
 	@Override
-	public void onExpandedItem(String locationID, boolean b) {
-		mEventController.onExpandedItem(locationID, b);
+	public void onExpandedItemTrue(String locationID) {
+		mEventController.onExpandedItemTrue(locationID);
+	}
+	
+	@Override
+	public void onExpandedItemFalse(){
+		mEventController.onExpandedItemFalse();
 	}
 
 	@SuppressLint("NewApi")

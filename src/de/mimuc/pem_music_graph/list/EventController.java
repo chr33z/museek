@@ -53,7 +53,7 @@ public class EventController implements JsonConstants {
 	/**
 	 * Keep track of expanded views to reset them on a adapter reload
 	 */
-	private List<String> expandedItems;
+	private String expandedItem = "";
 
 	private String genreNode = "Music";
 
@@ -67,7 +67,6 @@ public class EventController implements JsonConstants {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
 		this.favorites = new HashMap<String, FavoriteLocation>();
-		this.expandedItems = new ArrayList<String>();
 	}
 
 	/**
@@ -83,7 +82,6 @@ public class EventController implements JsonConstants {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new HashMap<String, Event>();
 		this.favorites = new HashMap<String, FavoriteLocation>();
-		this.expandedItems = new ArrayList<String>();
 		readJson(json);
 	}
 
@@ -100,7 +98,6 @@ public class EventController implements JsonConstants {
 		this.eventList = new HashMap<String, Event>();
 		this.currentLocation = location;
 		this.favorites = new HashMap<String, FavoriteLocation>();
-		this.expandedItems = new ArrayList<String>();
 		readJson(json);
 		setJsonForSharedPreferences(json);
 	}
@@ -234,15 +231,18 @@ public class EventController implements JsonConstants {
 
 				// TODO foreach?
 				isExpanded = false;
-				if (expandedItems != null) {
-					for (int j = 0; j < expandedItems.size(); j++) {
-						if (expandedItems.get(j).equals(locationID)) {
-							isExpanded = true;
-							// Log.v("expandedItem", isExpanded + " " +
-							// locationID);
-						}
-					}
+				if (locationID.equals(expandedItem)) {
+					isExpanded = true;
 				}
+				// if (expandedItem != null) {
+				// for (int j = 0; j < expandedItem.size(); j++) {
+				// if (expandedItem.get(j).equals(locationID)) {
+				// isExpanded = true;
+				// // Log.v("expandedItem", isExpanded + " " +
+				// // locationID);
+				// }
+				// }
+				// }
 
 				Event newEvent = new Event(resultTime, resultRadius,
 						resultLatitude, resultLongitude, eventName, eventGenre,
@@ -315,19 +315,26 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
-	 * stores if listitems are expanded or collapsed in a list
+	 * stores the locationID of expanded item, sets it in the eventList on true
+	 * and sets the previous on false
 	 * 
 	 * @param locationID
-	 * @param b
 	 */
-	public void onExpandedItem(String locationID, boolean b) {
-		if (expandedItems != null) {
-			for (int i = 0; i < expandedItems.size(); i++) {
-				if (eventList.get(expandedItems.get(i)) != null) {
-					eventList.get(expandedItems.get(i)).isExpanded = b;
-				}
-			}
-		}
+	public void onExpandedItemTrue(String locationID) {
+		Log.v("expandedItemsnull", expandedItem + "");
+		if (!(expandedItem.equals("")))
+			eventList.get(expandedItem).isExpanded = false;
+		expandedItem = locationID;
+		eventList.get(expandedItem).isExpanded = true;
+	}
+
+	/**
+	 * sets the collapsed item in the eventList on false and stores an empty
+	 * string as expanded item
+	 */
+	public void onExpandedItemFalse() {
+		eventList.get(expandedItem).isExpanded = false;
+		expandedItem = "";
 	}
 
 	/**

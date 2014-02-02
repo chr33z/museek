@@ -47,8 +47,9 @@ import de.mimuc.pem_music_graph.utils.ApplicationController;
  * @author Christopher Gebhardt
  * 
  */
-public class CombinedView extends FragmentActivity 
-implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListener, GenreGraphListener {
+public class CombinedView extends FragmentActivity implements
+		ConnectionCallbacks, OnConnectionFailedListener,
+		EventControllerListener, GenreGraphListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -67,14 +68,14 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 
 	private LocationClient mLocationClient;
 	private FragmentManager fragmentManager;
-	
+
 	private Fragment mapsFragment;
 
 	// coordinates for moving the view
 	private double dy;
 
 	boolean updated = false;
-	
+
 	int width = 0;
 	int height = 0;
 
@@ -114,6 +115,13 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
 
+		// Put graph in framelayout because otherwise there is an error
+		FrameLayout frame = (FrameLayout) findViewById(R.id.graph_view_frame);
+		graphView = new MusicGraphView(this);
+		graphView.setGenreGraphListener(this);
+		frame.addView(graphView);
+		graphView.onThreadResume();
+
 		// try to load a json file we got from start screen
 		if (getIntent().getStringExtra("json") != null) {
 
@@ -141,6 +149,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 			// JSONObject(loadLastEvents));
 		}
 
+		mEventController.setGenreNode(graphView.getRootNode());
+
 		String favorites = sharedPreferences.getString("favorites", "");
 		if (!(favorites.isEmpty())) {
 			mEventController.setFavorites(JsonPreferences
@@ -151,13 +161,6 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 		}
 
 		this.context = this;
-
-		// Put graph in framelayout because otherwise there is an error
-		FrameLayout frame = (FrameLayout) findViewById(R.id.graph_view_frame);
-		graphView = new MusicGraphView(this);
-		graphView.setGenreGraphListener(this);
-		frame.addView(graphView);
-		graphView.onThreadResume();
 
 		// intialize listview
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
@@ -170,7 +173,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 				.getResources().getDisplayMetrics();
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
-		
+
 		// get list handle
 		listHandle = (RelativeLayout) findViewById(R.id.list_handle);
 
@@ -187,17 +190,18 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 			public void onPanelSlide(View panel, float slideOffset) {
 				graphView.onThreadPause();
 
-//				if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB){
-//					if (slideOffset < 0.2) {
-//						if (getActionBar().isShowing()) {
-//							getActionBar().hide();
-//						}
-//					} else {
-//						if (!getActionBar().isShowing()) {
-//							getActionBar().show();
-//						}
-//					}
-//				}
+				// if(android.os.Build.VERSION.SDK_INT >
+				// Build.VERSION_CODES.HONEYCOMB){
+				// if (slideOffset < 0.2) {
+				// if (getActionBar().isShowing()) {
+				// getActionBar().hide();
+				// }
+				// } else {
+				// if (!getActionBar().isShowing()) {
+				// getActionBar().show();
+				// }
+				// }
+				// }
 			}
 
 			@Override
@@ -230,9 +234,10 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 
 			}
 		});
-//		
-//		fragmentManager = getSupportFragmentManager();
-//		fragmentManager.beginTransaction().replace(R.id.map_fragment_container, new MapTestFragment()).commit();
+		//
+		// fragmentManager = getSupportFragmentManager();
+		// fragmentManager.beginTransaction().replace(R.id.map_fragment_container,
+		// new MapTestFragment()).commit();
 	}
 
 	@Override
@@ -329,7 +334,10 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 				adapter = new ExpandableListAdapter2(context, mEventController
 						.getEventList());
 				locationListView.setAdapter(adapter);
-				adapter.setGenreNode(mEventController.getGenreNode());
+				if (mEventController.isNoEvents()) {
+					adapter.setNoEvents(true);
+					mEventController.setNoEvents(false);
+				}
 
 				// restore scroll position
 				locationListView.setSelectionFromTop(index, top);
@@ -359,11 +367,17 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 		return super.onKeyDown(keyCode, event);
 	}
 
+	/**
+	 * calls the method to add a favorite in the EventController
+	 */
 	@Override
 	public void onAddFavorites(String locationID) {
 		mEventController.onAddFavorites(locationID);
 	}
 
+	/**
+	 * calls the method to remove the ID from favorites in the EventController
+	 */
 	@Override
 	public void onRemoveFavorites(String locationID) {
 		mEventController.onRemoveFavorites(locationID);
@@ -382,11 +396,11 @@ implements ConnectionCallbacks, OnConnectionFailedListener, EventControllerListe
 	@SuppressLint("NewApi")
 	@Override
 	public void onGraphUpdate(GenreNode node, int newHeight) {
-		mEventController.setGenreNode(node.name);
-//		adapter.setGenreNode(node.name);
+		mEventController.setGenreNode(node);
 		onEventControllerUpdate();
-//		layout.animatePanelHeight((int)(newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
-		Log.d(TAG, "Click on node "+node.name);
+		// layout.animatePanelHeight((int)(newHeight +
+		// GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
+		Log.d(TAG, "Click on node " + node.name);
 	}
 
 	@Override

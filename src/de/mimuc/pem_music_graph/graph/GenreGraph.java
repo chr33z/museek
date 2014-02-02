@@ -80,7 +80,7 @@ public class GenreGraph implements IGraph, GenreGraphConstants {
 		root.addChildTo(buildNode("Techno"), "Dance/Electro");
 		root.addChildTo(buildNode("Trance"), "Dance/Electro");
 		root.addChildTo(buildNode("House"), "Dance/Electro");
-		root.addChildTo(buildNode("Hardcore"), "Dance/Electro");
+		root.addChildTo(buildNode("Extreme"), "Dance/Electro");
 
 		// Level 2
 		root.addChildTo(buildNode("Rock 'n' Roll"), "Rock/Metal");

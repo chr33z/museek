@@ -89,7 +89,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 		// Build GenreGraph and add nodes
 		graph = new GenreGraph();
-
+		
 		// initialize animation queue
 		animationQueue = new GraphAnimationQueue();
 
@@ -309,7 +309,11 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 								graph.setAsRoot(node.getParent().name);
 							}
 							if(graphListener != null) {
-								graphListener.onGraphUpdate(node, graph.measureHeight());
+								if(node.getParent()!= null){
+									graphListener.onGraphUpdate(node.getParent(), graph.measureHeight());
+								}else{
+									graphListener.onGraphUpdate(node, graph.measureHeight());
+								}
 							}
 							touchLocked = false;
 						}
@@ -582,5 +586,9 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				}
 			}, animationQueue.getLongestQueue()+50);
 		}
+	}
+	
+	public GenreNode getRootNode(){
+		return graph.getCurrentRoot();
 	}
 }

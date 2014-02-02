@@ -7,11 +7,9 @@ import java.util.Locale;
 import org.joda.time.DateTime;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.graph.GenreNode;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,12 +27,35 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	private static final String TAG = ExpandableListAdapter2.class.getName();
 
+	/**
+	 * Saves the context
+	 */
 	private Context context;
-	private boolean isDescriptionExpanded;
-	private List<Event> eventList;
-	private EventControllerListener callbackReceiver;
-	private String genreNode;
 
+	// TODO store in event
+	private boolean isDescriptionExpanded;
+
+	/**
+	 * Saves events in an arrayList
+	 */
+	private List<Event> eventList;
+
+	/**
+	 * The activity that handles all callbacks (parent Activity)
+	 */
+	private EventControllerListener callbackReceiver;
+
+	/**
+	 * is true if the currentNode has no events
+	 */
+	private boolean noEvents = false;
+
+	/**
+	 * constructor
+	 * 
+	 * @param context
+	 * @param eventList
+	 */
 	public ExpandableListAdapter2(Context context, List<Event> eventList) {
 		this.eventList = new ArrayList<Event>();
 		this.eventList = eventList;
@@ -82,7 +103,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					.findViewById(R.id.city);
 			ImageView loadWebsite = (ImageView) convertView
 					.findViewById(R.id.website);
-			ImageView pig = (ImageView) convertView.findViewById(R.id.pig);
 			ImageView direction = (ImageView) convertView
 					.findViewById(R.id.direction);
 			ImageView share = (ImageView) convertView.findViewById(R.id.share);
@@ -112,20 +132,20 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					currentEvent.endTime = "";
 				if (stringNotEmpty(currentEvent.endTime))
 					openingHours
-							.setText("Ge"
-									+ context.getString(R.string.oe)
-									+ "ffnet: "
-									+ formatTime(Long
-											.parseLong(currentEvent.startTime))
+					.setText("Ge"
+							+ context.getString(R.string.oe)
+							+ "ffnet: "
+							+ formatTime(Long
+									.parseLong(currentEvent.startTime))
 									+ " - " + currentEvent.endTime + " Uhr");
 				else if (stringNotEmpty(currentEvent.startTime))
 					openingHours
-							.setText("Ge"
-									+ context.getString(R.string.oe)
-									+ "ffnet: "
-									+ " ab "
-									+ formatTime(Long
-											.parseLong(currentEvent.startTime))
+					.setText("Ge"
+							+ context.getString(R.string.oe)
+							+ "ffnet: "
+							+ " ab "
+							+ formatTime(Long
+									.parseLong(currentEvent.startTime))
 									+ " Uhr");
 			}
 			if (eventDescription != null)
@@ -213,19 +233,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return convertView;
 	}
 
-	/**
-	 * 
-	 * @param string
-	 * @return
-	 */
-	private boolean stringNotEmpty(String string) {
-		if (string.equals("") || string.equals("null") || string == null) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
 	@Override
 	public int getChildrenCount(int groupPosition) {
 		// always only one child in the expandable ListView
@@ -254,136 +261,156 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		Event currentEvent = eventList.get(groupPosition);
 
 		if (convertView == null) {
-			LayoutInflater layoutInflater = (LayoutInflater) context
-					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			convertView = layoutInflater.inflate(R.layout.headlinelist, null);
+			// sets the layout
+			if (!noEvents) {
+				Log.v("Liste nicht leer", eventList.size() + "");
+				LayoutInflater layoutInflater = (LayoutInflater) context
+						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				convertView = layoutInflater.inflate(R.layout.headlinelist,
+						null);
+
+			} else {
+				Log.v("Liste leer", eventList.size() + "");
+				LayoutInflater layoutInflater = (LayoutInflater) context
+						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				convertView = layoutInflater.inflate(R.layout.noevents, null);
+			}
 		}
+		// sets the information if there are events in the list or the string if
+		// not
+		if (!noEvents) {
+			TextView locationName = (TextView) convertView
+					.findViewById(R.id.eventlocationname);
+			TextView eventName = (TextView) convertView
+					.findViewById(R.id.eventname);
+			TextView currentDistance = (TextView) convertView
+					.findViewById(R.id.currentdistance);
+			ImageView arrow = (ImageView) convertView.findViewById(R.id.arrow);
+			arrow.setTag(groupPosition);
+			ImageView star = (ImageView) convertView.findViewById(R.id.star);
+			star.setTag(groupPosition);
 
-		// compute distance
-		// Location destination = new Location("destination");
-		// destination
-		// .setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
-		// destination.setLongitude(Double.parseDouble(eventList
-		// .get(groupPosition).locationLongitude));
-		// Location currentLocation =
-		// eventList.get(groupPosition).currentLocation;
-		// float distance = currentLocation.distanceTo(destination);
+			if (locationName != null) {
+				if (stringNotEmpty(currentEvent.locationName))
+					locationName
+					.setText(eventList.get(groupPosition).locationName);
+			}
+			if (eventName != null) {
+				if (stringNotEmpty(currentEvent.eventName))
+					eventName.setText(currentEvent.eventName);
+			}
+			if (currentDistance != null) {
+				currentDistance
+				.setText(roundDistance(currentEvent.currentDistance));
+			}
+			if (currentEvent.isFavorite) {
+				star.setImageResource(R.drawable.ic_action_important);
+			} else {
+				star.setImageResource(R.drawable.ic_action_not_important);
+			}
 
-		TextView locationName = (TextView) convertView
-				.findViewById(R.id.eventlocationname);
-		TextView eventName = (TextView) convertView
-				.findViewById(R.id.eventname);
-		TextView currentDistance = (TextView) convertView
-				.findViewById(R.id.currentdistance);
-		ImageView arrow = (ImageView) convertView.findViewById(R.id.arrow);
-		arrow.setTag(groupPosition);
-		ImageView star = (ImageView) convertView.findViewById(R.id.star);
-		star.setTag(groupPosition);
+			if (currentEvent.isExpanded) {
+				listView.expandGroup(groupPosition);
+				arrow.setImageResource(R.drawable.ic_action_collapse);
+			} else {
+				arrow.setImageResource(R.drawable.ic_action_expand);
+			}
 
-		if (locationName != null) {
-			if (stringNotEmpty(currentEvent.locationName))
-				locationName.setText(eventList.get(groupPosition).locationName);
-		}
-		if (eventName != null) {
-			if (stringNotEmpty(currentEvent.eventName))
-				eventName.setText(currentEvent.eventName);
-		}
-		if (currentDistance != null) {
-			currentDistance
-					.setText(roundDistance(currentEvent.currentDistance));
-		}
-		if (currentEvent.isFavorite) {
-			star.setImageResource(R.drawable.ic_action_important);
-		} else {
-			star.setImageResource(R.drawable.ic_action_not_important);
-		}
+			listView.setOnGroupClickListener(new OnGroupClickListener() {
 
-		if (currentEvent.isExpanded) {
-			listView.expandGroup(groupPosition);
-			arrow.setImageResource(R.drawable.ic_action_collapse);
-		} else {
-			arrow.setImageResource(R.drawable.ic_action_expand);
-		}
+				@Override
+				public boolean onGroupClick(ExpandableListView parent, View v,
+						int groupPosition, long id) {
+					ImageView arrow = (ImageView) v.findViewById(R.id.arrow);
+					Event currentEvent = eventList.get(groupPosition);
 
-		listView.setOnGroupClickListener(new OnGroupClickListener() {
-
-			@Override
-			public boolean onGroupClick(ExpandableListView parent, View v,
-					int groupPosition, long id) {
-				ImageView arrow = (ImageView) v.findViewById(R.id.arrow);
-				Event currentEvent = eventList.get(groupPosition);
-
-				if (currentEvent.isExpanded) {
-					arrow.setImageResource(R.drawable.ic_action_expand);
-					currentEvent.isExpanded = false;
-					callbackReceiver.onExpandedItemFalse();
-				} else {
-					// all items are collapsed and the value of the previous
-					// expanded listitem is set on false, after that the
-					// expanded item is set on true
-					for (int i = 0; i < getGroupCount(); i++) {
-						listView.collapseGroup(i);
-						Log.v("collapse", "collapse");
-						eventList.get(i).isExpanded = false;
+					if (currentEvent.isExpanded) {
+						arrow.setImageResource(R.drawable.ic_action_expand);
+						currentEvent.isExpanded = false;
+						callbackReceiver.onExpandedItemFalse();
+					} else {
+						// all items are collapsed and the value of the previous
+						// expanded listitem is set on false, after that the
+						// expanded item is set on true
+						for (int i = 0; i < getGroupCount(); i++) {
+							listView.collapseGroup(i);
+							Log.v("collapse", "collapse");
+							eventList.get(i).isExpanded = false;
+						}
+						arrow.setImageResource(R.drawable.ic_action_collapse);
+						currentEvent.isExpanded = true;
+						callbackReceiver
+						.onExpandedItemTrue(currentEvent.locationID);
 					}
-					arrow.setImageResource(R.drawable.ic_action_collapse);
-					currentEvent.isExpanded = true;
-					callbackReceiver
-							.onExpandedItemTrue(currentEvent.locationID);
+					return false;
 				}
-				return false;
-			}
-		});
-		arrow.setOnClickListener(new OnClickListener() {
+			});
+			arrow.setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View v) {
-				int groupPosition = (Integer) v.getTag();
-				ImageView arrow = (ImageView) v;
+				@Override
+				public void onClick(View v) {
+					int groupPosition = (Integer) v.getTag();
+					ImageView arrow = (ImageView) v;
 
-				if (eventList.get(groupPosition).isExpanded) {
-					listView.collapseGroup(groupPosition);
-					arrow.setImageResource(R.drawable.ic_action_expand);
-					eventList.get(groupPosition).isExpanded = false;
-					callbackReceiver.onExpandedItemFalse();
-				} else {
-					// all items are collapsed and the value of the previous
-					// expanded listitem is set on false, after that the
-					// expanded item is set on true and the current item is
-					// expanded
-					for (int i = 0; i < getGroupCount(); i++) {
-						listView.collapseGroup(i);
-						Log.v("collapse", "collapse");
-						eventList.get(i).isExpanded = false;
+					if (eventList.get(groupPosition).isExpanded) {
+						listView.collapseGroup(groupPosition);
+						arrow.setImageResource(R.drawable.ic_action_expand);
+						eventList.get(groupPosition).isExpanded = false;
+						callbackReceiver.onExpandedItemFalse();
+					} else {
+						// all items are collapsed and the value of the previous
+						// expanded listitem is set on false, after that the
+						// expanded item is set on true and the current item is
+						// expanded
+						for (int i = 0; i < getGroupCount(); i++) {
+							listView.collapseGroup(i);
+							Log.v("collapse", "collapse");
+							eventList.get(i).isExpanded = false;
+						}
+						listView.expandGroup(groupPosition);
+						arrow.setImageResource(R.drawable.ic_action_collapse);
+						eventList.get(groupPosition).isExpanded = true;
+						callbackReceiver.onExpandedItemTrue(eventList
+								.get(groupPosition).locationID);
 					}
-					listView.expandGroup(groupPosition);
-					arrow.setImageResource(R.drawable.ic_action_collapse);
-					eventList.get(groupPosition).isExpanded = true;
-					callbackReceiver.onExpandedItemTrue(eventList
-							.get(groupPosition).locationID);
 				}
-			}
-		});
+			});
 
-		star.setOnClickListener(new OnClickListener() {
+			star.setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View v) {
-				int groupPosition = (Integer) v.getTag();
-				ImageView star = (ImageView) v;
+				@Override
+				public void onClick(View v) {
+					int groupPosition = (Integer) v.getTag();
+					ImageView star = (ImageView) v;
 
-				if (eventList.get(groupPosition).isFavorite) {
-					star.setImageResource(R.drawable.ic_action_not_important);
-					callbackReceiver.onRemoveFavorites(eventList
-							.get(groupPosition).locationID);
-				} else {
-					star.setImageResource(R.drawable.ic_action_important);
-					callbackReceiver.onAddFavorites(eventList
-							.get(groupPosition).locationID);
+					if (eventList.get(groupPosition).isFavorite) {
+						star.setImageResource(R.drawable.ic_action_not_important);
+						callbackReceiver.onRemoveFavorites(eventList
+								.get(groupPosition).locationID);
+					} else {
+						star.setImageResource(R.drawable.ic_action_important);
+						callbackReceiver.onAddFavorites(eventList
+								.get(groupPosition).locationID);
+					}
 				}
-			}
 
-		});
+			});
+		} else {
+			TextView noEvents = (TextView) convertView
+					.findViewById(R.id.noEvent);
+			noEvents.setText(R.string.no_events);
+			listView.setOnGroupClickListener(new OnGroupClickListener() {
+
+				@Override
+				public boolean onGroupClick(ExpandableListView parent, View v,
+						int groupPosition, long id) {
+					Toast.makeText(context, R.string.no_events,
+							Toast.LENGTH_LONG).show();
+					return true;
+				}
+
+			});
+		}
 
 		return convertView;
 	}
@@ -397,7 +424,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	 * if distance >=1000m, information in km, else in m
 	 * 
 	 * @param distance
-	 * @return
+	 * @return string
 	 */
 	private String roundDistance(float distance) {
 		String distanceUnity = "m";
@@ -411,104 +438,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		} else
 			distance = Math.round(distance);
 		return "ca. " + (int) distance + " " + distanceUnity;
-	}
-
-	private List<Event> sortGenre() {
-		List<Event> genreList = new ArrayList<Event>();
-		// TODO
-		if (getGenreNode().equals("Music")) {
-			return eventList;
-		}
-		for (int i = 0; i < eventList.size(); i++) {
-			switch (getGenreEnum(eventList.get(i).eventGenre)) {
-			case POP:
-				genreList.add(eventList.get(i));
-				break;
-			case ALTERNATIVE:
-				genreList.add(eventList.get(i));
-				break;
-			case PUNK:
-				genreList.add(eventList.get(i));
-				break;
-			case INDUSTRIAL:
-				genreList.add(eventList.get(i));
-				break;
-			case BRITPOP:
-				genreList.add(eventList.get(i));
-				break;
-			case DANCEELECTRO:
-				genreList.add(eventList.get(i));
-				break;
-			case EXTREM:
-				genreList.add(eventList.get(i));
-				break;
-			case TECHNO:
-				genreList.add(eventList.get(i));
-				break;
-			case DUBSTEP:
-				genreList.add(eventList.get(i));
-				break;
-			case HIPHOPRAP:
-				genreList.add(eventList.get(i));
-				break;
-			case BLACK:
-				genreList.add(eventList.get(i));
-				break;
-			case ROCKMETAL:
-				genreList.add(eventList.get(i));
-				break;
-			case METAL:
-				genreList.add(eventList.get(i));
-				break;
-			case PROGRESSIVE:
-				genreList.add(eventList.get(i));
-				break;
-			case HARDROCK:
-				genreList.add(eventList.get(i));
-				break;
-			default:
-				break;
-			}
-		}
-		return genreList;
-	}
-
-	public Genre getGenreEnum(String genre) {
-		if (genre.equals("Music")) {
-			return Genre.MUSIC;
-		} else if (genre.equals("Pop")) {
-			return Genre.POP;
-		} else if (genre.equals("Alternative")) {
-			return Genre.ALTERNATIVE;
-		} else if (genre.equals("Punk")) {
-			return Genre.PUNK;
-		} else if (genre.equals("Industrial")) {
-			return Genre.INDUSTRIAL;
-		} else if (genre.equals("Britpop")) {
-			return Genre.BRITPOP;
-		} else if (genre.equals("Danceelectro")) {
-			return Genre.DANCEELECTRO;
-		} else if (genre.equals("Extrem")) {
-			return Genre.EXTREM;
-		} else if (genre.equals("Techno")) {
-			return Genre.TECHNO;
-		} else if (genre.equals("Dubstep")) {
-			return Genre.DUBSTEP;
-		} else if (genre.equals("HipHopRap")) {
-			return Genre.HIPHOPRAP;
-		} else if (genre.equals("Black")) {
-			return Genre.BLACK;
-		} else if (genre.equals("RockMetal")) {
-			return Genre.ROCKMETAL;
-		} else if (genre.equals("Metal")) {
-			return Genre.METAL;
-		} else if (genre.equals("Progressive")) {
-			return Genre.PROGRESSIVE;
-		} else if (genre.equals("Hardrock")) {
-			return Genre.HARDROCK;
-		}
-		return null;
-
 	}
 
 	public void openMap() {
@@ -540,6 +469,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		this.isDescriptionExpanded = isTextExpanded;
 	}
 
+	/**
+	 * formats the date
+	 * 
+	 * @param time
+	 * @return
+	 */
 	private String formatTime(long time) {
 		String[] weekdays = context.getResources().getStringArray(
 				R.array.weekdays);
@@ -558,16 +493,30 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		String minutes = (date.getMinuteOfHour() < 10) ? "0"
 				+ date.getMinuteOfHour() : date.getMinuteOfHour() + "";
 
-		return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
+				return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
 				+ minutes;
 
 	}
 
-	public String getGenreNode() {
-		return genreNode;
+	/**
+	 * sets the boolean on true if the eventList has no items
+	 * 
+	 * @param noEvents
+	 */
+	public void setNoEvents(boolean noEvents) {
+		this.noEvents = noEvents;
 	}
 
-	public void setGenreNode(String genreNode) {
-		this.genreNode = genreNode;
+	/**
+	 * 
+	 * @param string
+	 * @return
+	 */
+	private boolean stringNotEmpty(String string) {
+		if (string.equals("") || string.equals("null") || string == null){
+			return false;
+		} else {
+			return true;
+		}
 	}
 }

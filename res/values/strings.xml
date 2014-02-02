@@ -20,6 +20,8 @@
     <string name="list_detail_girls">Mädels:</string>
     <string name="list_detail_boys">Jungs:</string>
     
+    <string name="no_events">Keine Veranstaltungen gefunden.</string>
+    
     <string-array name="weekdays">
         <item>Mo</item>
         <item>Di</item>

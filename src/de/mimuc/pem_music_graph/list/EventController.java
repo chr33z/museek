@@ -18,6 +18,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
 
@@ -55,7 +56,15 @@ public class EventController implements JsonConstants {
 	 */
 	private String expandedItem = "";
 
-	private String genreNode = "Music";
+	/**
+	 * stores the current genrenode
+	 */
+	private GenreNode genreNode;
+
+	/**
+	 * is true if the eventlist for a genre has no items
+	 */
+	private boolean noEvents;
 
 	/**
 	 * initialize event controller constructor if no connection to the internet
@@ -198,6 +207,9 @@ public class EventController implements JsonConstants {
 
 				eventName = event.getString(TAG_EVENT_NAME);
 				eventGenre = event.getString(TAG_EVENT_GENRES);
+				eventGenre = (eventGenre.equals("") || eventGenre.equals(""))
+						? "music" : eventGenre;
+				
 				eventDescription = event.getString(TAG_EVENT_DESCRIPTION);
 				startTime = event.getString(TAG_EVENT_START_TIME);
 				endTime = event.getString(TAG_EVENT_END_TIME);
@@ -229,20 +241,10 @@ public class EventController implements JsonConstants {
 					}
 				}
 
-				// TODO foreach?
 				isExpanded = false;
 				if (locationID.equals(expandedItem)) {
 					isExpanded = true;
 				}
-				// if (expandedItem != null) {
-				// for (int j = 0; j < expandedItem.size(); j++) {
-				// if (expandedItem.get(j).equals(locationID)) {
-				// isExpanded = true;
-				// // Log.v("expandedItem", isExpanded + " " +
-				// // locationID);
-				// }
-				// }
-				// }
 
 				Event newEvent = new Event(resultTime, resultRadius,
 						resultLatitude, resultLongitude, eventName, eventGenre,
@@ -256,14 +258,14 @@ public class EventController implements JsonConstants {
 
 				eventList.put(locationID, newEvent);
 			}
-			Log.v("eventListSizeController", eventList.size() + "");
+			Log.v(TAG, "eventListSizeController " + eventList.size() + "");
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());
 		}
 	}
 
 	/**
-	 * updates the valule of isFavorite when a new location was marked as
+	 * updates the value of isFavorite when a new location was marked as
 	 * favorite; it updates the list of events
 	 * 
 	 * @param locationID
@@ -362,11 +364,50 @@ public class EventController implements JsonConstants {
 		}
 		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
 		List<Event> sortedEventList = new ArrayList<Event>();
+		// TODO wenn Genre in Event gespeichert ausprobieren
+		// genre und dar�berliegende Knoten speichern in Liste
+		List<String> parentGenre = new ArrayList<String>();
+		GenreNode currentNode = getGenreNode();
+		if (currentNode == null) {
+			currentNode = new GenreNode("Music", 0, 0, 0);
+		}
+		parentGenre.addAll(getChildGenre(currentNode));
+		parentGenre.add(currentNode.name);
+		
 		for (Event event : sortedList.values()) {
-			sortedEventList.add(event);
+			boolean isInList = false;
+			// nur die speichern, die mit genre in Liste �bereinstimmen
+			for (int i = 0; i < parentGenre.size(); i++) {
+				for (String string : event.eventGenre.split(";")) {
+					if ( string.equalsIgnoreCase(parentGenre.get(i)) || string.equals("")) {
+						if (!isInList) {
+							isInList = true;
+						}
+					}
+				}
+			}
+			if (isInList)
+				sortedEventList.add(event);
 			Log.v("distance", event.currentDistance + "");
 		}
 		return sortFavoriteEvents(sortedEventList);
+	}
+
+	/**
+	 * searches iteratively all child-genres of the current genre and stores
+	 * them in a list
+	 * 
+	 * @param node
+	 * @return list
+	 */
+	private List<String> getChildGenre(GenreNode node) {
+		List<String> genres = new ArrayList<String>();
+		for (int i = 0; i < node.getChildren().size(); i++) {
+			genres.add(node.getChildren().get(i).name);
+			genres.addAll(getChildGenre(node.getChildren().get(i)));
+		}
+		return genres;
+
 	}
 
 	/**
@@ -389,11 +430,6 @@ public class EventController implements JsonConstants {
 		for (int i = 0; i < localEvents.size(); i++) {
 			favoriteLocations.add(localEvents.get(i));
 		}
-		// for (int i = 0; i < favoriteLocations.size(); i++) {
-		// Log.v("sortiert nach distance und favorite",
-		// favoriteLocations.get(i).currentDistance + " "
-		// + favoriteLocations.get(i).locationName);
-		// }
 		return favoriteLocations;
 	}
 
@@ -405,6 +441,14 @@ public class EventController implements JsonConstants {
 	public List<Event> getEventList() {
 		updateFavorites();
 		List<Event> eL = new ArrayList<Event>(sortEventsDistance(eventList));
+		Log.v("getEventList", eL.size()+"");
+		// if the list of events has no items, an empty item is stored into the
+		// list and the boolean that shows that no events are in the list is set
+		// on true
+		if (eL.size() == 0) {
+			eL.add(new Event());
+			setNoEvents(true);
+		}
 		return eL;
 	}
 
@@ -453,11 +497,39 @@ public class EventController implements JsonConstants {
 		currentLocation = location;
 	}
 
-	public String getGenreNode() {
+	/**
+	 * getter for the current genrenode
+	 * 
+	 * @return
+	 */
+	public GenreNode getGenreNode() {
 		return genreNode;
 	}
 
-	public void setGenreNode(String genreNode) {
+	/**
+	 * sets the current genrenode
+	 * 
+	 * @param genreNode
+	 */
+	public void setGenreNode(GenreNode genreNode) {
 		this.genreNode = genreNode;
+	}
+
+	/**
+	 * getter; true if the current genre has no events in the list
+	 * 
+	 * @return
+	 */
+	public boolean isNoEvents() {
+		return noEvents;
+	}
+
+	/**
+	 * sets the boolean on true if the current node has no events in the list
+	 * 
+	 * @param noEvents
+	 */
+	public void setNoEvents(boolean noEvents) {
+		this.noEvents = noEvents;
 	}
 }

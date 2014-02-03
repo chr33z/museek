@@ -291,6 +291,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			star.setTag(groupPosition);
 
 			if (locationName != null) {
+				Log.v("adapter", currentEvent.locationName);
 				if (stringNotEmpty(currentEvent.locationName))
 					locationName
 					.setText(eventList.get(groupPosition).locationName);
@@ -519,4 +520,5 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			return true;
 		}
 	}
+	
 }

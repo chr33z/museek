@@ -1,11 +1,14 @@
 package de.mimuc.pem_music_graph.list;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -207,9 +210,9 @@ public class EventController implements JsonConstants {
 
 				eventName = event.getString(TAG_EVENT_NAME);
 				eventGenre = event.getString(TAG_EVENT_GENRES);
-				eventGenre = (eventGenre.equals("") || eventGenre.equals(""))
-						? "music" : eventGenre;
-				
+				eventGenre = (eventGenre.equals("") || eventGenre.equals("")) ? "music"
+						: eventGenre;
+
 				eventDescription = event.getString(TAG_EVENT_DESCRIPTION);
 				startTime = event.getString(TAG_EVENT_START_TIME);
 				endTime = event.getString(TAG_EVENT_END_TIME);
@@ -339,6 +342,34 @@ public class EventController implements JsonConstants {
 		expandedItem = "";
 	}
 
+	// wenn noch kein datum ausgewählt ist aktuelles datum mit dem datum der events vergleichen
+	// sonst
+	// vom datepicker ausgewähltes datum bekommen, dann listeneinträge
+	// durchgehen und nur die einträge speichern deren datum mit dem
+	// ausgewählten übereinstimmt
+	private List<Event> date(Map<String, Event> map) {
+		Map<String, Event> list = new HashMap<String, Event>();
+		Event currentEvent;
+		Calendar c = Calendar.getInstance();
+		DateTime currentDate = new DateTime(c.getTimeInMillis());
+		for (Map.Entry<String, Event> entry : eventList.entrySet()) {
+			currentEvent = entry.getValue();
+			DateTime date = new DateTime(
+					(Long.parseLong(currentEvent.startTime)));
+//			Log.v("date",
+//					date.getDayOfMonth() + " " + currentDate.getDayOfMonth()
+//							+ " " + date.getMonthOfYear() + " "
+//							+ currentDate.getMonthOfYear());
+			if ((date.getDayOfMonth() == currentDate.getDayOfMonth())
+					&& (date.getMonthOfYear() == currentDate.getMonthOfYear())
+					&& (date.getYear() == currentDate.getYear())) {
+				list.put(entry.getKey(), currentEvent);
+			}
+		}
+		return sortEventsDistance(list);
+
+	}
+
 	/**
 	 * sorts the list items according to their distance to the current location
 	 * and stores this value in the eventlist
@@ -350,7 +381,7 @@ public class EventController implements JsonConstants {
 		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
 		Event currentEvent;
 		float distance;
-		for (Map.Entry<String, Event> entry : eventList.entrySet()) {
+		for (Map.Entry<String, Event> entry : eL.entrySet()) {
 			currentEvent = entry.getValue();
 			Location destination = new Location("destination");
 			destination.setLatitude(Double
@@ -373,13 +404,14 @@ public class EventController implements JsonConstants {
 		}
 		parentGenre.addAll(getChildGenre(currentNode));
 		parentGenre.add(currentNode.name);
-		
+
 		for (Event event : sortedList.values()) {
 			boolean isInList = false;
 			// nur die speichern, die mit genre in Liste ï¿½bereinstimmen
 			for (int i = 0; i < parentGenre.size(); i++) {
 				for (String string : event.eventGenre.split(";")) {
-					if ( string.equalsIgnoreCase(parentGenre.get(i)) || string.equals("")) {
+					if (string.equalsIgnoreCase(parentGenre.get(i))
+							|| string.equals("")) {
 						if (!isInList) {
 							isInList = true;
 						}
@@ -440,8 +472,8 @@ public class EventController implements JsonConstants {
 	 */
 	public List<Event> getEventList() {
 		updateFavorites();
-		List<Event> eL = new ArrayList<Event>(sortEventsDistance(eventList));
-		Log.v("getEventList", eL.size()+"");
+		List<Event> eL = new ArrayList<Event>(date(eventList));
+		Log.v("getEventList", eL.size() + "");
 		// if the list of events has no items, an empty item is stored into the
 		// list and the boolean that shows that no events are in the list is set
 		// on true

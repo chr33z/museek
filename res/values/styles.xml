@@ -5,7 +5,13 @@
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
     <style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        
+        <item name="android:actionBarStyle">@style/CustomActionBar</item>
+    </style>
+    
+     <!-- ActionBar styles -->
+    <style name="CustomActionBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:textColor">@color/graph_node_maroon</item>
+        <item name="android:background">@drawable/actionbar_background</item>
     </style>
 
 </resources>

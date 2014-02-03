@@ -17,4 +17,6 @@ public interface EventControllerListener {
 	public void onShareEvent(Event event);
 	
 	public void scrollEventTop(View listItem);
+	
+	public void attachMap(Event event);
 }

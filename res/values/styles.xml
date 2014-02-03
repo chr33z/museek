@@ -13,5 +13,9 @@
         <item name="android:textColor">@color/graph_node_maroon</item>
         <item name="android:background">@drawable/actionbar_background</item>
     </style>
+    
+    <style name="RadioButtonStyle" parent="@android:style/Widget.CompoundButton.RadioButton">
+    	<item name="android:button">@drawable/btn_radio_holo_light</item>
+	</style>
 
 </resources>

@@ -17,11 +17,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.webkit.WebView.FindListener;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckBox;
 import android.widget.ExpandableListView;
+import android.widget.FrameLayout;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -107,7 +110,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			ImageView direction = (ImageView) convertView
 					.findViewById(R.id.direction);
 			ImageView share = (ImageView) convertView.findViewById(R.id.share);
-			share.setTag(groupPosition);
+			
+			RelativeLayout map = (RelativeLayout) convertView.findViewById(R.id.map_layout);
 
 			// setting the Informations of the EventLocation
 			if (openingHours != null) {
@@ -199,11 +203,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				}
 			});
 
-			direction.setOnClickListener(new OnClickListener() {
+			map.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
-
+					openMap(currentEvent);
 				}
 			});
 
@@ -332,8 +336,8 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					if (currentEvent.isExpanded) {
 						arrow.setImageResource(R.drawable.ic_action_expand);
 						currentEvent.isExpanded = false;
-						listView.collapseGroup(groupPosition);
 						callbackReceiver.onExpandedItemFalse();
+						listView.collapseGroup(groupPosition);
 					} else {
 						for (int i = 0; i < getGroupCount(); i++) {
 							listView.collapseGroup(i);
@@ -341,9 +345,10 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						}
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						currentEvent.isExpanded = true;
-						listView.expandGroup(groupPosition);
 						callbackReceiver.onExpandedItemTrue(currentEvent.locationID);
+						listView.expandGroup(groupPosition);
 						callbackReceiver.scrollEventTop(v);
+						callbackReceiver.attachMap(currentEvent);
 					}
 				}
 			});
@@ -443,10 +448,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return "ca. " + (int) distance + " " + distanceUnity;
 	}
 
-	public void openMap() {
+	public void openMap(Event event) {
+		
 		String uri = String.format(Locale.ENGLISH,
-				"http://maps.google.com/maps?&daddr=%f,%f (%s)", 12f, 2f,
-				"Where the party is at");
+				"http://maps.google.com/maps?&daddr=%f,%f (%s)", 
+				Double.parseDouble(event.locationLatitude), Double.parseDouble(event.locationLongitude),
+				"Where the party is");
 		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
 		intent.setClassName("com.google.android.apps.maps",
 				"com.google.android.maps.MapsActivity");

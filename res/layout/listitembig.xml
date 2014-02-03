@@ -107,6 +107,7 @@
         </LinearLayout>
 
         <RelativeLayout
+            android:id="@+id/map_layout"
             android:layout_width="match_parent"
             android:layout_height="120dp"
             android:layout_below="@+id/details_container" >
@@ -114,8 +115,7 @@
             <FrameLayout
                 android:id="@+id/map_container"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/map_dummy" >
+                android:layout_height="match_parent" >
             </FrameLayout>
 
             <LinearLayout

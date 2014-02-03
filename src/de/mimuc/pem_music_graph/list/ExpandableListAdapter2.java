@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import de.mimuc.pem_music_graph.R;
 import android.content.ActivityNotFoundException;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.CheckBox;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
@@ -85,7 +87,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (convertView == null) {
 			LayoutInflater layoutInflater = (LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			// TODO Abfrage, wie gross der Bildschirm ist
 			convertView = layoutInflater.inflate(R.layout.listitembig, null);
 		}
 		if (currentEvent != null) {
@@ -263,14 +264,12 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (convertView == null) {
 			// sets the layout
 			if (!noEvents) {
-				Log.v("Liste nicht leer", eventList.size() + "");
 				LayoutInflater layoutInflater = (LayoutInflater) context
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				convertView = layoutInflater.inflate(R.layout.headlinelist,
 						null);
 
 			} else {
-				Log.v("Liste leer", eventList.size() + "");
 				LayoutInflater layoutInflater = (LayoutInflater) context
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				convertView = layoutInflater.inflate(R.layout.noevents, null);
@@ -279,15 +278,20 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		// sets the information if there are events in the list or the string if
 		// not
 		if (!noEvents) {
+			convertView.setTag(groupPosition);
+			
 			TextView locationName = (TextView) convertView
 					.findViewById(R.id.eventlocationname);
 			TextView eventName = (TextView) convertView
 					.findViewById(R.id.eventname);
+			TextView eventDate = (TextView) convertView
+					.findViewById(R.id.eventdate);
 			TextView currentDistance = (TextView) convertView
 					.findViewById(R.id.currentdistance);
 			ImageView arrow = (ImageView) convertView.findViewById(R.id.arrow);
 			arrow.setTag(groupPosition);
-			ImageView star = (ImageView) convertView.findViewById(R.id.star);
+			
+			CheckBox star = (CheckBox) convertView.findViewById(R.id.star);
 			star.setTag(groupPosition);
 
 			if (locationName != null) {
@@ -299,15 +303,16 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				if (stringNotEmpty(currentEvent.eventName))
 					eventName.setText(currentEvent.eventName);
 			}
+			if(eventDate != null){
+				eventDate.setText(getHeaderTime(Long.parseLong(currentEvent.startTime)));
+			}
+			
 			if (currentDistance != null) {
 				currentDistance
 				.setText(roundDistance(currentEvent.currentDistance));
 			}
-			if (currentEvent.isFavorite) {
-				star.setImageResource(R.drawable.ic_action_important);
-			} else {
-				star.setImageResource(R.drawable.ic_action_not_important);
-			}
+			
+			star.setChecked(currentEvent.isFavorite);
 
 			if (currentEvent.isExpanded) {
 				listView.expandGroup(groupPosition);
@@ -316,35 +321,33 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				arrow.setImageResource(R.drawable.ic_action_expand);
 			}
 
-			listView.setOnGroupClickListener(new OnGroupClickListener() {
-
+			convertView.setOnClickListener(new OnClickListener() {
+				
 				@Override
-				public boolean onGroupClick(ExpandableListView parent, View v,
-						int groupPosition, long id) {
+				public void onClick(View v) {
+					int groupPosition = (Integer) v.getTag();
 					ImageView arrow = (ImageView) v.findViewById(R.id.arrow);
 					Event currentEvent = eventList.get(groupPosition);
 
 					if (currentEvent.isExpanded) {
 						arrow.setImageResource(R.drawable.ic_action_expand);
 						currentEvent.isExpanded = false;
+						listView.collapseGroup(groupPosition);
 						callbackReceiver.onExpandedItemFalse();
 					} else {
-						// all items are collapsed and the value of the previous
-						// expanded listitem is set on false, after that the
-						// expanded item is set on true
 						for (int i = 0; i < getGroupCount(); i++) {
 							listView.collapseGroup(i);
-							Log.v("collapse", "collapse");
 							eventList.get(i).isExpanded = false;
 						}
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						currentEvent.isExpanded = true;
-						callbackReceiver
-						.onExpandedItemTrue(currentEvent.locationID);
+						listView.expandGroup(groupPosition);
+						callbackReceiver.onExpandedItemTrue(currentEvent.locationID);
+						callbackReceiver.scrollEventTop(v);
 					}
-					return false;
 				}
 			});
+			
 			arrow.setOnClickListener(new OnClickListener() {
 
 				@Override
@@ -381,14 +384,14 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				@Override
 				public void onClick(View v) {
 					int groupPosition = (Integer) v.getTag();
-					ImageView star = (ImageView) v;
+					CheckBox star = (CheckBox) v;
 
 					if (eventList.get(groupPosition).isFavorite) {
-						star.setImageResource(R.drawable.ic_action_not_important);
+						star.setChecked(false);
 						callbackReceiver.onRemoveFavorites(eventList
 								.get(groupPosition).locationID);
 					} else {
-						star.setImageResource(R.drawable.ic_action_important);
+						star.setChecked(true);
 						callbackReceiver.onAddFavorites(eventList
 								.get(groupPosition).locationID);
 					}
@@ -481,9 +484,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		String[] months = context.getResources().getStringArray(R.array.months);
 
 		DateTime date = new DateTime(time);
-		Log.d(TAG, date.getDayOfWeek() + "");
-		Log.d(TAG, date.getDayOfMonth() + "");
-		Log.d(TAG, date.getMonthOfYear() + "");
 
 		String dayWeek = weekdays[date.getDayOfWeek() - 1];
 		String dayMonth = date.getDayOfMonth() + "";
@@ -497,7 +497,43 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				+ minutes;
 
 	}
+	
+	private String getHeaderTime(long startTime){
+		DateTime eventTime = new DateTime(startTime);
+		DateTime now = new DateTime();
+		LocalDate today = now.toLocalDate();
+		LocalDate tomorrow = today.plusDays(1);
+		LocalDate afterTomorrow = today.plusDays(2);
 
+		DateTime startOfToday = today.toDateTimeAtStartOfDay(now.getZone());
+		DateTime startOfTomorrow = tomorrow.toDateTimeAtStartOfDay(now.getZone()).plusHours(8);
+		DateTime startOfDayAfterTomorrow = afterTomorrow.toDateTimeAtStartOfDay(now.getZone()).plusHours(8);
+		
+		String timeString;
+		if(startOfToday.getMillis() <= eventTime.getMillis() &&
+			eventTime.getMillis() < startOfTomorrow.getMillis()){
+			timeString = context.getString(R.string.list_header_date_today) + " - "+
+					context.getString(R.string.list_header_date_from) + " "+
+					((eventTime.getHourOfDay() < 10) ? "0"+eventTime.getHourOfDay() : eventTime.getHourOfDay()) + ":"+
+					((eventTime.getMinuteOfHour() < 10) ? "0"+eventTime.getMinuteOfHour() : eventTime.getMinuteOfHour()) + " "+
+					context.getString(R.string.list_detail_clock);
+		}
+		else if(startOfTomorrow.getMillis() <= eventTime.getMillis() &&
+				eventTime.getMillis() < startOfDayAfterTomorrow.getMillis()){
+			timeString = context.getString(R.string.list_header_date_tomorrow) + " - "+
+					context.getString(R.string.list_header_date_from) + " "+
+					((eventTime.getHourOfDay() < 10) ? "0"+eventTime.getHourOfDay() : eventTime.getHourOfDay()) + ":"+
+					((eventTime.getMinuteOfHour() < 10) ? "0"+eventTime.getMinuteOfHour() : eventTime.getMinuteOfHour()) + " "+
+					context.getString(R.string.list_detail_clock);
+			
+		}
+		else {
+			timeString = formatTime(eventTime.getMillis());
+		}
+		
+		return timeString;
+	}
+	
 	/**
 	 * sets the boolean on true if the eventList has no items
 	 * 

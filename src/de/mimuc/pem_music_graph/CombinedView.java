@@ -411,4 +411,11 @@ public class CombinedView extends FragmentActivity implements
 	    intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "+ event.eventName+" ins "+event.locationName); 
 	    startActivity(Intent.createChooser(intent, "Share with..."));
 	}
+
+	@Override
+	public void scrollEventTop(View listItem) {
+		if(listItem != null){
+			locationListView.smoothScrollToPositionFromTop((Integer)listItem.getTag(), 0);
+		}
+	}
 }

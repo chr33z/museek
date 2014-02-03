@@ -13,6 +13,8 @@
     <color name="graph_node_lila">#cb4f39</color>
     
     <color name="list_head_primary">#8b1c62</color>
-    <color name="list_head_secondary">#656565</color>
+    <color name="list_head_secondary">#353535</color>
+    <color name="list_head_tertiary">#656565</color>
+    <color name="list_background">#e0e0e0</color>
 
 </resources>

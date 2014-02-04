@@ -152,6 +152,7 @@
         android:background="#e0e0e0"
         android:divider="@android:color/transparent"
         android:dividerHeight="0dp"
+        android:layout_marginRight="-25dp"
         android:orientation="vertical" >
         
         <TextView

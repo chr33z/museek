@@ -2,6 +2,7 @@ package de.mimuc.pem_music_graph.list;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -352,13 +353,16 @@ public class EventController implements JsonConstants {
 		float distance;
 		for (Map.Entry<String, Event> entry : eventList.entrySet()) {
 			currentEvent = entry.getValue();
+			
 			Location destination = new Location("destination");
 			destination.setLatitude(Double
 					.parseDouble(currentEvent.locationLatitude));
 			destination.setLongitude(Double
 					.parseDouble(currentEvent.locationLongitude));
+			
 			Location currentLocation = currentEvent.currentLocation;
 			distance = currentLocation.distanceTo(destination);
+			
 			unsortedList.put(distance, currentEvent);
 			unsortedList.get(distance).currentDistance = distance;
 		}

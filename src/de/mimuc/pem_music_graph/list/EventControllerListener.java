@@ -5,6 +5,8 @@ import android.view.View;
 public interface EventControllerListener {
 
 	public void onEventControllerUpdate();
+	
+	public void onEventControllerFinished();
 
 	public void onAddFavorites(String locationID);
 

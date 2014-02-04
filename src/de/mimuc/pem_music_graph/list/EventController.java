@@ -3,6 +3,7 @@ package de.mimuc.pem_music_graph.list;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -342,43 +343,15 @@ public class EventController implements JsonConstants {
 		expandedItem = "";
 	}
 
-	// wenn noch kein datum ausgewählt ist aktuelles datum mit dem datum der events vergleichen
-	// sonst
-	// vom datepicker ausgewähltes datum bekommen, dann listeneinträge
-	// durchgehen und nur die einträge speichern deren datum mit dem
-	// ausgewählten übereinstimmt
-	private List<Event> date(Map<String, Event> map) {
-		Map<String, Event> list = new HashMap<String, Event>();
-		Event currentEvent;
-		Calendar c = Calendar.getInstance();
-		DateTime currentDate = new DateTime(c.getTimeInMillis());
-		for (Map.Entry<String, Event> entry : eventList.entrySet()) {
-			currentEvent = entry.getValue();
-			DateTime date = new DateTime(
-					(Long.parseLong(currentEvent.startTime)));
-//			Log.v("date",
-//					date.getDayOfMonth() + " " + currentDate.getDayOfMonth()
-//							+ " " + date.getMonthOfYear() + " "
-//							+ currentDate.getMonthOfYear());
-			if ((date.getDayOfMonth() == currentDate.getDayOfMonth())
-					&& (date.getMonthOfYear() == currentDate.getMonthOfYear())
-					&& (date.getYear() == currentDate.getYear())) {
-				list.put(entry.getKey(), currentEvent);
-			}
-		}
-		return sortEventsDistance(list);
-
-	}
-
 	/**
-	 * sorts the list items according to their distance to the current location
-	 * and stores this value in the eventlist
+	 * calculates the distance from the currentDistance to the destination and
+	 * stores it in every event
 	 * 
 	 * @param eL
 	 * @return
 	 */
-	private List<Event> sortEventsDistance(Map<String, Event> eL) {
-		Map<Float, Event> unsortedList = new HashMap<Float, Event>();
+	public Map<String, Event> storeDistance(Map<String, Event> eL) {
+		Map<String, Event> map = new HashMap<String, Event>();
 		Event currentEvent;
 		float distance;
 		for (Map.Entry<String, Event> entry : eL.entrySet()) {
@@ -390,56 +363,10 @@ public class EventController implements JsonConstants {
 					.parseDouble(currentEvent.locationLongitude));
 			Location currentLocation = currentEvent.currentLocation;
 			distance = currentLocation.distanceTo(destination);
-			unsortedList.put(distance, currentEvent);
-			unsortedList.get(distance).currentDistance = distance;
+			entry.getValue().currentDistance = distance;
+			map.put(entry.getKey(), currentEvent);
 		}
-		Map<Float, Event> sortedList = new TreeMap<Float, Event>(unsortedList);
-		List<Event> sortedEventList = new ArrayList<Event>();
-		// TODO wenn Genre in Event gespeichert ausprobieren
-		// genre und darï¿½berliegende Knoten speichern in Liste
-		List<String> parentGenre = new ArrayList<String>();
-		GenreNode currentNode = getGenreNode();
-		if (currentNode == null) {
-			currentNode = new GenreNode("Music", 0, 0, 0);
-		}
-		parentGenre.addAll(getChildGenre(currentNode));
-		parentGenre.add(currentNode.name);
-
-		for (Event event : sortedList.values()) {
-			boolean isInList = false;
-			// nur die speichern, die mit genre in Liste ï¿½bereinstimmen
-			for (int i = 0; i < parentGenre.size(); i++) {
-				for (String string : event.eventGenre.split(";")) {
-					if (string.equalsIgnoreCase(parentGenre.get(i))
-							|| string.equals("")) {
-						if (!isInList) {
-							isInList = true;
-						}
-					}
-				}
-			}
-			if (isInList)
-				sortedEventList.add(event);
-			Log.v("distance", event.currentDistance + "");
-		}
-		return sortFavoriteEvents(sortedEventList);
-	}
-
-	/**
-	 * searches iteratively all child-genres of the current genre and stores
-	 * them in a list
-	 * 
-	 * @param node
-	 * @return list
-	 */
-	private List<String> getChildGenre(GenreNode node) {
-		List<String> genres = new ArrayList<String>();
-		for (int i = 0; i < node.getChildren().size(); i++) {
-			genres.add(node.getChildren().get(i).name);
-			genres.addAll(getChildGenre(node.getChildren().get(i)));
-		}
-		return genres;
-
+		return map;
 	}
 
 	/**
@@ -466,13 +393,68 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
+	 * sorts the eventList according to their genre
+	 * @param map
+	 * @return
+	 */
+	public List<Event> sortGenre(Map<String, Event> map) {
+		List<Event> events = new ArrayList<Event>();
+		List<String> parentGenre = new ArrayList<String>();
+		GenreNode currentNode = getGenreNode();
+		if (currentNode == null) {
+			currentNode = new GenreNode("Music", 0, 0, 0);
+		}
+		parentGenre.addAll(getChildGenre(currentNode));
+		parentGenre.add(currentNode.name);
+		Event event;
+		for (Map.Entry<String, Event> entry : map.entrySet()) {
+			event = entry.getValue();
+			boolean isInList = false;
+			// nur die speichern, die mit genre in Liste ï¿½bereinstimmen
+			for (int i = 0; i < parentGenre.size(); i++) {
+				for (String string : event.eventGenre.split(";")) {
+					if (string.equalsIgnoreCase(parentGenre.get(i))
+							|| string.equals("")) {
+						if (!isInList) {
+							isInList = true;
+						}
+					}
+				}
+			}
+			if (isInList)
+				events.add(event);
+		}
+		return events;
+	}
+	
+	/**
+	 * searches iteratively all child-genres of the current genre and stores
+	 * them in a list
+	 * 
+	 * @param node
+	 * @return list
+	 */
+	private List<String> getChildGenre(GenreNode node) {
+		List<String> genres = new ArrayList<String>();
+		for (int i = 0; i < node.getChildren().size(); i++) {
+			genres.add(node.getChildren().get(i).name);
+			genres.addAll(getChildGenre(node.getChildren().get(i)));
+		}
+		return genres;
+
+	}
+
+	/**
 	 * getter for the current list of events
 	 * 
 	 * @return List<EventLocation>
 	 */
 	public List<Event> getEventList() {
 		updateFavorites();
-		List<Event> eL = new ArrayList<Event>(date(eventList));
+		// List<Event> eL = new ArrayList<Event>(date(eventList));
+		storeDistance(eventList);
+		List<Event> eL = sortGenre(eventList);
+		Collections.sort(eL, new DateDistanceComparator());
 		Log.v("getEventList", eL.size() + "");
 		// if the list of events has no items, an empty item is stored into the
 		// list and the boolean that shows that no events are in the list is set

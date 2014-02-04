@@ -6,9 +6,12 @@ import org.json.JSONObject;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.internal.ar;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
@@ -48,8 +51,8 @@ import de.mimuc.pem_music_graph.utils.ApplicationController;
  * 
  */
 public class CombinedView extends FragmentActivity implements
-		ConnectionCallbacks, OnConnectionFailedListener,
-		EventControllerListener, GenreGraphListener {
+ConnectionCallbacks, OnConnectionFailedListener,
+EventControllerListener, GenreGraphListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -67,9 +70,10 @@ public class CombinedView extends FragmentActivity implements
 	private Location mLocation;
 
 	private LocationClient mLocationClient;
-	private FragmentManager fragmentManager;
 
-	private Fragment mapsFragment;
+	private FragmentManager fragmentManager;
+	
+	private Fragment mapFragment;
 
 	// coordinates for moving the view
 	private double dy;
@@ -111,6 +115,8 @@ public class CombinedView extends FragmentActivity implements
 
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		String loadLastEvents = sharedPreferences.getString("events", "");
+		
+		mapFragment = new MapFragment();
 
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
@@ -211,7 +217,7 @@ public class CombinedView extends FragmentActivity implements
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 					((FrameLayout) layout.findViewById(R.id.graph_view_frame))
-							.removeAllViews();
+					.removeAllViews();
 				}
 			}
 
@@ -234,10 +240,7 @@ public class CombinedView extends FragmentActivity implements
 
 			}
 		});
-		//
-		// fragmentManager = getSupportFragmentManager();
-		// fragmentManager.beginTransaction().replace(R.id.map_fragment_container,
-		// new MapTestFragment()).commit();
+
 	}
 
 	@Override
@@ -304,9 +307,9 @@ public class CombinedView extends FragmentActivity implements
 				.create()
 				.setInterval(
 						ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
-				.setExpirationDuration(
-						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
-				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+						.setExpirationDuration(
+								ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
+								.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
 		mLocationClient.requestLocationUpdates(locationRequest,
 				mLocationListener);
@@ -386,11 +389,19 @@ public class CombinedView extends FragmentActivity implements
 	@Override
 	public void onExpandedItemTrue(String locationID) {
 		mEventController.onExpandedItemTrue(locationID);
+		
+		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+		if(fragment != null)
+			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
 	}
-	
+
 	@Override
 	public void onExpandedItemFalse(){
 		mEventController.onExpandedItemFalse();
+		
+		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+		if(fragment != null)
+			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
 	}
 
 	@SuppressLint("NewApi")
@@ -406,9 +417,29 @@ public class CombinedView extends FragmentActivity implements
 	@Override
 	public void onShareEvent(Event event) {
 		Intent intent = new Intent(Intent.ACTION_SEND);
-	    intent.setType("text/plain");
-	    intent.putExtra(Intent.EXTRA_TITLE, event.eventName);
-	    intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "+ event.eventName+" ins "+event.locationName); 
-	    startActivity(Intent.createChooser(intent, "Share with..."));
+		intent.setType("text/plain");
+		intent.putExtra(Intent.EXTRA_TITLE, event.eventName);
+		intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "+ event.eventName+" ins "+event.locationName); 
+		startActivity(Intent.createChooser(intent, "Share with..."));
+	}
+
+	@Override
+	public void scrollEventTop(View listItem) {
+		if(listItem != null){
+			locationListView.smoothScrollToPositionFromTop((Integer)listItem.getTag(), 0);
+		}
+	}
+
+	@Override
+	public void attachMap(Event event) {
+		if(event != null){
+			Bundle args = new Bundle();
+			args.putDouble("lat", Double.parseDouble(event.locationLatitude));
+			args.putDouble("lon", Double.parseDouble(event.locationLongitude));
+			
+			MapFragment mapFragment = new MapFragment();
+			mapFragment.setArguments(args);
+			getSupportFragmentManager().beginTransaction().replace(R.id.map_container, mapFragment).commit();
+		}
 	}
 }

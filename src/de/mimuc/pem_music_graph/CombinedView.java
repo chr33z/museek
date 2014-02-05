@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.joda.time.DateTime;
 import org.json.JSONException;
@@ -41,6 +42,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.DrawerLayout.DrawerListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
@@ -119,6 +121,7 @@ UndoListener {
 	private DatePicker datePicker;
 	private Button okB;
 	private Button resetB;
+	private DrawerLayout drawerLayout;
 
 	// coordinates for moving the view
 	private double dy;
@@ -391,6 +394,7 @@ UndoListener {
 		okB = (Button) this.findViewById(R.id.ok_button);
 		resetB = (Button) this.findViewById(R.id.reset_button);
 		
+		drawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
 		datePicker(null, null);
 
 		((DrawerLayout)findViewById(R.id.drawer_layout)).setDrawerListener(new DrawerListener() {
@@ -540,6 +544,12 @@ UndoListener {
 				return true;
 			}
 		}
+		if (keyCode == KeyEvent.KEYCODE_MENU) {
+			if (!drawerLayout.isDrawerOpen(Gravity.LEFT))
+				drawerLayout.openDrawer(Gravity.LEFT);
+			else
+				drawerLayout.closeDrawer(Gravity.LEFT);
+		}
 		return super.onKeyDown(keyCode, event);
 	}
 
@@ -638,21 +648,23 @@ UndoListener {
 		List<Event> eventList = mEventController.getEventList();
 
 		/*
-		 * iterate over all favorites and all events
-		 * if we find an event that takes place earlyer, save it
-		 * we want to have the events for the location that takes place next
+		 * iterate over all favorites and all events if we find an event that
+		 * takes place earlyer, save it we want to have the events for the
+		 * location that takes place next
 		 */
-		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
+		for (Entry<String, FavoriteLocation> entry : mEventController
+				.getFavorites().entrySet()) {
 			Event nextEvent = null;
 
 			for (Event event : eventList) {
 				String favoriteId = entry.getKey();
 
-				if(event.locationID == favoriteId){
-					if(nextEvent == null){
+				if (event.locationID == favoriteId) {
+					if (nextEvent == null) {
 						nextEvent = event;
 					} else {
-						if(Long.parseLong(nextEvent.startTime) >= Long.parseLong(event.startTime)){
+						if (Long.parseLong(nextEvent.startTime) >= Long
+								.parseLong(event.startTime)) {
 							nextEvent = event;
 						}
 					}

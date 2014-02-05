@@ -110,6 +110,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			ImageView direction = (ImageView) convertView
 					.findViewById(R.id.direction);
 			ImageView share = (ImageView) convertView.findViewById(R.id.share);
+			share.setTag(groupPosition);
 			
 			RelativeLayout map = (RelativeLayout) convertView.findViewById(R.id.map_layout);
 

@@ -109,7 +109,6 @@ UndoListener {
 	 */
 	private LocationListener mLocationListener = new LocationListener() {
 
-		@Override
 		public void onLocationChanged(Location location) {
 			if (location == null)
 				return;

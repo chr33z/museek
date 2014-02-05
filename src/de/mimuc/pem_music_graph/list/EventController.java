@@ -290,7 +290,7 @@ public class EventController implements JsonConstants {
 
 		favorites.put(locationID, fLocation);
 		eventList.get(locationID).isFavorite = true;
-		callbackReceiver.onEventControllerUpdate();
+//		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**
@@ -307,7 +307,7 @@ public class EventController implements JsonConstants {
 				favorites.remove(locationID);
 			}
 		}
-		callbackReceiver.onEventControllerUpdate();
+//		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**

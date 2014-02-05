@@ -73,6 +73,13 @@ public class EventController implements JsonConstants {
 	private boolean noEvents;
 
 	/**
+	 * 
+	 */
+	private DateTime dateTime;
+
+	private boolean showAll = true;
+
+	/**
 	 * initialize event controller constructor if no connection to the internet
 	 * and no json available in sharedpreferences
 	 * 
@@ -307,7 +314,7 @@ public class EventController implements JsonConstants {
 				favorites.remove(locationID);
 			}
 		}
-//		callbackReceiver.onEventControllerUpdate();
+		// callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**
@@ -357,8 +364,7 @@ public class EventController implements JsonConstants {
 		float distance;
 		for (Event event : eL) {
 			Location destination = new Location("destination");
-			destination.setLatitude(Double
-					.parseDouble(event.locationLatitude));
+			destination.setLatitude(Double.parseDouble(event.locationLatitude));
 			destination.setLongitude(Double
 					.parseDouble(event.locationLongitude));
 			Location currentLocation = event.currentLocation;
@@ -408,23 +414,23 @@ public class EventController implements JsonConstants {
 		parentGenre.addAll(getChildGenre(currentNode));
 		parentGenre.add(currentNode.name);
 		Event event;
-			for (int i = 0; i < list.size(); i++) {
-				event = list.get(i);
-				boolean isInList = false;
-				// nur die speichern, die mit genre in Liste �bereinstimmen
-				for (int i1 = 0; i1 < parentGenre.size(); i1++) {
-					for (String string : event.eventGenre.split(";")) {
-						if (string.equalsIgnoreCase(parentGenre.get(i1))
-								|| string.equals("")) {
-							if (!isInList) {
-								isInList = true;
-							}
+		for (int i = 0; i < list.size(); i++) {
+			event = list.get(i);
+			boolean isInList = false;
+			// nur die speichern, die mit genre in Liste �bereinstimmen
+			for (int i1 = 0; i1 < parentGenre.size(); i1++) {
+				for (String string : event.eventGenre.split(";")) {
+					if (string.equalsIgnoreCase(parentGenre.get(i1))
+							|| string.equals("")) {
+						if (!isInList) {
+							isInList = true;
 						}
 					}
 				}
-				if (isInList)
-					events.add(event);
 			}
+			if (isInList)
+				events.add(event);
+		}
 		return events;
 	}
 
@@ -546,6 +552,22 @@ public class EventController implements JsonConstants {
 	 */
 	public void setNoEvents(boolean noEvents) {
 		this.noEvents = noEvents;
+	}
+
+	public DateTime getDateTime() {
+		return dateTime;
+	}
+
+	public void setDateTime(DateTime dateTime) {
+		this.dateTime = dateTime;
+	}
+
+	public boolean isShowAll() {
+		return showAll;
+	}
+
+	public void setShowAll(boolean showAll) {
+		this.showAll = showAll;
 	}
 
 	public Event getEvent(String locationId) {

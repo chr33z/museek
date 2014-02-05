@@ -42,6 +42,7 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import de.mimuc.pem_music_graph.favorite_list.ExpandableFavoriteListAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
@@ -89,7 +90,7 @@ UndoListener {
 
 	private Fragment mapFragment;
 
-	private ListView listFavorites;
+	private ExpandableListView listFavorites;
 
 	private UndoBarController mUndoBarController;
 
@@ -154,7 +155,7 @@ UndoListener {
 
 		mapFragment = new MapFragment();
 
-		listFavorites = (ListView) findViewById(R.id.listFavorites);
+		listFavorites = (ExpandableListView) findViewById(R.id.listFavorites);
 		listFavorites.setEmptyView(findViewById(R.id.favorite_empty));
 
 		// set undo listener to undo favorite remove
@@ -494,6 +495,9 @@ UndoListener {
 		updateFavoriteList();
 	}
 
+	/**
+	 * Update Favorite List and attach next event to favorite
+	 */
 	private void updateFavoriteList(){
 		LinkedList<FavoriteLocation> favLocations = new LinkedList<FavoriteLocation>();
 
@@ -501,7 +505,7 @@ UndoListener {
 			favLocations.add(entry.getValue());
 		}
 
-		listFavorites.setAdapter(new FavoriteAdapter(
+		listFavorites.setAdapter(new ExpandableFavoriteListAdapter(
 				this, favLocations, this));
 	}
 

@@ -165,11 +165,18 @@
 
             <View style="@style/Divider" />
 
+            <ExpandableListView
+                android:id="@+id/listFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:groupIndicator="@null" />
+            
+            <!--
             <ListView
                 android:id="@+id/listFavorites"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" >
-            </ListView>
+            </ListView>            -->
 
             <TextView
                 android:id="@+id/favorite_empty"

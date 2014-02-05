@@ -70,7 +70,7 @@
 
         <RadioGroup
             android:id="@+id/left_drawer"
-            android:layout_width="240dp"
+            android:layout_width="260dp"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="#e0e0e0"
@@ -83,11 +83,10 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="15dp"
                 android:text="@string/changeStart"
                 android:textColor="@color/list_head_primary"
-                android:textSize="20sp"
-                android:typeface="sans" />
+                android:textSize="22sp" />
 
             <View style="@style/Divider" />
 
@@ -96,41 +95,43 @@
                 style="@style/RadioButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="25dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="5dp"
                 android:checked="true"
                 android:onClick="onRadioButtonClicked"
                 android:text="@string/stand"
-                android:textSize="17sp" />
+                android:textSize="20sp" />
 
             <RadioButton
                 android:id="@+id/radio_otherStart"
                 style="@style/RadioButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="25dp"
+                android:layout_marginLeft="20dp"
                 android:onClick="onRadioButtonClicked"
                 android:text="@string/andererStand"
-                android:textSize="17sp" />
+                android:textSize="20sp" />
 
             <EditText
                 android:id="@+id/auto_text"
-                android:layout_width="200dp"
+                android:layout_width="191dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="52dp"
+                android:layout_marginLeft="47dp"
+                android:layout_marginTop="-10dp"
                 android:hint="@string/text_hint"
                 android:imeActionLabel="@string/start"
                 android:imeOptions="actionSend"
                 android:inputType="text"
-                android:textSize="17sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="15dp"
                 android:text="@string/changeDate"
                 android:textColor="@color/list_head_primary"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:typeface="sans" />
 
             <View style="@style/Divider" />
@@ -151,23 +152,28 @@
 
                 <Button
                     android:id="@+id/ok_button"
+                    
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="OK" />
-                
+                    android:text="@string/ButtonOK" 
+                    android:background="?android:selectableItemBackground"/>
+
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:id="@+id/reset_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Reset" />
+                    android:text="@string/ButtonReset" />
             </LinearLayout>
+
+            
         </RadioGroup>
 
         <LinearLayout
             android:id="@+id/right_drawer"
-            android:layout_width="match_parent"
+            android:layout_width="281dp"
             android:layout_height="match_parent"
             android:layout_gravity="end"
             android:background="#e0e0e0"
@@ -179,11 +185,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="15dp"
                 android:gravity="left"
                 android:text="@string/drawer_favorites_title"
                 android:textColor="@color/list_head_primary"
-                android:textSize="24sp" />
+                android:textSize="22sp" />
 
             <View style="@style/Divider" />
 
@@ -211,7 +217,7 @@
                 android:paddingTop="10dp"
                 android:text="@string/favorite_list_empty"
                 android:textColor="@color/list_head_secondary"
-                android:textSize="20sp"
+                android:textSize="17sp"
                 android:visibility="gone" />
         </LinearLayout>
     </android.support.v4.widget.DrawerLayout>

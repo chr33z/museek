@@ -18,8 +18,10 @@
     <string name="changeDate">Datum</string>
     <string name="stand">Aktueller Standort</string>
     <string name="andererStand">Standort wählen:</string>
-    <string name="text_hint">Startpunkt eingeben</string>
+    <string name="text_hint">Adresse eingeben</string>
     <string name="start">Go!</string>
+    <string name ="ButtonOK">OK</string>
+    <string name ="ButtonReset">Heute</string>
     <string name="drawer_favorites_title">Favoriten - nächste Events</string>
     
     <string name="list_header_date_today">Heute</string>
@@ -69,5 +71,7 @@
     
     <string name="favorite_list_empty">Keine Favoriten gespeichert.</string>
     <string name="address_not_found">Keine Addresse gefunden :(</string>
+    <string name="drawer_open">Drawer offen</string>
+    <string name="drawer_close">Drawer geschlossen</string>
 
 </resources>

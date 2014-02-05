@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.content.res.Resources.NotFoundException;
 import android.location.Address;
 import android.location.Geocoder;
@@ -35,6 +36,7 @@ import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -45,6 +47,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
@@ -85,9 +88,9 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
  * 
  */
 public class CombinedView extends FragmentActivity implements
-ConnectionCallbacks, OnConnectionFailedListener,
-EventControllerListener, GenreGraphListener, FavoriteListListener,
-UndoListener {
+		ConnectionCallbacks, OnConnectionFailedListener,
+		EventControllerListener, GenreGraphListener, FavoriteListListener,
+		UndoListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -122,6 +125,7 @@ UndoListener {
 	private Button okB;
 	private Button resetB;
 	private DrawerLayout drawerLayout;
+	private ActionBarDrawerToggle drawerToggle;
 
 	// coordinates for moving the view
 	private double dy;
@@ -202,6 +206,7 @@ UndoListener {
 		return null;
 	}
 
+	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -326,7 +331,7 @@ UndoListener {
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 					((FrameLayout) layout.findViewById(R.id.graph_view_frame))
-					.removeAllViews();
+							.removeAllViews();
 				}
 			}
 
@@ -363,7 +368,7 @@ UndoListener {
 					String addressPattern = editText.getText().toString();
 					Address closestAddress = LocationFromAdress
 							.getLocationFromAddress(addressPattern);
-					if(closestAddress != null){
+					if (closestAddress != null) {
 						double lat = closestAddress.getLatitude();
 						double lon = closestAddress.getLongitude();
 						Location otherLocation = new Location("otherLocation");
@@ -374,7 +379,9 @@ UndoListener {
 						mEventController.useOtherLocation(true);
 						onEventControllerUpdate();
 					} else {
-						Toast.makeText(context, context.getString(R.string.address_not_found), Toast.LENGTH_LONG).show();
+						Toast.makeText(context,
+								context.getString(R.string.address_not_found),
+								Toast.LENGTH_LONG).show();
 						editText.setHint(R.string.text_hint);
 						radioBtnOwnLocation.setChecked(true);
 					}
@@ -389,42 +396,74 @@ UndoListener {
 		editText.setOnFocusChangeListener(new OnFocusChangeListener() {
 			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
-				if(hasFocus){
+				if (hasFocus) {
 					radioBtnOtherAddress.setChecked(true);
 				}
 			}
 		});
 
 		datePicker = (DatePicker) this.findViewById(R.id.datePicker1);
-		
+
 		okB = (Button) this.findViewById(R.id.ok_button);
 		resetB = (Button) this.findViewById(R.id.reset_button);
-		
-		drawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
+
 		datePicker(null, null);
 
-		((DrawerLayout)findViewById(R.id.drawer_layout)).setDrawerListener(new DrawerListener() {
+		drawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
+		drawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
+				R.drawable.ic_drawer, R.string.drawer_open,
+				R.string.drawer_close) {
 
-			@Override
-			public void onDrawerStateChanged(int arg0) {
-			}
-
-			@Override
-			public void onDrawerSlide(View arg0, float arg1) {
-				graphView.onThreadPause();
-			}
-
-			@Override
-			public void onDrawerOpened(View arg0) {
-				graphView.onThreadPause();
-			}
-
-			@Override
-			public void onDrawerClosed(View arg0) {
+			/** Called when a drawer has settled in a completely closed state. */
+			public void onDrawerClosed(View view) {
+				super.onDrawerClosed(view);
+				// getActionBar().setTitle(mTitle);
+				// invalidateOptionsMenu(); // creates call to
+				// onPrepareOptionsMenu()
 				graphView.onThreadResume();
 			}
-		});
+
+			/** Called when a drawer has settled in a completely open state. */
+			public void onDrawerOpened(View drawerView) {
+				super.onDrawerOpened(drawerView);
+				// getActionBar().setTitle(mDrawerTitle);
+				// invalidateOptionsMenu(); // creates call to
+				// onPrepareOptionsMenu()
+				graphView.onThreadPause();
+			}
+		};
+
+		// Set the drawer toggle as the DrawerListener
+		drawerLayout.setDrawerListener(drawerToggle);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setHomeButtonEnabled(true);
 	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
+		// Sync the toggle state after onRestoreInstanceState has occurred.
+		drawerToggle.syncState();
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		drawerToggle.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Pass the event to ActionBarDrawerToggle, if it returns
+		// true, then it has handled the app icon touch event
+		if (drawerToggle.onOptionsItemSelected(item)) {
+			return true;
+		}
+		// Handle your other action bar items...
+
+		return super.onOptionsItemSelected(item);
+	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -490,9 +529,9 @@ UndoListener {
 				.create()
 				.setInterval(
 						ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
-						.setExpirationDuration(
-								ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
-								.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+				.setExpirationDuration(
+						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
+				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
 		mLocationClient.requestLocationUpdates(locationRequest,
 				mLocationListener);
@@ -585,7 +624,7 @@ UndoListener {
 				.findFragmentById(R.id.map);
 		if (fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment)
-			.commit();
+					.commit();
 	}
 
 	@Override
@@ -596,7 +635,7 @@ UndoListener {
 				.findFragmentById(R.id.map);
 		if (fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment)
-			.commit();
+					.commit();
 	}
 
 	@SuppressLint("NewApi")
@@ -615,7 +654,7 @@ UndoListener {
 		intent.setType("text/plain");
 		intent.putExtra(Intent.EXTRA_TITLE, event.eventName);
 		intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "
-				+ event.eventName + " ins " + event.locationName);
+				+ event.eventName + " ins " + event.locationName + ". Lust? (;");
 		startActivity(Intent.createChooser(intent, "Share with..."));
 	}
 
@@ -637,7 +676,7 @@ UndoListener {
 			MapFragment mapFragment = new MapFragment();
 			mapFragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction()
-			.replace(R.id.map_container, mapFragment).commit();
+					.replace(R.id.map_container, mapFragment).commit();
 		}
 	}
 
@@ -692,20 +731,20 @@ UndoListener {
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 
 			new AlertDialog.Builder(this)
-			.setIcon(android.R.drawable.ic_dialog_alert)
-			.setTitle(R.string.dialog_title_delete_favorite)
-			.setPositiveButton(R.string.dialog_positiv_delete_favorite,
-					new DialogInterface.OnClickListener() {
+					.setIcon(android.R.drawable.ic_dialog_alert)
+					.setTitle(R.string.dialog_title_delete_favorite)
+					.setPositiveButton(R.string.dialog_positiv_delete_favorite,
+							new DialogInterface.OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog,
-						int which) {
-					onRemoveFavorites(favoriteId);
-				}
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									onRemoveFavorites(favoriteId);
+								}
 
-			})
-			.setNegativeButton(
-					R.string.dialog_negative_delete_favorite, null)
+							})
+					.setNegativeButton(
+							R.string.dialog_negative_delete_favorite, null)
 					.show();
 
 		} else {
@@ -753,6 +792,7 @@ UndoListener {
 
 	/**
 	 * set the color of the date picker dividers
+	 * 
 	 * @param listener
 	 * @param calendar
 	 * @return
@@ -777,17 +817,19 @@ UndoListener {
 						datePicker.getDayOfMonth() + " "
 								+ (datePicker.getMonth() + 1) + " "
 								+ datePicker.getYear());
-				String dateTime = datePicker.getYear() + "-" + (datePicker.getMonth()+1) + "-" + datePicker.getDayOfMonth() + "T" + "00" + ":" +
-						"00" + ":00.000";
+				String dateTime = datePicker.getYear() + "-"
+						+ (datePicker.getMonth() + 1) + "-"
+						+ datePicker.getDayOfMonth() + "T" + "00" + ":" + "00"
+						+ ":00.000";
 				DateTime time = DateTime.parse(dateTime);
 				mEventController.setDateTime(time);
 				mEventController.useAlternativeTime(true);
 				onEventControllerUpdate();
 			}
 		});
-		
+
 		resetB.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				mEventController.useAlternativeTime(false);
@@ -809,8 +851,7 @@ UndoListener {
 					pf.setAccessible(true);
 					try {
 						pf.set(picker,
-								getResources()
-								.getDrawable(
+								getResources().getDrawable(
 										R.drawable.date_picker_shape));
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();

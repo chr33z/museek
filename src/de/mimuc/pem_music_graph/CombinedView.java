@@ -680,6 +680,12 @@ public class CombinedView extends FragmentActivity implements
 		return null;
 	}
 
+	/**
+	 * set the color of the date picker dividers
+	 * @param listener
+	 * @param calendar
+	 * @return
+	 */
 	public DatePicker datePicker(OnDateSetListener listener, Calendar calendar) {
 		Calendar c;
 		if (calendar == null) {
@@ -700,11 +706,12 @@ public class CombinedView extends FragmentActivity implements
 						datePicker.getDayOfMonth() + " "
 								+ (datePicker.getMonth() + 1) + " "
 								+ datePicker.getYear());
-				String dateTime = datePicker.getYear() + "-" + datePicker.getMonth() + "-" + datePicker.getDayOfMonth() + "T" + "00" + ":" +
+				String dateTime = datePicker.getYear() + "-" + (datePicker.getMonth()+1) + "-" + datePicker.getDayOfMonth() + "T" + "00" + ":" +
 						 "00" + ":00.000";
 				DateTime time = DateTime.parse(dateTime);
 				mEventController.setDateTime(time);
-				Log.v(TAG, time.toString());
+				mEventController.useAlternativeTime(true);
+				onEventControllerUpdate();
 			}
 		});
 
@@ -724,7 +731,7 @@ public class CombinedView extends FragmentActivity implements
 						pf.set(picker,
 								getResources()
 										.getDrawable(
-												R.drawable.np_numberpicker_selection_divider_green));
+												R.drawable.date_picker_shape));
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NotFoundException e) {

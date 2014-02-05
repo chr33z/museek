@@ -1,15 +1,10 @@
 package de.mimuc.pem_music_graph.list;
 
-import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -76,6 +71,10 @@ public class EventController implements JsonConstants {
 	 * 
 	 */
 	private DateTime dateTime;
+	
+	private boolean useAlternativeTime = false;
+	
+	private DateTime alternativeTime = new DateTime();
 
 	private boolean showAll = true;
 
@@ -397,6 +396,21 @@ public class EventController implements JsonConstants {
 		}
 		return favoriteLocations;
 	}
+	
+	/**
+	 * only show events from that date on
+	 * @param eL
+	 * @return
+	 */
+	private List<Event> filterDate(List<Event> eL) {
+		List<Event> events = new ArrayList<Event>();
+		for (int i = 0; i < eL.size(); i++) {
+			DateTime date = new DateTime(Long.parseLong((eL.get(i).startTime))).withTimeAtStartOfDay();
+			if(getDateTime().compareTo(date) == 0)
+				events.add(eL.get(i));
+		}
+		return events;
+	}
 
 	/**
 	 * sorts the eventList according to their genre
@@ -461,6 +475,9 @@ public class EventController implements JsonConstants {
 		// List<Event> eL = new ArrayList<Event>(date(eventList));
 		storeDistance(eventList);
 		List<Event> eL = sortGenre(eventList);
+		if(useAlternativeTime){
+			eL = filterDate(eL);
+		}
 		Collections.sort(eL, new DateDistanceComparator());
 		Log.v("getEventList", eL.size() + "");
 		// if the list of events has no items, an empty item is stored into the
@@ -556,6 +573,10 @@ public class EventController implements JsonConstants {
 
 	public DateTime getDateTime() {
 		return dateTime;
+	}
+	
+	public void useAlternativeTime(boolean useAlternativeTime){
+		this.useAlternativeTime = useAlternativeTime;
 	}
 
 	public void setDateTime(DateTime dateTime) {

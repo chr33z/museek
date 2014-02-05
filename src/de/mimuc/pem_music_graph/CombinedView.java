@@ -84,7 +84,7 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 /**
  * Shows both the music graph and the location list in one place
  * 
- * @author Christopher Gebhardt
+ * @author Christopher Gebhardt, Anna Kienle, Nicole Lipppner, Edina Smajic
  * 
  */
 public class CombinedView extends FragmentActivity implements
@@ -459,9 +459,26 @@ public class CombinedView extends FragmentActivity implements
 		if (drawerToggle.onOptionsItemSelected(item)) {
 			return true;
 		}
-		// Handle your other action bar items...
+			else	
+			{
+				switch (item.getItemId()) {
+			        case R.id.favorites:
+			        	if (!drawerLayout.isDrawerOpen(Gravity.RIGHT))
+							drawerLayout.openDrawer(Gravity.RIGHT);
+						else
+							drawerLayout.closeDrawer(Gravity.RIGHT);
+			        	
+			        	//drawerLayout.openDrawer(findViewById(R.id.right_drawer));
+			            return true;
+			      
+			        default:
+			            return super.onOptionsItemSelected(item);
+			    
+			}
+		}
+		
 
-		return super.onOptionsItemSelected(item);
+		
 	}
 
 

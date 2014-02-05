@@ -3,6 +3,7 @@ package de.mimuc.pem_music_graph.list;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.joda.time.DateTime;
@@ -11,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.location.Location;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 
 import com.android.volley.Response;
@@ -286,18 +288,24 @@ public class EventController implements JsonConstants {
 	 */
 	public void onAddFavorites(String locationID) {
 		FavoriteLocation fLocation = new FavoriteLocation(locationID,
-				getEvent(locationID).locationName,
-				getEvent(locationID).locationLatitude,
-				getEvent(locationID).locationLongitude,
-				getEvent(locationID).locationDescription,
-				getEvent(locationID).addressStreet,
-				getEvent(locationID).addressNumber,
-				getEvent(locationID).addressCity,
-				getEvent(locationID).addressPostcode,
-				getEvent(locationID).locationWebsite);
+			getEvent(locationID).locationName,
+			getEvent(locationID).locationLatitude,
+			getEvent(locationID).locationLongitude,
+			getEvent(locationID).locationDescription,
+			getEvent(locationID).addressStreet,
+			getEvent(locationID).addressNumber,
+			getEvent(locationID).addressCity,
+			getEvent(locationID).addressPostcode,
+			getEvent(locationID).locationWebsite);
+		
 
-		favorites.put(locationID, fLocation);
-		getEvent(locationID).isFavorite = true;
+		if(fLocation != null){
+			favorites.put(locationID, fLocation);
+			
+			for(Event event : getAllEvents(locationID)){
+				event.isFavorite = true;
+			}
+		}
 		callbackReceiver.onEventControllerUpdate();
 	}
 
@@ -310,10 +318,10 @@ public class EventController implements JsonConstants {
 	public void onRemoveFavorites(String locationID) {
 
 		if (favorites.containsKey(locationID)) {
-			if (getEvent(locationID) != null) {
-				getEvent(locationID).isFavorite = false;
-				favorites.remove(locationID);
+			for(Event event : getAllEvents(locationID)){
+				event.isFavorite = false;
 			}
+			favorites.remove(locationID);
 		}
 		callbackReceiver.onEventControllerUpdate();
 	}
@@ -599,6 +607,17 @@ public class EventController implements JsonConstants {
 			}
 		}
 		return null;
+	}
+	
+	public List<Event> getAllEvents(String locationId) {
+		LinkedList<Event> events = new LinkedList<Event>();
+		
+		for (int i = 0; i < eventList.size(); i++) {
+			if (eventList.get(i).locationID.equals(locationId)) {
+				events.add(eventList.get(i));
+			}
+		}
+		return events;
 	}
 
 	public void useOtherLocation(boolean useOtherLocation) {

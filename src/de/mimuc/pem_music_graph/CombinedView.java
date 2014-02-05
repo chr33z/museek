@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.joda.time.DateTime;
 import org.json.JSONException;
@@ -39,8 +40,10 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -119,6 +122,7 @@ public class CombinedView extends FragmentActivity implements
 
 	private DatePicker datePicker;
 	private Button okB;
+	private DrawerLayout drawerLayout;
 
 	// coordinates for moving the view
 	private double dy;
@@ -360,6 +364,7 @@ public class CombinedView extends FragmentActivity implements
 
 		datePicker = (DatePicker) this.findViewById(R.id.datePicker1);
 		okB = (Button) this.findViewById(R.id.ok_button);
+		drawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
 		datePicker(null, null);
 	}
 
@@ -487,6 +492,12 @@ public class CombinedView extends FragmentActivity implements
 				return true;
 			}
 		}
+		if (keyCode == KeyEvent.KEYCODE_MENU) {
+			if (!drawerLayout.isDrawerOpen(Gravity.LEFT))
+				drawerLayout.openDrawer(Gravity.LEFT);
+			else
+				drawerLayout.closeDrawer(Gravity.LEFT);
+		}
 		return super.onKeyDown(keyCode, event);
 	}
 
@@ -585,21 +596,23 @@ public class CombinedView extends FragmentActivity implements
 		List<Event> eventList = mEventController.getEventList();
 
 		/*
-		 * iterate over all favorites and all events
-		 * if we find an event that takes place earlyer, save it
-		 * we want to have the events for the location that takes place next
+		 * iterate over all favorites and all events if we find an event that
+		 * takes place earlyer, save it we want to have the events for the
+		 * location that takes place next
 		 */
-		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
+		for (Entry<String, FavoriteLocation> entry : mEventController
+				.getFavorites().entrySet()) {
 			Event nextEvent = null;
-			
+
 			for (Event event : eventList) {
 				String favoriteId = entry.getKey();
-				
-				if(event.locationID == favoriteId){
-					if(nextEvent == null){
+
+				if (event.locationID == favoriteId) {
+					if (nextEvent == null) {
 						nextEvent = event;
 					} else {
-						if(Long.parseLong(nextEvent.startTime) >= Long.parseLong(event.startTime)){
+						if (Long.parseLong(nextEvent.startTime) >= Long
+								.parseLong(event.startTime)) {
 							nextEvent = event;
 						}
 					}
@@ -700,8 +713,10 @@ public class CombinedView extends FragmentActivity implements
 						datePicker.getDayOfMonth() + " "
 								+ (datePicker.getMonth() + 1) + " "
 								+ datePicker.getYear());
-				String dateTime = datePicker.getYear() + "-" + datePicker.getMonth() + "-" + datePicker.getDayOfMonth() + "T" + "00" + ":" +
-						 "00" + ":00.000";
+				String dateTime = datePicker.getYear() + "-"
+						+ datePicker.getMonth() + "-"
+						+ datePicker.getDayOfMonth() + "T" + "00" + ":" + "00"
+						+ ":00.000";
 				DateTime time = DateTime.parse(dateTime);
 				mEventController.setDateTime(time);
 				Log.v(TAG, time.toString());

@@ -23,6 +23,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;

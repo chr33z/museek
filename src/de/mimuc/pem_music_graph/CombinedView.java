@@ -1,7 +1,6 @@
 package de.mimuc.pem_music_graph;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.json.JSONException;
@@ -10,22 +9,23 @@ import org.json.JSONObject;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
-import com.google.android.gms.internal.ar;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -33,6 +33,7 @@ import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ExpandableListView;
@@ -40,8 +41,10 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
+import android.widget.TextView;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteAdapter;
+import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
+import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
@@ -49,9 +52,10 @@ import de.mimuc.pem_music_graph.list.Event;
 import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
 import de.mimuc.pem_music_graph.list.EventController;
-import de.mimuc.pem_music_graph.list.FavoriteLocation;
 import de.mimuc.pem_music_graph.list.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
+import de.mimuc.pem_music_graph.utils.UndoBarController;
+import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 
 /**
  * Shows both the music graph and the location list in one place
@@ -61,7 +65,8 @@ import de.mimuc.pem_music_graph.utils.ApplicationController;
  */
 public class CombinedView extends FragmentActivity implements
 ConnectionCallbacks, OnConnectionFailedListener,
-EventControllerListener, GenreGraphListener {
+EventControllerListener, GenreGraphListener, FavoriteListListener,
+UndoListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -81,10 +86,12 @@ EventControllerListener, GenreGraphListener {
 	private LocationClient mLocationClient;
 
 	private FragmentManager fragmentManager;
-	
+
 	private Fragment mapFragment;
-	
+
 	private ListView listFavorites;
+
+	private UndoBarController mUndoBarController;
 
 	// coordinates for moving the view
 	private double dy;
@@ -120,23 +127,23 @@ EventControllerListener, GenreGraphListener {
 	};
 
 	public void onRadioButtonClicked(View view) {
-	    // Is the button now checked?
-	    boolean checked = ((RadioButton) view).isChecked();
-	    
-	    // Check which radio button was clicked
-	    switch(view.getId()) {
-	        case R.id.radio_eigenerStand:
-	            if (checked)
-	               
-	            	// Pirates are the best
-	            break;
-	        case R.id.radio_andererStand:
-	            if (checked)
-	                // Ninjas rule
-	            break;
-	    }
+		// Is the button now checked?
+		boolean checked = ((RadioButton) view).isChecked();
+
+		// Check which radio button was clicked
+		switch(view.getId()) {
+		case R.id.radio_eigenerStand:
+			if (checked)
+
+				// Pirates are the best
+				break;
+		case R.id.radio_andererStand:
+			if (checked)
+				// Ninjas rule
+				break;
+		}
 	}
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -144,10 +151,14 @@ EventControllerListener, GenreGraphListener {
 
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		String loadLastEvents = sharedPreferences.getString("events", "");
-		
+
 		mapFragment = new MapFragment();
-		
+
 		listFavorites = (ListView) findViewById(R.id.listFavorites);
+		listFavorites.setEmptyView(findViewById(R.id.favorite_empty));
+
+		// set undo listener to undo favorite remove
+		mUndoBarController = new UndoBarController(findViewById(R.id.undobar), this);
 
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
@@ -196,7 +207,7 @@ EventControllerListener, GenreGraphListener {
 
 			Log.v("Favorites", favorites);
 		}
-		
+
 		updateFavoriteList();
 
 		this.context = this;
@@ -227,7 +238,7 @@ EventControllerListener, GenreGraphListener {
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
-//				graphView.onThreadPause();
+				//				graphView.onThreadPause();
 
 				// if(android.os.Build.VERSION.SDK_INT >
 				// Build.VERSION_CODES.HONEYCOMB){
@@ -245,7 +256,7 @@ EventControllerListener, GenreGraphListener {
 
 			@Override
 			public void onPanelExpanded(View panel) {
-//				graphView.onThreadPause();
+				//				graphView.onThreadPause();
 
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
@@ -256,7 +267,7 @@ EventControllerListener, GenreGraphListener {
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-//				graphView.onThreadResume();
+				//				graphView.onThreadResume();
 
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
@@ -356,7 +367,7 @@ EventControllerListener, GenreGraphListener {
 	@Override
 	public void onEventControllerUpdate() {
 		Log.d(TAG, "Update ListAdapter");
-		
+
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -424,7 +435,7 @@ EventControllerListener, GenreGraphListener {
 	@Override
 	public void onExpandedItemTrue(String locationID) {
 		mEventController.onExpandedItemTrue(locationID);
-		
+
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 		if(fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
@@ -433,7 +444,7 @@ EventControllerListener, GenreGraphListener {
 	@Override
 	public void onExpandedItemFalse(){
 		mEventController.onExpandedItemFalse();
-		
+
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 		if(fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
@@ -471,26 +482,71 @@ EventControllerListener, GenreGraphListener {
 			Bundle args = new Bundle();
 			args.putDouble("lat", Double.parseDouble(event.locationLatitude));
 			args.putDouble("lon", Double.parseDouble(event.locationLongitude));
-			
+
 			MapFragment mapFragment = new MapFragment();
 			mapFragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction().replace(R.id.map_container, mapFragment).commit();
 		}
 	}
-	
-	private void updateFavoriteList(){
-		LinkedList<FavoriteLocation> favLocations = new LinkedList<FavoriteLocation>();
-		
-		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
-			favLocations.add(entry.getValue());
-		}
-		
-		listFavorites.setAdapter(new FavoriteAdapter(
-				this, favLocations));
-	}
 
 	@Override
 	public void onEventControllerFinished() {
 		updateFavoriteList();
+	}
+
+	private void updateFavoriteList(){
+		LinkedList<FavoriteLocation> favLocations = new LinkedList<FavoriteLocation>();
+
+		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
+			favLocations.add(entry.getValue());
+		}
+
+		listFavorites.setAdapter(new FavoriteAdapter(
+				this, favLocations, this));
+	}
+
+	@Override
+	public void onFavoriteDelete(final String favoriteId) {
+		
+		// Dialog for ICE CREAM SANDWICH
+		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			
+			new AlertDialog.Builder(this)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setTitle(R.string.dialog_title_delete_favorite)
+				.setPositiveButton(R.string.dialog_positiv_delete_favorite, new DialogInterface.OnClickListener() {
+	
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						onRemoveFavorites(favoriteId);
+					}
+	
+				})
+				.setNegativeButton(R.string.dialog_negative_delete_favorite, null)
+				.show();
+			
+		} else {
+			Bundle restoreToken = new Bundle();
+			restoreToken.putString("id", favoriteId);
+
+			mUndoBarController.showUndoBar(
+					false,
+					getString(R.string.undobar_sample_message),restoreToken);
+
+			onRemoveFavorites(favoriteId);
+
+			Log.d(TAG, "Removed favorite from list");
+		}
+	}
+
+	@Override
+	public void onUndo(Bundle token) {
+		if(token != null){
+			String favoriteId = token.getString("id");
+			onAddFavorites(favoriteId);
+			updateFavoriteList();
+
+			Log.d(TAG, "Remove favorite from list undo");
+		}
 	}
 }

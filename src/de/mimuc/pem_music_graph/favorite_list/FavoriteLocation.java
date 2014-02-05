@@ -1,4 +1,4 @@
-package de.mimuc.pem_music_graph.list;
+package de.mimuc.pem_music_graph.favorite_list;
 
 public class FavoriteLocation {
 

@@ -5,10 +5,10 @@ import java.util.List;
 import org.joda.time.DateTime;
 
 import de.mimuc.pem_music_graph.R;
-import de.mimuc.pem_music_graph.list.FavoriteLocation;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.webkit.WebView.FindListener;
 import android.widget.BaseAdapter;
@@ -20,11 +20,14 @@ public class FavoriteAdapter extends BaseAdapter {
 	
 	private Context context;
 	
+	private FavoriteListListener listener;
+	
 	private int layout;
 	
-	public FavoriteAdapter(Context context, List<FavoriteLocation> favoriteLocations){
+	public FavoriteAdapter(Context context, List<FavoriteLocation> favoriteLocations, FavoriteListListener listener){
 		this.favoriteLocations = favoriteLocations;
 		this.context = context;
+		this.listener = listener;
 		this.layout = R.layout.favorite_list_item;
 	}
 
@@ -49,15 +52,23 @@ public class FavoriteAdapter extends BaseAdapter {
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		convertView = layoutInflater.inflate(layout, null);
 		
-		FavoriteLocation favoriteLocation = (FavoriteLocation) getItem(position);
+		final FavoriteLocation favoriteLocation = (FavoriteLocation) getItem(position);
 		
 		TextView favoriteTitle = (TextView) convertView.findViewById(R.id.favorite_name);
 		TextView nextEvent = (TextView) convertView.findViewById(R.id.favorite_next_event);
 		TextView nextEventDate = (TextView) convertView.findViewById(R.id.favorite_next_event_date);
 		
 		favoriteTitle.setText(favoriteLocation.locationName);
-		nextEvent.setText("Nächstes Event!");
+		nextEvent.setText("Nï¿½chstes Event!");
 		nextEventDate.setText("Heute - 16:30 Uhr");
+		
+		convertView.findViewById(R.id.favorite_delete).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				listener.onFavoriteDelete(favoriteLocation.locationID);
+			}
+		});
 		
 		return convertView;
 	}

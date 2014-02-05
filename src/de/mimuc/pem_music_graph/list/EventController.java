@@ -33,7 +33,7 @@ public class EventController implements JsonConstants {
 	/**
 	 * Save events in locationId-Event pairs
 	 */
-	public Map<String, Event> eventList;
+	public List<Event> eventList;
 
 	/**
 	 * The activity that handles all callbacks (parent Activity)
@@ -78,7 +78,7 @@ public class EventController implements JsonConstants {
 	 */
 	public EventController(EventControllerListener callbackReceiver) {
 		this.callbackReceiver = callbackReceiver;
-		this.eventList = new HashMap<String, Event>();
+		this.eventList = new ArrayList<Event>();
 		this.favorites = new HashMap<String, FavoriteLocation>();
 	}
 
@@ -93,7 +93,7 @@ public class EventController implements JsonConstants {
 	public EventController(EventControllerListener callbackReceiver,
 			JSONObject json) {
 		this.callbackReceiver = callbackReceiver;
-		this.eventList = new HashMap<String, Event>();
+		this.eventList = new ArrayList<Event>();
 		this.favorites = new HashMap<String, FavoriteLocation>();
 		readJson(json);
 	}
@@ -108,7 +108,7 @@ public class EventController implements JsonConstants {
 	public EventController(EventControllerListener callbackReceiver,
 			JSONObject json, Location location) {
 		this.callbackReceiver = callbackReceiver;
-		this.eventList = new HashMap<String, Event>();
+		this.eventList = new ArrayList<Event>();
 		this.currentLocation = location;
 		this.favorites = new HashMap<String, FavoriteLocation>();
 		readJson(json);
@@ -238,8 +238,8 @@ public class EventController implements JsonConstants {
 				// and sets isFavorite on true if it is
 				for (Map.Entry<String, FavoriteLocation> entry : favorites
 						.entrySet()) {
-					if (eventList.get(entry.getKey()) != null) {
-						if (eventList.get(entry.getKey()).equals(locationID)) {
+					if (getEvent(entry.getKey()) != null) {
+						if (getEvent(entry.getKey()).equals(locationID)) {
 							isFavorite = true;
 						}
 					}
@@ -260,7 +260,7 @@ public class EventController implements JsonConstants {
 						currentLocation, currentDistance, isFavorite,
 						isExpanded);
 
-				eventList.put(locationID, newEvent);
+				eventList.add(newEvent);
 			}
 			Log.v(TAG, "eventListSizeController " + eventList.size() + "");
 		} catch (JSONException error) {
@@ -276,18 +276,18 @@ public class EventController implements JsonConstants {
 	 */
 	public void onAddFavorites(String locationID) {
 		FavoriteLocation fLocation = new FavoriteLocation(locationID,
-				eventList.get(locationID).locationName,
-				eventList.get(locationID).locationLatitude,
-				eventList.get(locationID).locationLongitude,
-				eventList.get(locationID).locationDescription,
-				eventList.get(locationID).addressStreet,
-				eventList.get(locationID).addressNumber,
-				eventList.get(locationID).addressCity,
-				eventList.get(locationID).addressPostcode,
-				eventList.get(locationID).locationWebsite);
+				getEvent(locationID).locationName,
+				getEvent(locationID).locationLatitude,
+				getEvent(locationID).locationLongitude,
+				getEvent(locationID).locationDescription,
+				getEvent(locationID).addressStreet,
+				getEvent(locationID).addressNumber,
+				getEvent(locationID).addressCity,
+				getEvent(locationID).addressPostcode,
+				getEvent(locationID).locationWebsite);
 
 		favorites.put(locationID, fLocation);
-		eventList.get(locationID).isFavorite = true;
+		getEvent(locationID).isFavorite = true;
 		callbackReceiver.onEventControllerUpdate();
 	}
 
@@ -300,8 +300,8 @@ public class EventController implements JsonConstants {
 	public void onRemoveFavorites(String locationID) {
 
 		if (favorites.containsKey(locationID)) {
-			if (eventList.get(locationID) != null) {
-				eventList.get(locationID).isFavorite = false;
+			if (getEvent(locationID) != null) {
+				getEvent(locationID).isFavorite = false;
 				favorites.remove(locationID);
 			}
 		}
@@ -314,8 +314,8 @@ public class EventController implements JsonConstants {
 	public void updateFavorites() {
 		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
 			Log.v("updateFavorites", entry.toString());
-			if (eventList.get(entry.getKey()) != null) {
-				eventList.get(entry.getKey()).isFavorite = true;
+			if (getEvent(entry.getKey()) != null) {
+				getEvent(entry.getKey()).isFavorite = true;
 			}
 		}
 	}
@@ -329,9 +329,9 @@ public class EventController implements JsonConstants {
 	public void onExpandedItemTrue(String locationID) {
 		Log.v("expandedItemsnull", expandedItem + "");
 		if (!(expandedItem.equals("")))
-			eventList.get(expandedItem).isExpanded = false;
+			getEvent(expandedItem).isExpanded = false;
 		expandedItem = locationID;
-		eventList.get(expandedItem).isExpanded = true;
+		getEvent(expandedItem).isExpanded = true;
 	}
 
 	/**
@@ -339,7 +339,7 @@ public class EventController implements JsonConstants {
 	 * string as expanded item
 	 */
 	public void onExpandedItemFalse() {
-		eventList.get(expandedItem).isExpanded = false;
+		getEvent(expandedItem).isExpanded = false;
 		expandedItem = "";
 	}
 
@@ -350,23 +350,21 @@ public class EventController implements JsonConstants {
 	 * @param eL
 	 * @return
 	 */
-	public Map<String, Event> storeDistance(Map<String, Event> eL) {
-		Map<String, Event> map = new HashMap<String, Event>();
-		Event currentEvent;
+	public List<Event> storeDistance(List<Event> eL) {
+		List<Event> list = new ArrayList<Event>();
 		float distance;
-		for (Map.Entry<String, Event> entry : eL.entrySet()) {
-			currentEvent = entry.getValue();
+		for (Event event : eL) {
 			Location destination = new Location("destination");
 			destination.setLatitude(Double
-					.parseDouble(currentEvent.locationLatitude));
+					.parseDouble(event.locationLatitude));
 			destination.setLongitude(Double
-					.parseDouble(currentEvent.locationLongitude));
-			Location currentLocation = currentEvent.currentLocation;
+					.parseDouble(event.locationLongitude));
+			Location currentLocation = event.currentLocation;
 			distance = currentLocation.distanceTo(destination);
-			entry.getValue().currentDistance = distance;
-			map.put(entry.getKey(), currentEvent);
+			event.currentDistance = distance;
+			list.add(event);
 		}
-		return map;
+		return list;
 	}
 
 	/**
@@ -394,10 +392,11 @@ public class EventController implements JsonConstants {
 
 	/**
 	 * sorts the eventList according to their genre
-	 * @param map
+	 * 
+	 * @param list
 	 * @return
 	 */
-	public List<Event> sortGenre(Map<String, Event> map) {
+	public List<Event> sortGenre(List<Event> list) {
 		List<Event> events = new ArrayList<Event>();
 		List<String> parentGenre = new ArrayList<String>();
 		GenreNode currentNode = getGenreNode();
@@ -407,26 +406,26 @@ public class EventController implements JsonConstants {
 		parentGenre.addAll(getChildGenre(currentNode));
 		parentGenre.add(currentNode.name);
 		Event event;
-		for (Map.Entry<String, Event> entry : map.entrySet()) {
-			event = entry.getValue();
-			boolean isInList = false;
-			// nur die speichern, die mit genre in Liste �bereinstimmen
-			for (int i = 0; i < parentGenre.size(); i++) {
-				for (String string : event.eventGenre.split(";")) {
-					if (string.equalsIgnoreCase(parentGenre.get(i))
-							|| string.equals("")) {
-						if (!isInList) {
-							isInList = true;
+			for (int i = 0; i < list.size(); i++) {
+				event = list.get(i);
+				boolean isInList = false;
+				// nur die speichern, die mit genre in Liste �bereinstimmen
+				for (int i1 = 0; i1 < parentGenre.size(); i1++) {
+					for (String string : event.eventGenre.split(";")) {
+						if (string.equalsIgnoreCase(parentGenre.get(i1))
+								|| string.equals("")) {
+							if (!isInList) {
+								isInList = true;
+							}
 						}
 					}
 				}
+				if (isInList)
+					events.add(event);
 			}
-			if (isInList)
-				events.add(event);
-		}
 		return events;
 	}
-	
+
 	/**
 	 * searches iteratively all child-genres of the current genre and stores
 	 * them in a list
@@ -545,5 +544,15 @@ public class EventController implements JsonConstants {
 	 */
 	public void setNoEvents(boolean noEvents) {
 		this.noEvents = noEvents;
+	}
+
+	public Event getEvent(String locationId) {
+		for (int i = 0; i < eventList.size(); i++) {
+			if (eventList.get(i).locationID.equals(locationId)) {
+				return eventList.get(i);
+			} else
+				return null;
+		}
+		return null;
 	}
 }

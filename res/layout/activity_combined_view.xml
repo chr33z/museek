@@ -1,63 +1,218 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".CombinedView" >
+    android:layout_height="match_parent" >
 
-    <com.sothree.slidinguppanel.SlidingUpPanelLayout
-        android:id="@+id/sliding_layout"
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="bottom" >
-
-        <FrameLayout
-            android:id="@+id/graph_view_frame"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        android:layout_height="match_parent" >
 
         <RelativeLayout
-            android:id="@+id/list_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#eee"
-            android:orientation="vertical" >
+            android:layout_height="match_parent" >
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_above="@+id/list_handle"
-                android:scaleType="fitXY"
-                android:src="@drawable/shadow_layer" />
-
-            <RelativeLayout
-                android:id="@+id/list_handle"
-                android:layout_width="match_parent"
-                android:layout_height="34dp"
-                android:background="@drawable/list_handle_background" >
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="15dp"
-                    android:layout_centerVertical="true"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/icon_listview_handle" />
-            </RelativeLayout>
-
-            <ExpandableListView
-                android:id="@+id/list_view"
+            <com.sothree.slidinguppanel.SlidingUpPanelLayout
+                android:id="@+id/sliding_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/list_handle"
-                android:groupIndicator="@null"
-                android:background="#e0e0e0" />
+                android:layout_gravity="bottom" >
+
+                <FrameLayout
+                    android:id="@+id/graph_view_frame"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <RelativeLayout
+                    android:id="@+id/list_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#eee"
+                    android:orientation="vertical" >
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="55dp"
+                        android:layout_above="@+id/list_handle"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/shadow_layer" />
+
+                    <RelativeLayout
+                        android:id="@+id/list_handle"
+                        android:layout_width="match_parent"
+                        android:layout_height="34dp"
+                        android:background="@drawable/list_handle_background" >
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="15dp"
+                            android:layout_centerVertical="true"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/icon_listview_handle" />
+                    </RelativeLayout>
+
+                    <ExpandableListView
+                        android:id="@+id/list_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@+id/list_handle"
+                        android:groupIndicator="@null" />
+                </RelativeLayout>
+            </com.sothree.slidinguppanel.SlidingUpPanelLayout>
+
+            <FrameLayout
+                android:id="@+id/graph_view_frame"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_alignParentBottom="true"
+                android:scaleType="fitXY"
+                android:src="@drawable/shadow_layer" />
         </RelativeLayout>
-    </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_alignParentBottom="true"
-        android:scaleType="fitXY"
-        android:src="@drawable/shadow_layer" />
+        <RadioGroup
+            android:id="@+id/left_drawer"
+            android:layout_width="240dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="#e0e0e0"
+            android:choiceMode="singleChoice"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="0dp"
+            android:orientation="vertical" >
 
-</RelativeLayout>
+            <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/changeStart"
+            android:textColor="@color/list_head_primary"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"
+            android:typeface="sans" 
+            android:textSize="18sp" />
+        
+        <View style="@style/Divider"/>
+
+        <RadioButton
+            android:id="@+id/radio_ownStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onRadioButtonClicked"
+            android:checked="true"
+            android:text="@string/stand"
+            android:textSize="16sp"
+            android:layout_marginLeft="25dp"
+            style="@style/RadioButtonStyle" />
+            
+
+        <RadioButton
+            android:id="@+id/radio_otherStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onRadioButtonClicked"
+            android:text="@string/andererStand"
+            android:textSize="16sp" 
+            android:layout_marginLeft="25dp"
+            style="@style/RadioButtonStyle"
+            />
+
+        <EditText
+            android:id="@+id/auto_text"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="52dp"
+            android:hint="@string/text_hint"
+            android:imeActionLabel="@string/start"
+            android:imeOptions="actionSend" 
+            android:inputType="text"
+            android:textSize="16sp" />
+        
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/changeDate"
+            android:textColor="@color/list_head_primary"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"
+            android:typeface="sans" 
+            android:textSize="18sp" />
+        
+        <View style="@style/Divider"/>
+        
+        <DatePicker
+        android:id="@+id/datePicker1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="2dp"
+        android:calendarViewShown="false"
+        android:startYear="2014"
+        android:endYear="2015"
+        android:spinnersShown="true"
+        
+       />
+        
+    </RadioGroup>
+
+        <LinearLayout
+            android:id="@+id/right_drawer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:layout_marginRight="-25dp"
+            android:background="#e0e0e0"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="0dp"
+            android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="20dp"
+                android:gravity="right"
+                android:text="@string/drawer_favorites_title"
+                android:textColor="@color/list_head_primary"
+                android:textSize="25sp" />
+
+            <View style="@style/Divider" />
+
+            <ExpandableListView
+                android:id="@+id/listFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:groupIndicator="@null" />
+            
+            <!--
+            <ListView
+                android:id="@+id/listFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+            </ListView>            -->
+
+            <TextView
+                android:id="@+id/favorite_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="10dp"
+                android:text="@string/favorite_list_empty"
+                android:textColor="@color/list_head_secondary"
+                android:textSize="20sp"
+                android:visibility="gone" />
+        </LinearLayout>
+    </android.support.v4.widget.DrawerLayout>
+
+    <LinearLayout
+        android:id="@+id/undobar"
+        style="@style/UndoBar" >
+
+        <TextView
+            android:id="@+id/undobar_message"
+            style="@style/UndoBarMessage" />
+
+        <Button
+            android:id="@+id/undobar_button"
+            style="@style/UndoBarButton" />
+    </LinearLayout>
+
+</FrameLayout>

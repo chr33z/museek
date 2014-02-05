@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -22,6 +23,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
@@ -288,7 +290,7 @@ public class EventController implements JsonConstants {
 
 		favorites.put(locationID, fLocation);
 		eventList.get(locationID).isFavorite = true;
-		callbackReceiver.onEventControllerUpdate();
+//		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**
@@ -305,7 +307,7 @@ public class EventController implements JsonConstants {
 				favorites.remove(locationID);
 			}
 		}
-		callbackReceiver.onEventControllerUpdate();
+//		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**
@@ -356,11 +358,13 @@ public class EventController implements JsonConstants {
 		float distance;
 		for (Map.Entry<String, Event> entry : eL.entrySet()) {
 			currentEvent = entry.getValue();
+			
 			Location destination = new Location("destination");
 			destination.setLatitude(Double
 					.parseDouble(currentEvent.locationLatitude));
 			destination.setLongitude(Double
 					.parseDouble(currentEvent.locationLongitude));
+			
 			Location currentLocation = currentEvent.currentLocation;
 			distance = currentLocation.distanceTo(destination);
 			entry.getValue().currentDistance = distance;

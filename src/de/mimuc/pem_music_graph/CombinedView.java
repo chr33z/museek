@@ -17,7 +17,6 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.maps.GeoPoint;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
@@ -34,18 +33,19 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.DrawerLayout.DrawerListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
 
 import android.widget.Button;
@@ -54,17 +54,15 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import de.mimuc.pem_music_graph.favorite_list.ExpandableFavoriteListAdapter;
-import de.mimuc.pem_music_graph.favorite_list.FavoriteAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import android.widget.TextView.OnEditorActionListener;
-import android.widget.Toast;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
@@ -74,6 +72,7 @@ import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
 import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.list.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
+import de.mimuc.pem_music_graph.utils.LocationFromAdress;
 import de.mimuc.pem_music_graph.utils.UndoBarController;
 import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 
@@ -84,9 +83,9 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
  * 
  */
 public class CombinedView extends FragmentActivity implements
-		ConnectionCallbacks, OnConnectionFailedListener,
-		EventControllerListener, GenreGraphListener, FavoriteListListener,
-		UndoListener {
+ConnectionCallbacks, OnConnectionFailedListener,
+EventControllerListener, GenreGraphListener, FavoriteListListener,
+UndoListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -119,6 +118,7 @@ public class CombinedView extends FragmentActivity implements
 
 	private DatePicker datePicker;
 	private Button okB;
+	private Button resetB;
 
 	// coordinates for moving the view
 	private double dy;
@@ -317,7 +317,7 @@ public class CombinedView extends FragmentActivity implements
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 					((FrameLayout) layout.findViewById(R.id.graph_view_frame))
-							.removeAllViews();
+					.removeAllViews();
 				}
 			}
 
@@ -342,6 +342,8 @@ public class CombinedView extends FragmentActivity implements
 		});
 
 		// get result from edit text
+		final RadioButton radioBtnOtherAddress = (RadioButton) findViewById(R.id.radio_otherStart);
+		final RadioButton radioBtnOwnLocation = (RadioButton) findViewById(R.id.radio_ownStart);
 		final EditText editText = (EditText) findViewById(R.id.auto_text);
 		editText.setOnEditorActionListener(new OnEditorActionListener() {
 			@Override
@@ -349,18 +351,69 @@ public class CombinedView extends FragmentActivity implements
 					KeyEvent event) {
 				boolean handled = false;
 				if (actionId == EditorInfo.IME_ACTION_SEND) {
-					handled = true;
-					otherAdress = editText.getText().toString();
+					String addressPattern = editText.getText().toString();
+					Address closestAddress = LocationFromAdress
+							.getLocationFromAddress(addressPattern);
+					if(closestAddress != null){
+						double lat = closestAddress.getLatitude();
+						double lon = closestAddress.getLongitude();
+						Location otherLocation = new Location("otherLocation");
+						otherLocation.setLatitude(lat);
+						otherLocation.setLongitude(lon);
 
+						mEventController.setLocation(otherLocation);
+						mEventController.useOtherLocation(true);
+						onEventControllerUpdate();
+					} else {
+						Toast.makeText(context, context.getString(R.string.address_not_found), Toast.LENGTH_LONG).show();
+						editText.setHint(R.string.text_hint);
+						radioBtnOwnLocation.setChecked(true);
+					}
+					handled = true;
 				}
+
 				return handled;
 			}
 
 		});
 
+		editText.setOnFocusChangeListener(new OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if(hasFocus){
+					radioBtnOtherAddress.setChecked(true);
+				}
+			}
+		});
+
 		datePicker = (DatePicker) this.findViewById(R.id.datePicker1);
+		
 		okB = (Button) this.findViewById(R.id.ok_button);
+		resetB = (Button) this.findViewById(R.id.reset_button);
+		
 		datePicker(null, null);
+
+		((DrawerLayout)findViewById(R.id.drawer_layout)).setDrawerListener(new DrawerListener() {
+
+			@Override
+			public void onDrawerStateChanged(int arg0) {
+			}
+
+			@Override
+			public void onDrawerSlide(View arg0, float arg1) {
+				graphView.onThreadPause();
+			}
+
+			@Override
+			public void onDrawerOpened(View arg0) {
+				graphView.onThreadPause();
+			}
+
+			@Override
+			public void onDrawerClosed(View arg0) {
+				graphView.onThreadResume();
+			}
+		});
 	}
 
 	@Override
@@ -427,9 +480,9 @@ public class CombinedView extends FragmentActivity implements
 				.create()
 				.setInterval(
 						ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
-				.setExpirationDuration(
-						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
-				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+						.setExpirationDuration(
+								ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
+								.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
 		mLocationClient.requestLocationUpdates(locationRequest,
 				mLocationListener);
@@ -516,7 +569,7 @@ public class CombinedView extends FragmentActivity implements
 				.findFragmentById(R.id.map);
 		if (fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment)
-					.commit();
+			.commit();
 	}
 
 	@Override
@@ -527,7 +580,7 @@ public class CombinedView extends FragmentActivity implements
 				.findFragmentById(R.id.map);
 		if (fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment)
-					.commit();
+			.commit();
 	}
 
 	@SuppressLint("NewApi")
@@ -568,7 +621,7 @@ public class CombinedView extends FragmentActivity implements
 			MapFragment mapFragment = new MapFragment();
 			mapFragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.map_container, mapFragment).commit();
+			.replace(R.id.map_container, mapFragment).commit();
 		}
 	}
 
@@ -591,10 +644,10 @@ public class CombinedView extends FragmentActivity implements
 		 */
 		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
 			Event nextEvent = null;
-			
+
 			for (Event event : eventList) {
 				String favoriteId = entry.getKey();
-				
+
 				if(event.locationID == favoriteId){
 					if(nextEvent == null){
 						nextEvent = event;
@@ -621,20 +674,20 @@ public class CombinedView extends FragmentActivity implements
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 
 			new AlertDialog.Builder(this)
-					.setIcon(android.R.drawable.ic_dialog_alert)
-					.setTitle(R.string.dialog_title_delete_favorite)
-					.setPositiveButton(R.string.dialog_positiv_delete_favorite,
-							new DialogInterface.OnClickListener() {
+			.setIcon(android.R.drawable.ic_dialog_alert)
+			.setTitle(R.string.dialog_title_delete_favorite)
+			.setPositiveButton(R.string.dialog_positiv_delete_favorite,
+					new DialogInterface.OnClickListener() {
 
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									onRemoveFavorites(favoriteId);
-								}
+				@Override
+				public void onClick(DialogInterface dialog,
+						int which) {
+					onRemoveFavorites(favoriteId);
+				}
 
-							})
-					.setNegativeButton(
-							R.string.dialog_negative_delete_favorite, null)
+			})
+			.setNegativeButton(
+					R.string.dialog_negative_delete_favorite, null)
 					.show();
 
 		} else {
@@ -707,10 +760,19 @@ public class CombinedView extends FragmentActivity implements
 								+ (datePicker.getMonth() + 1) + " "
 								+ datePicker.getYear());
 				String dateTime = datePicker.getYear() + "-" + (datePicker.getMonth()+1) + "-" + datePicker.getDayOfMonth() + "T" + "00" + ":" +
-						 "00" + ":00.000";
+						"00" + ":00.000";
 				DateTime time = DateTime.parse(dateTime);
 				mEventController.setDateTime(time);
 				mEventController.useAlternativeTime(true);
+				onEventControllerUpdate();
+			}
+		});
+		
+		resetB.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mEventController.useAlternativeTime(false);
 				onEventControllerUpdate();
 			}
 		});
@@ -719,8 +781,8 @@ public class CombinedView extends FragmentActivity implements
 		LinearLayout llSecond = (LinearLayout) llFirst.getChildAt(0);
 		for (int i = 0; i < llSecond.getChildCount(); i++) {
 			NumberPicker picker = (NumberPicker) llSecond.getChildAt(i); // Numberpickers
-																			// in
-																			// llSecond
+			// in
+			// llSecond
 			// reflection - picker.setDividerDrawable(divider); << didn't seem
 			// to work.
 			Field[] pickerFields = NumberPicker.class.getDeclaredFields();
@@ -730,8 +792,8 @@ public class CombinedView extends FragmentActivity implements
 					try {
 						pf.set(picker,
 								getResources()
-										.getDrawable(
-												R.drawable.date_picker_shape));
+								.getDrawable(
+										R.drawable.date_picker_shape));
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NotFoundException e) {

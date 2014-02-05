@@ -68,5 +68,6 @@
     <string name="dialog_negative_delete_favorite">abbrechen</string>
     
     <string name="favorite_list_empty">Keine Favoriten gespeichert.</string>
+    <string name="address_not_found">Keine Addresse gefunden :(</string>
 
 </resources>

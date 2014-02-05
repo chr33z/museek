@@ -41,6 +41,8 @@ public class EventController implements JsonConstants {
 	 * The last known location
 	 */
 	private Location currentLocation;
+	
+	private boolean useOtherLocation = false;
 
 	/**
 	 * save last event list in shared preferences
@@ -359,19 +361,18 @@ public class EventController implements JsonConstants {
 	 * @return
 	 */
 	public List<Event> storeDistance(List<Event> eL) {
-		List<Event> list = new ArrayList<Event>();
 		float distance;
 		for (Event event : eL) {
+			
+			// event location
 			Location destination = new Location("destination");
 			destination.setLatitude(Double.parseDouble(event.locationLatitude));
-			destination.setLongitude(Double
-					.parseDouble(event.locationLongitude));
-			Location currentLocation = event.currentLocation;
+			destination.setLongitude(Double.parseDouble(event.locationLongitude));
+			
 			distance = currentLocation.distanceTo(destination);
 			event.currentDistance = distance;
-			list.add(event);
 		}
-		return list;
+		return eL;
 	}
 
 	/**
@@ -598,5 +599,9 @@ public class EventController implements JsonConstants {
 			}
 		}
 		return null;
+	}
+
+	public void useOtherLocation(boolean useOtherLocation) {
+		this.useOtherLocation = useOtherLocation;
 	}
 }

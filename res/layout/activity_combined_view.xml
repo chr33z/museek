@@ -80,82 +80,90 @@
             android:orientation="vertical" >
 
             <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/changeStart"
-            android:textColor="@color/list_head_primary"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:typeface="sans" 
-            android:textSize="20sp" />
-        
-        <View style="@style/Divider"/>
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/changeStart"
+                android:textColor="@color/list_head_primary"
+                android:textSize="20sp"
+                android:typeface="sans" />
 
-        <RadioButton
-            android:id="@+id/radio_ownStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClicked"
-            android:checked="true"
-            android:text="@string/stand"
-            android:textSize="17sp"
-            android:layout_marginLeft="25dp"
-            style="@style/RadioButtonStyle" />
-            
+            <View style="@style/Divider" />
 
-        <RadioButton
-            android:id="@+id/radio_otherStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClicked"
-            android:text="@string/andererStand"
-            android:textSize="17sp" 
-            android:layout_marginLeft="25dp"
-            style="@style/RadioButtonStyle"
-            />
+            <RadioButton
+                android:id="@+id/radio_ownStart"
+                style="@style/RadioButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:checked="true"
+                android:onClick="onRadioButtonClicked"
+                android:text="@string/stand"
+                android:textSize="17sp" />
 
-        <EditText
-            android:id="@+id/auto_text"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="52dp"
-            android:hint="@string/text_hint"
-            android:imeActionLabel="@string/start"
-            android:imeOptions="actionSend" 
-            android:inputType="text"
-            android:textSize="17sp" />
-        
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/changeDate"
-            android:textColor="@color/list_head_primary"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:typeface="sans" 
-            android:textSize="20sp" />
-        
-        <View style="@style/Divider"/>
-        
-        <DatePicker
-        android:id="@+id/datePicker1"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="2dp"
-        android:calendarViewShown="false"
-        android:startYear="2014"
-        android:endYear="2015"
-        android:spinnersShown="true"
-        
-        />
-        
-          <Button
-        android:id="@+id/ok_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OK" />
-        
-    </RadioGroup>
+            <RadioButton
+                android:id="@+id/radio_otherStart"
+                style="@style/RadioButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:onClick="onRadioButtonClicked"
+                android:text="@string/andererStand"
+                android:textSize="17sp" />
+
+            <EditText
+                android:id="@+id/auto_text"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="52dp"
+                android:hint="@string/text_hint"
+                android:imeActionLabel="@string/start"
+                android:imeOptions="actionSend"
+                android:inputType="text"
+                android:textSize="17sp" />
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/changeDate"
+                android:textColor="@color/list_head_primary"
+                android:textSize="20sp"
+                android:typeface="sans" />
+
+            <View style="@style/Divider" />
+
+            <DatePicker
+                android:id="@+id/datePicker1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dp"
+                android:calendarViewShown="false"
+                android:endYear="2015"
+                android:spinnersShown="true"
+                android:startYear="2014" />
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" >
+
+                <Button
+                    android:id="@+id/ok_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="OK" />
+                
+                <Button
+                    android:id="@+id/reset_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Reset" />
+            </LinearLayout>
+        </RadioGroup>
 
         <LinearLayout
             android:id="@+id/right_drawer"
@@ -184,13 +192,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:groupIndicator="@null" />
-            
+
             <!--
             <ListView
                 android:id="@+id/listFavorites"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" >
-            </ListView>            -->
+            </ListView>
+            -->
 
             <TextView
                 android:id="@+id/favorite_empty"

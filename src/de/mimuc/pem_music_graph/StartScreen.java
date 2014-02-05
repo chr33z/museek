@@ -46,33 +46,32 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_startscreen);
 		
-		new Handler().postDelayed(new Runnable() {
-
-			@Override
-			public void run() {
-				
-				Intent intent = new Intent(getBaseContext(), CombinedView.class);
-				startActivity(intent);				
-
-				overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-				StartScreen.this.finish();
-
-			}
-		}, SPLASH_TIME);
+		mLocationClient = new LocationClient(this, this, this);
 		
-		new Handler().postDelayed(new Runnable() {
-			  @Override
-			  public void run() {
-			         } 
-			    }, SPLASH_TIME);
+//		new Handler().postDelayed(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				
+//				Intent intent = new Intent(getBaseContext(), CombinedView.class);
+//				startActivity(intent);				
+//
+//				StartScreen.this.finish();
+//
+//			}
+//		}, SPLASH_TIME);
+		
+//		new Handler().postDelayed(new Runnable() {
+//			  @Override
+//			  public void run() {
+//			         } 
+//			    }, SPLASH_TIME);
 	}
 	
 	@Override
 	public void onBackPressed() {
 		this.finish();
 		super.onBackPressed();
-		
-		mLocationClient = new LocationClient(this, this, this);
 	}
 	
 	private LocationListener mLocationListener = new LocationListener() {
@@ -187,11 +186,14 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 					public void onResponse(JSONObject response) {
 						Log.i(TAG, "...success!");
 						
+			//			overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+						
 						Intent intent = new Intent(getBaseContext(), CombinedView.class);
 						intent.putExtra("json", response.toString());
 						intent.putExtra("latitude", location.getLatitude());
 						intent.putExtra("longitude", location.getLongitude());
 						startActivity(intent);
+						finish();
 					}
 				}, new Response.ErrorListener() {
 					@Override

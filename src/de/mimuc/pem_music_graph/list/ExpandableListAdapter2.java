@@ -247,7 +247,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 	@Override
 	public Object getGroup(int groupPosition) {
-		return groupPosition;
+		return (eventList != null) ? eventList.get(groupPosition) : null;
 	}
 
 	@Override

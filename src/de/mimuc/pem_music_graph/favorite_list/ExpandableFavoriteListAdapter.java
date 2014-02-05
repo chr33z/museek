@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -98,6 +100,17 @@ public class ExpandableFavoriteListAdapter extends BaseExpandableListAdapter {
 	@Override
 	public View getGroupView(final int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
+		final ExpandableListView listView = (ExpandableListView) parent;
+		
+		listView.setOnGroupClickListener(new OnGroupClickListener() {
+			
+			@Override
+			public boolean onGroupClick(ExpandableListView parent, View v,
+					int groupPosition, long id) {
+				listener.onFavoriteClick(favoriteList.get(groupPosition));
+				return true;
+			}
+		});
 
 		LayoutInflater layoutInflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

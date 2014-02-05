@@ -6,4 +6,6 @@ public interface FavoriteListListener {
 	 * Delete favorite from favorite list
 	 */
 	public void onFavoriteDelete(String favoriteId);
+	
+	public void onFavoriteClick(FavoriteLocation favoriteLocation);
 }

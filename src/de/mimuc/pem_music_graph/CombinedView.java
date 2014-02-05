@@ -268,8 +268,7 @@ public class CombinedView extends FragmentActivity implements
 			mEventController.setFavorites(JsonPreferences
 					.createFavoritesFromJson(favorites));
 			mEventController.updateFavorites();
-
-			Log.v("Favorites", favorites);
+			updateFavoriteList();
 		}
 
 		updateFavoriteList();
@@ -302,6 +301,13 @@ public class CombinedView extends FragmentActivity implements
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
+				
+				locationListView.setPadding(
+						locationListView.getPaddingLeft(), 
+						locationListView.getPaddingTop(), 
+						locationListView.getPaddingRight(), 
+						findViewById(R.id.list_container).getTop());
+						
 				// graphView.onThreadPause();
 
 				// if(android.os.Build.VERSION.SDK_INT >
@@ -860,5 +866,30 @@ public class CombinedView extends FragmentActivity implements
 		}
 
 		return datePicker;
+	}
+
+	@Override
+	public void onFavoriteClick(FavoriteLocation favoriteLocation) {
+		Event event = null;
+		int position = 0;
+		
+		if(adapter != null){
+			for (int i = 0; i < adapter.getGroupCount(); i++) {
+				Event iEvent = (Event) adapter.getGroup(i);
+				
+				if(iEvent.startTime.equals(favoriteLocation.nextEvent.startTime)){
+					event = iEvent;
+					position = i;
+				}
+			}
+			
+			if(event != null){
+				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
+				layout.expandPane();
+				locationListView.smoothScrollToPositionFromTop(
+					position, 0);
+				locationListView.expandGroup(position);
+			}
+		}
 	}
 }

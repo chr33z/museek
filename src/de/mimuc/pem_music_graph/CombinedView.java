@@ -582,10 +582,32 @@ public class CombinedView extends FragmentActivity implements
 	 */
 	private void updateFavoriteList() {
 		LinkedList<FavoriteLocation> favLocations = new LinkedList<FavoriteLocation>();
+		List<Event> eventList = mEventController.getEventList();
 
-		for (Entry<String, FavoriteLocation> entry : mEventController
-				.getFavorites().entrySet()) {
-			favLocations.add(entry.getValue());
+		/*
+		 * iterate over all favorites and all events
+		 * if we find an event that takes place earlyer, save it
+		 * we want to have the events for the location that takes place next
+		 */
+		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
+			Event nextEvent = null;
+			
+			for (Event event : eventList) {
+				String favoriteId = entry.getKey();
+				
+				if(event.locationID == favoriteId){
+					if(nextEvent == null){
+						nextEvent = event;
+					} else {
+						if(Long.parseLong(nextEvent.startTime) >= Long.parseLong(event.startTime)){
+							nextEvent = event;
+						}
+					}
+				}
+			}
+			FavoriteLocation favLocation = entry.getValue();
+			favLocation.setNextEvent(nextEvent);
+			favLocations.add(favLocation);
 		}
 
 		listFavorites.setAdapter(new ExpandableFavoriteListAdapter(this,

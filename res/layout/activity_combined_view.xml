@@ -148,16 +148,22 @@
 
             <LinearLayout
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp">
 
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:id="@+id/ok_button"
-                    
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/ButtonOK" 
-                    android:background="?android:selectableItemBackground"/>
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="2.5dp"
+                    android:layout_marginBottom="5dp"
+                    android:text="@string/ButtonOK"
+                    android:background="@drawable/button_border"/>
 
                 <Button
                     style="?android:attr/borderlessButtonStyle"
@@ -165,7 +171,12 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/ButtonReset" />
+                    android:text="@string/ButtonReset"
+                    android:layout_marginLeft="2.5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:background="@drawable/button_border"/>
             </LinearLayout>
 
             

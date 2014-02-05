@@ -373,6 +373,8 @@ public class CombinedView extends FragmentActivity implements
 						Location otherLocation = new Location("otherLocation");
 						otherLocation.setLatitude(lat);
 						otherLocation.setLongitude(lon);
+						
+						drawerLayout.closeDrawer(Gravity.RIGHT);
 
 						mEventController.setLocation(otherLocation);
 						mEventController.useOtherLocation(true);

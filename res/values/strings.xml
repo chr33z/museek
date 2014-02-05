@@ -22,7 +22,7 @@
     <string name="text_hint">Adresse eingeben</string>
     <string name="start">Go!</string>
     <string name ="ButtonOK">OK</string>
-    <string name ="ButtonReset">Heute</string>
+    <string name ="ButtonReset">Ab Heute</string>
     <string name="drawer_favorites_title">Favoriten - nächste Events</string>
     
     <string name="list_header_date_today">Heute</string>

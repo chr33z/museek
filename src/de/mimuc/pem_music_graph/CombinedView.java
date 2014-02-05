@@ -546,7 +546,7 @@ public class CombinedView extends FragmentActivity implements
 		intent.setType("text/plain");
 		intent.putExtra(Intent.EXTRA_TITLE, event.eventName);
 		intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "
-				+ event.eventName + " ins " + event.locationName);
+				+ event.eventName + " ins " + event.locationName +". Lust? (;");
 		startActivity(Intent.createChooser(intent, "Share with..."));
 	}
 

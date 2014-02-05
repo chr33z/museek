@@ -70,7 +70,7 @@
 
         <RadioGroup
             android:id="@+id/left_drawer"
-            android:layout_width="240dp"
+            android:layout_width="260dp"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="#e0e0e0"
@@ -80,86 +80,85 @@
             android:orientation="vertical" >
 
             <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/changeStart"
-            android:textColor="@color/list_head_primary"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:typeface="sans" 
-            android:textSize="20sp" />
-        
-        <View style="@style/Divider"/>
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="15dp"
+                android:text="@string/changeStart"
+                android:textColor="@color/list_head_primary"
+                android:textSize="22sp"
+                android:typeface="sans" />
 
-        <RadioButton
-            android:id="@+id/radio_ownStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClicked"
-            android:checked="true"
-            android:text="@string/stand"
-            android:textSize="17sp"
-            android:layout_marginLeft="25dp"
-            style="@style/RadioButtonStyle" />
-            
+            <View style="@style/Divider" />
 
-        <RadioButton
-            android:id="@+id/radio_otherStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onRadioButtonClicked"
-            android:text="@string/andererStand"
-            android:textSize="17sp" 
-            android:layout_marginLeft="25dp"
-            style="@style/RadioButtonStyle"
-            />
+            <RadioButton
+                android:id="@+id/radio_ownStart"
+                style="@style/RadioButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="5dp"
+                android:checked="true"
+                android:onClick="onRadioButtonClicked"
+                android:text="@string/stand"
+                android:textSize="20sp" />
 
-        <EditText
-            android:id="@+id/auto_text"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="52dp"
-            android:hint="@string/text_hint"
-            android:imeActionLabel="@string/start"
-            android:imeOptions="actionSend" 
-            android:inputType="text"
-            android:textSize="17sp" />
-        
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/changeDate"
-            android:textColor="@color/list_head_primary"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:typeface="sans" 
-            android:textSize="20sp" />
-        
-        <View style="@style/Divider"/>
-        
-        <DatePicker
-        android:id="@+id/datePicker1"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="2dp"
-        android:calendarViewShown="false"
-        android:startYear="2014"
-        android:endYear="2015"
-        android:spinnersShown="true"
-        
-        />
-        
-          <Button
-        android:id="@+id/ok_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OK" />
-        
-    </RadioGroup>
+            <RadioButton
+                android:id="@+id/radio_otherStart"
+                style="@style/RadioButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:onClick="onRadioButtonClicked"
+                android:text="@string/andererStand"
+                android:textSize="20sp" />
+
+            <EditText
+                android:id="@+id/auto_text"
+                android:layout_width="191dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="47dp"
+                android:layout_marginTop="-10dp"
+                android:hint="@string/text_hint"
+                android:imeActionLabel="@string/start"
+                android:imeOptions="actionSend"
+                android:inputType="text"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="15dp"
+                android:text="@string/changeDate"
+                android:textColor="@color/list_head_primary"
+                android:textSize="22sp"
+                android:typeface="sans" />
+
+            <View style="@style/Divider" />
+
+            <DatePicker
+                android:id="@+id/datePicker1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dp"
+                android:calendarViewShown="false"
+                android:endYear="2015"
+                android:spinnersShown="true"
+                android:startYear="2014" />
+
+            <Button
+                android:id="@+id/ok_button"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="@string/ButtonOK" 
+                style="?android:attr/borderlessButtonStyle"/>
+        </RadioGroup>
 
         <LinearLayout
             android:id="@+id/right_drawer"
-            android:layout_width="match_parent"
+            android:layout_width="281dp"
             android:layout_height="match_parent"
             android:layout_gravity="end"
             android:background="#e0e0e0"
@@ -171,11 +170,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="15dp"
                 android:gravity="left"
                 android:text="@string/drawer_favorites_title"
                 android:textColor="@color/list_head_primary"
-                android:textSize="24sp" />
+                android:textSize="22sp" />
 
             <View style="@style/Divider" />
 
@@ -184,13 +183,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:groupIndicator="@null" />
-            
+
             <!--
             <ListView
                 android:id="@+id/listFavorites"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" >
-            </ListView>            -->
+            </ListView>
+            -->
 
             <TextView
                 android:id="@+id/favorite_empty"
@@ -202,7 +202,7 @@
                 android:paddingTop="10dp"
                 android:text="@string/favorite_list_empty"
                 android:textColor="@color/list_head_secondary"
-                android:textSize="20sp"
+                android:textSize="17sp"
                 android:visibility="gone" />
         </LinearLayout>
     </android.support.v4.widget.DrawerLayout>

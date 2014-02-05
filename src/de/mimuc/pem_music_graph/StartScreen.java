@@ -2,6 +2,8 @@ package de.mimuc.pem_music_graph;
 
 import java.util.HashMap;
 
+import org.joda.time.DateTime;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.android.volley.Response;
@@ -21,14 +23,17 @@ import de.mimuc.pem_music_graph.utils.JsonConstants;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class StartScreen extends Activity 
 implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
@@ -41,31 +46,14 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 	private LocationClient mLocationClient;
 	private Location mLocation;
 	
+	private boolean localEventList = false;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_startscreen);
 		
 		mLocationClient = new LocationClient(this, this, this);
-		
-//		new Handler().postDelayed(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				
-//				Intent intent = new Intent(getBaseContext(), CombinedView.class);
-//				startActivity(intent);				
-//
-//				StartScreen.this.finish();
-//
-//			}
-//		}, SPLASH_TIME);
-		
-//		new Handler().postDelayed(new Runnable() {
-//			  @Override
-//			  public void run() {
-//			         } 
-//			    }, SPLASH_TIME);
 	}
 	
 	@Override
@@ -90,30 +78,23 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 			}
 			
 			Log.d(TAG, "Location changed to: "+ location.getLatitude() + "; " + location.getLongitude());
-			getEventsFromServer(location);
+			
+			SharedPreferences sharedPreferences = PreferenceManager
+					.getDefaultSharedPreferences(ApplicationController.getInstance());
+			String loadLastEvents = sharedPreferences.getString("events", "");
+			
+			if(!loadLastEvents.equals("") && !eventListNeedsUpdate(loadLastEvents)){
+				Intent intent = new Intent(getBaseContext(), CombinedView.class);
+				intent.putExtra("json", loadLastEvents);
+				intent.putExtra("latitude", loadLastEvents);
+				intent.putExtra("longitude", loadLastEvents);
+				startActivity(intent);
+				Log.d(TAG, "Loaded events from Shared Preferences");
+			} else {
+				getEventsFromServer(location);
+			}
 		}
 	};
-
-
-
-
-//		btnGraph = (Button) findViewById(R.id.btn_combined_view);
-//
-//		btnGraph.setOnClickListener(new OnClickListener() {
-
-//			@Override
-//			public void onClick(View v) {
-//				switch(v.getId()){
-//				case R.id.btn_combined_view:
-//					startActivity(new Intent(getApplicationContext(), CombinedView.class));
-//					break;
-//				}
-//			}
-//		});
-//
-//		// get location updates
-//		mLocationClient = new LocationClient(this, this, this);
-//	}
 
 	@Override
 	protected void onResume() {
@@ -209,5 +190,30 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 				});
 
 		ApplicationController.getInstance().addToRequestQueue(req);
+	}
+	
+	private boolean eventListNeedsUpdate(String eventJson){
+		boolean needsUpdate = true;
+		
+		try {
+			JSONObject savedJson = new JSONObject(eventJson);
+			long saveDate = Long.parseLong(savedJson.getString("saveDate"));
+			
+			DateTime now = new DateTime();
+			
+			DateTime difference = now.minus(saveDate);
+			
+			if(difference.getDayOfMonth() > 7){
+				needsUpdate = true;
+			} else {
+				needsUpdate = false;
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch(NumberFormatException e){
+			
+		}
+		
+		return needsUpdate;
 	}
 }

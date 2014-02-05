@@ -5,7 +5,6 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import org.joda.time.DateTime;
 import org.json.JSONException;
@@ -501,7 +500,7 @@ public class CombinedView extends FragmentActivity implements
 		String favorites = JsonPreferences
 				.createJsonFromFavorites(mEventController.getFavorites());
 		sharedPreferences.edit().putString("favorites", favorites).commit();
-		Log.v(TAG, favorites);
+		Log.v(TAG, "wrote "+json);
 
 		graphView.onThreadPause();
 		if (graphView != null)

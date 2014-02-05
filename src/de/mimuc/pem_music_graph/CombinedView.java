@@ -5,7 +5,6 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import org.joda.time.DateTime;
 import org.json.JSONException;
@@ -169,6 +168,7 @@ public class CombinedView extends FragmentActivity implements
 			if (checked) {
 				useOwnLocation = true;
 				mEventController.setLocation(mLocation);
+				drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 			break;
 		case R.id.radio_otherStart:
@@ -374,6 +374,8 @@ public class CombinedView extends FragmentActivity implements
 						Location otherLocation = new Location("otherLocation");
 						otherLocation.setLatitude(lat);
 						otherLocation.setLongitude(lon);
+						
+						drawerLayout.closeDrawer(Gravity.RIGHT);
 
 						mEventController.setLocation(otherLocation);
 						mEventController.useOtherLocation(true);
@@ -518,7 +520,7 @@ public class CombinedView extends FragmentActivity implements
 		String favorites = JsonPreferences
 				.createJsonFromFavorites(mEventController.getFavorites());
 		sharedPreferences.edit().putString("favorites", favorites).commit();
-		Log.v(TAG, favorites);
+		Log.v(TAG, "wrote "+json);
 
 		graphView.onThreadPause();
 		if (graphView != null)
@@ -842,6 +844,7 @@ public class CombinedView extends FragmentActivity implements
 				mEventController.setDateTime(time);
 				mEventController.useAlternativeTime(true);
 				onEventControllerUpdate();
+				drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 		});
 
@@ -851,6 +854,7 @@ public class CombinedView extends FragmentActivity implements
 			public void onClick(View v) {
 				mEventController.useAlternativeTime(false);
 				onEventControllerUpdate();
+				drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 		});
 

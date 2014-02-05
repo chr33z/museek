@@ -49,7 +49,7 @@ public class LocationFromAdress {
 				}
 			}
 		} else {
-			closest = addresses.get(0);
+			closest = (addresses.size() > 1) ? addresses.get(0) : null;
 		}
 		return closest; //here can be null if we did not find any addresses by search pattern.
 	}

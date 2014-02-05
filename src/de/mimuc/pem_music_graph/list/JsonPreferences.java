@@ -3,9 +3,12 @@ package de.mimuc.pem_music_graph.list;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.util.Log;
 
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
@@ -16,6 +19,8 @@ public class JsonPreferences implements JsonConstants{
 		JSONArray array = new JSONArray();
 		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
 			try {
+				DateTime now = new DateTime();
+				
 				JSONObject object = new JSONObject();
 				object.put(TAG_LOCATION_ID, entry.getValue().locationID);
 				object.put(TAG_LOCATION_NAME, entry.getValue().locationName);

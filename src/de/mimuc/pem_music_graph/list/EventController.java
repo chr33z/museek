@@ -523,6 +523,12 @@ public class EventController implements JsonConstants {
 	 * @param jsonForSharedPreferences
 	 */
 	public void setJsonForSharedPreferences(JSONObject jsonForSharedPreferences) {
+		DateTime now = new DateTime();
+		try {
+			jsonForSharedPreferences.put("saveDate", now.getMillis()+"");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		this.jsonForSharedPreferences = jsonForSharedPreferences;
 	}
 

@@ -73,6 +73,14 @@ public class EventController implements JsonConstants {
 	private boolean noEvents;
 
 	/**
+	 * 
+	 */
+	private DateTime dateTime;
+	
+	private boolean showAll = true;
+	
+
+	/**
 	 * initialize event controller constructor if no connection to the internet
 	 * and no json available in sharedpreferences
 	 * 
@@ -549,5 +557,21 @@ public class EventController implements JsonConstants {
 	 */
 	public void setNoEvents(boolean noEvents) {
 		this.noEvents = noEvents;
+	}
+	
+	public DateTime getDateTime() {
+		return dateTime;
+	}
+
+	public void setDateTime(DateTime dateTime) {
+		this.dateTime = dateTime;
+	}
+	
+	public boolean isShowAll() {
+		return showAll;
+	}
+
+	public void setShowAll(boolean showAll) {
+		this.showAll = showAll;
 	}
 }

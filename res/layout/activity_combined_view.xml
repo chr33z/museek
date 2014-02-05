@@ -87,7 +87,7 @@
             android:layout_marginTop="10dp"
             android:layout_marginLeft="10dp"
             android:typeface="sans" 
-            android:textSize="18sp" />
+            android:textSize="20sp" />
         
         <View style="@style/Divider"/>
 
@@ -98,7 +98,7 @@
             android:onClick="onRadioButtonClicked"
             android:checked="true"
             android:text="@string/stand"
-            android:textSize="16sp"
+            android:textSize="17sp"
             android:layout_marginLeft="25dp"
             style="@style/RadioButtonStyle" />
             
@@ -109,7 +109,7 @@
             android:layout_height="wrap_content"
             android:onClick="onRadioButtonClicked"
             android:text="@string/andererStand"
-            android:textSize="16sp" 
+            android:textSize="17sp" 
             android:layout_marginLeft="25dp"
             style="@style/RadioButtonStyle"
             />
@@ -123,7 +123,7 @@
             android:imeActionLabel="@string/start"
             android:imeOptions="actionSend" 
             android:inputType="text"
-            android:textSize="16sp" />
+            android:textSize="17sp" />
         
         <TextView
             android:layout_width="fill_parent"
@@ -133,7 +133,7 @@
             android:layout_marginTop="10dp"
             android:layout_marginLeft="10dp"
             android:typeface="sans" 
-            android:textSize="18sp" />
+            android:textSize="20sp" />
         
         <View style="@style/Divider"/>
         
@@ -147,7 +147,13 @@
         android:endYear="2015"
         android:spinnersShown="true"
         
-       />
+        />
+        
+          <Button
+        android:id="@+id/ok_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OK" />
         
     </RadioGroup>
 

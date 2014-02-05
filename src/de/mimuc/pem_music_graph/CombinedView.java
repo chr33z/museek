@@ -1,9 +1,12 @@
 package de.mimuc.pem_music_graph;
 
+import java.lang.reflect.Field;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,10 +23,12 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources.NotFoundException;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -40,12 +45,17 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -74,9 +84,9 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
  * 
  */
 public class CombinedView extends FragmentActivity implements
-ConnectionCallbacks, OnConnectionFailedListener,
-EventControllerListener, GenreGraphListener, FavoriteListListener,
-UndoListener {
+		ConnectionCallbacks, OnConnectionFailedListener,
+		EventControllerListener, GenreGraphListener, FavoriteListListener,
+		UndoListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
@@ -106,6 +116,9 @@ UndoListener {
 	private ExpandableListView listFavorites;
 
 	private UndoBarController mUndoBarController;
+
+	private DatePicker datePicker;
+	private Button okB;
 
 	// coordinates for moving the view
 	private double dy;
@@ -139,8 +152,7 @@ UndoListener {
 		}
 	};
 
-	public void onRadioButtonClicked(View view) 
-	{
+	public void onRadioButtonClicked(View view) {
 		// Is the button now checked?
 		boolean checked = ((RadioButton) view).isChecked();
 
@@ -163,14 +175,13 @@ UndoListener {
 		}
 	}
 
-
-	public Location StringToLocation(String start){
+	public Location StringToLocation(String start) {
 
 		Geocoder coder = new Geocoder(this);
 		List<Address> address;
 
 		try {
-			address = coder.getFromLocationName("Kienbergstr. 7",5);
+			address = coder.getFromLocationName("Kienbergstr. 7", 5);
 			if (address == null) {
 				return null;
 			}
@@ -183,12 +194,10 @@ UndoListener {
 			p1.setLongitude(longi);
 
 			return p1;
+		} catch (Exception e) {
 		}
-		catch(Exception e){}
 		return null;
 	}
-
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -204,7 +213,8 @@ UndoListener {
 		listFavorites.setEmptyView(findViewById(R.id.favorite_empty));
 
 		// set undo listener to undo favorite remove
-		mUndoBarController = new UndoBarController(findViewById(R.id.undobar), this);
+		mUndoBarController = new UndoBarController(findViewById(R.id.undobar),
+				this);
 
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
@@ -307,7 +317,7 @@ UndoListener {
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 					((FrameLayout) layout.findViewById(R.id.graph_view_frame))
-					.removeAllViews();
+							.removeAllViews();
 				}
 			}
 
@@ -335,7 +345,8 @@ UndoListener {
 		final EditText editText = (EditText) findViewById(R.id.auto_text);
 		editText.setOnEditorActionListener(new OnEditorActionListener() {
 			@Override
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+			public boolean onEditorAction(TextView v, int actionId,
+					KeyEvent event) {
 				boolean handled = false;
 				if (actionId == EditorInfo.IME_ACTION_SEND) {
 					handled = true;
@@ -345,8 +356,11 @@ UndoListener {
 				return handled;
 			}
 
-
 		});
+
+		datePicker = (DatePicker) this.findViewById(R.id.datePicker1);
+		okB = (Button) this.findViewById(R.id.ok_button);
+		datePicker(null, null);
 	}
 
 	@Override
@@ -413,9 +427,9 @@ UndoListener {
 				.create()
 				.setInterval(
 						ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
-						.setExpirationDuration(
-								ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
-								.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+				.setExpirationDuration(
+						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
+				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
 		mLocationClient.requestLocationUpdates(locationRequest,
 				mLocationListener);
@@ -498,18 +512,22 @@ UndoListener {
 	public void onExpandedItemTrue(String locationID) {
 		mEventController.onExpandedItemTrue(locationID);
 
-		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-		if(fragment != null)
-			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
+				.findFragmentById(R.id.map);
+		if (fragment != null)
+			getSupportFragmentManager().beginTransaction().remove(fragment)
+					.commit();
 	}
 
 	@Override
 	public void onExpandedItemFalse() {
 		mEventController.onExpandedItemFalse();
 
-		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-		if(fragment != null)
-			getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
+				.findFragmentById(R.id.map);
+		if (fragment != null)
+			getSupportFragmentManager().beginTransaction().remove(fragment)
+					.commit();
 	}
 
 	@SuppressLint("NewApi")
@@ -527,7 +545,8 @@ UndoListener {
 		Intent intent = new Intent(Intent.ACTION_SEND);
 		intent.setType("text/plain");
 		intent.putExtra(Intent.EXTRA_TITLE, event.eventName);
-		intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "+ event.eventName+" ins "+event.locationName); 
+		intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "
+				+ event.eventName + " ins " + event.locationName);
 		startActivity(Intent.createChooser(intent, "Share with..."));
 	}
 
@@ -541,14 +560,15 @@ UndoListener {
 
 	@Override
 	public void attachMap(Event event) {
-		if(event != null){
+		if (event != null) {
 			Bundle args = new Bundle();
 			args.putDouble("lat", Double.parseDouble(event.locationLatitude));
 			args.putDouble("lon", Double.parseDouble(event.locationLongitude));
 
 			MapFragment mapFragment = new MapFragment();
 			mapFragment.setArguments(args);
-			getSupportFragmentManager().beginTransaction().replace(R.id.map_container, mapFragment).commit();
+			getSupportFragmentManager().beginTransaction()
+					.replace(R.id.map_container, mapFragment).commit();
 		}
 	}
 
@@ -560,15 +580,16 @@ UndoListener {
 	/**
 	 * Update Favorite List and attach next event to favorite
 	 */
-	private void updateFavoriteList(){
+	private void updateFavoriteList() {
 		LinkedList<FavoriteLocation> favLocations = new LinkedList<FavoriteLocation>();
 
-		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
+		for (Entry<String, FavoriteLocation> entry : mEventController
+				.getFavorites().entrySet()) {
 			favLocations.add(entry.getValue());
 		}
 
-		listFavorites.setAdapter(new ExpandableFavoriteListAdapter(
-				this, favLocations, this));
+		listFavorites.setAdapter(new ExpandableFavoriteListAdapter(this,
+				favLocations, this));
 	}
 
 	@Override
@@ -578,26 +599,28 @@ UndoListener {
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 
 			new AlertDialog.Builder(this)
-			.setIcon(android.R.drawable.ic_dialog_alert)
-			.setTitle(R.string.dialog_title_delete_favorite)
-			.setPositiveButton(R.string.dialog_positiv_delete_favorite, new DialogInterface.OnClickListener() {
+					.setIcon(android.R.drawable.ic_dialog_alert)
+					.setTitle(R.string.dialog_title_delete_favorite)
+					.setPositiveButton(R.string.dialog_positiv_delete_favorite,
+							new DialogInterface.OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					onRemoveFavorites(favoriteId);
-				}
+								@Override
+								public void onClick(DialogInterface dialog,
+										int which) {
+									onRemoveFavorites(favoriteId);
+								}
 
-			})
-			.setNegativeButton(R.string.dialog_negative_delete_favorite, null)
-			.show();
+							})
+					.setNegativeButton(
+							R.string.dialog_negative_delete_favorite, null)
+					.show();
 
 		} else {
 			Bundle restoreToken = new Bundle();
 			restoreToken.putString("id", favoriteId);
 
-			mUndoBarController.showUndoBar(
-					false,
-					getString(R.string.undobar_sample_message),restoreToken);
+			mUndoBarController.showUndoBar(false,
+					getString(R.string.undobar_sample_message), restoreToken);
 
 			onRemoveFavorites(favoriteId);
 
@@ -607,12 +630,91 @@ UndoListener {
 
 	@Override
 	public void onUndo(Bundle token) {
-		if(token != null){
+		if (token != null) {
 			String favoriteId = token.getString("id");
 			onAddFavorites(favoriteId);
 			updateFavoriteList();
 
 			Log.d(TAG, "Remove favorite from list undo");
 		}
+	}
+
+	public DateTime getDateFromPicker() {
+
+		// private DateTime getDateTimeFromPickers( int DatePickerId, int
+		// TimePickerId ) {
+
+		// String year = Integer.toString(dp.getYear()) ;
+		// String month = StringUtils.leftPad( Integer.toString(dp.getMonth() +
+		// 1), 2, "0" );
+		// String day = StringUtils.leftPad(
+		// Integer.toString(dp.getDayOfMonth()), 2, "0" );
+		//
+		// String dateTime = year + "-" + month + "-" + day + "T" + "00" + ":" +
+		// "00" + ":00.000";
+		//
+		// return DateTime.parse(dateTime);
+
+		return null;
+	}
+
+	public DatePicker datePicker(OnDateSetListener listener, Calendar calendar) {
+		Calendar c;
+		if (calendar == null) {
+			c = Calendar.getInstance();
+		} else {
+			c = calendar;
+		}
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH);
+		int day = c.get(Calendar.DAY_OF_MONTH);
+
+		okB.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Log.v(TAG,
+						datePicker.getDayOfMonth() + " "
+								+ (datePicker.getMonth() + 1) + " "
+								+ datePicker.getYear());
+				String dateTime = datePicker.getYear() + "-" + datePicker.getMonth() + "-" + datePicker.getDayOfMonth() + "T" + "00" + ":" +
+						 "00" + ":00.000";
+				DateTime time = DateTime.parse(dateTime);
+				mEventController.setDateTime(time);
+				Log.v(TAG, time.toString());
+			}
+		});
+
+		LinearLayout llFirst = (LinearLayout) datePicker.getChildAt(0);
+		LinearLayout llSecond = (LinearLayout) llFirst.getChildAt(0);
+		for (int i = 0; i < llSecond.getChildCount(); i++) {
+			NumberPicker picker = (NumberPicker) llSecond.getChildAt(i); // Numberpickers
+																			// in
+																			// llSecond
+			// reflection - picker.setDividerDrawable(divider); << didn't seem
+			// to work.
+			Field[] pickerFields = NumberPicker.class.getDeclaredFields();
+			for (Field pf : pickerFields) {
+				if (pf.getName().equals("mSelectionDivider")) {
+					pf.setAccessible(true);
+					try {
+						pf.set(picker,
+								getResources()
+										.getDrawable(
+												R.drawable.np_numberpicker_selection_divider_green));
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					} catch (NotFoundException e) {
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					}
+					break;
+				}
+			}
+		}
+
+		return datePicker;
 	}
 }

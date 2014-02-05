@@ -15,6 +15,7 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 
+import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
 
@@ -22,6 +23,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -32,17 +34,49 @@ public class StartScreen extends Activity
 implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 
 	private static final String TAG = StartScreen.class.getName();
+	private static final int SPLASH_TIME = 3 * 1000;
 
-	Button btnGraph;
+//	Button btnGraph;
 
 	private LocationClient mLocationClient;
-
 	private Location mLocation;
-
-	/**
-	 * Is called when location updates arrive
-	 */
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_startscreen);
+		
+		mLocationClient = new LocationClient(this, this, this);
+		
+//		new Handler().postDelayed(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				
+//				Intent intent = new Intent(getBaseContext(), CombinedView.class);
+//				startActivity(intent);				
+//
+//				StartScreen.this.finish();
+//
+//			}
+//		}, SPLASH_TIME);
+		
+//		new Handler().postDelayed(new Runnable() {
+//			  @Override
+//			  public void run() {
+//			         } 
+//			    }, SPLASH_TIME);
+	}
+	
+	@Override
+	public void onBackPressed() {
+		this.finish();
+		super.onBackPressed();
+	}
+	
 	private LocationListener mLocationListener = new LocationListener() {
+		
+		
 
 		@Override
 		public void onLocationChanged(Location location) {
@@ -60,28 +94,26 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 		}
 	};
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_startscreen);
 
-		btnGraph = (Button) findViewById(R.id.btn_combined_view);
 
-		btnGraph.setOnClickListener(new OnClickListener() {
 
-			@Override
-			public void onClick(View v) {
-				switch(v.getId()){
-				case R.id.btn_combined_view:
-					startActivity(new Intent(getApplicationContext(), CombinedView.class));
-					break;
-				}
-			}
-		});
+//		btnGraph = (Button) findViewById(R.id.btn_combined_view);
+//
+//		btnGraph.setOnClickListener(new OnClickListener() {
 
-		// get location updates
-		mLocationClient = new LocationClient(this, this, this);
-	}
+//			@Override
+//			public void onClick(View v) {
+//				switch(v.getId()){
+//				case R.id.btn_combined_view:
+//					startActivity(new Intent(getApplicationContext(), CombinedView.class));
+//					break;
+//				}
+//			}
+//		});
+//
+//		// get location updates
+//		mLocationClient = new LocationClient(this, this, this);
+//	}
 
 	@Override
 	protected void onResume() {
@@ -154,11 +186,14 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 					public void onResponse(JSONObject response) {
 						Log.i(TAG, "...success!");
 						
+			//			overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+						
 						Intent intent = new Intent(getBaseContext(), CombinedView.class);
 						intent.putExtra("json", response.toString());
 						intent.putExtra("latitude", location.getLatitude());
 						intent.putExtra("longitude", location.getLongitude());
 						startActivity(intent);
+						finish();
 					}
 				}, new Response.ErrorListener() {
 					@Override

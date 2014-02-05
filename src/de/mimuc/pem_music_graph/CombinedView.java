@@ -168,6 +168,7 @@ public class CombinedView extends FragmentActivity implements
 			if (checked) {
 				useOwnLocation = true;
 				mEventController.setLocation(mLocation);
+				drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 			break;
 		case R.id.radio_otherStart:
@@ -843,6 +844,7 @@ public class CombinedView extends FragmentActivity implements
 				mEventController.setDateTime(time);
 				mEventController.useAlternativeTime(true);
 				onEventControllerUpdate();
+				drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 		});
 
@@ -852,6 +854,7 @@ public class CombinedView extends FragmentActivity implements
 			public void onClick(View v) {
 				mEventController.useAlternativeTime(false);
 				onEventControllerUpdate();
+				drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 		});
 

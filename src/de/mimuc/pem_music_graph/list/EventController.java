@@ -550,8 +550,7 @@ public class EventController implements JsonConstants {
 		for (int i = 0; i < eventList.size(); i++) {
 			if (eventList.get(i).locationID.equals(locationId)) {
 				return eventList.get(i);
-			} else
-				return null;
+			}
 		}
 		return null;
 	}

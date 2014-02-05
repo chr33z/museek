@@ -307,7 +307,7 @@ public class EventController implements JsonConstants {
 				favorites.remove(locationID);
 			}
 		}
-//		callbackReceiver.onEventControllerUpdate();
+		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**

@@ -110,8 +110,14 @@ public class ExpandableFavoriteListAdapter extends BaseExpandableListAdapter {
 		TextView nextEventDate = (TextView) convertView.findViewById(R.id.favorite_next_event_date);
 
 		favoriteTitle.setText(favoriteLocation.locationName);
-		nextEvent.setText("N�chstes Event!");
-		nextEventDate.setText("Heute - 16:30 Uhr");
+		
+		if(favoriteLocation.nextEvent != null){
+			Long startTime = Long.parseLong(favoriteLocation.nextEvent.startTime);
+			
+			nextEvent.setText(favoriteLocation.nextEvent.eventName);
+			nextEventDate.setText(getHeaderTime(startTime));
+		}
+		
 
 		convertView.findViewById(R.id.favorite_delete).setOnClickListener(new OnClickListener() {
 

@@ -156,7 +156,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="end"
-            android:layout_marginRight="-25dp"
             android:background="#e0e0e0"
             android:divider="@android:color/transparent"
             android:dividerHeight="0dp"
@@ -165,12 +164,12 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
+                android:layout_marginLeft="10dp"
                 android:layout_marginTop="20dp"
-                android:gravity="right"
+                android:gravity="left"
                 android:text="@string/drawer_favorites_title"
                 android:textColor="@color/list_head_primary"
-                android:textSize="25sp" />
+                android:textSize="24sp" />
 
             <View style="@style/Divider" />
 

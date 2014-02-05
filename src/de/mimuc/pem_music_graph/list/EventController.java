@@ -1,15 +1,10 @@
 package de.mimuc.pem_music_graph.list;
 
-import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,6 +41,8 @@ public class EventController implements JsonConstants {
 	 * The last known location
 	 */
 	private Location currentLocation;
+	
+	private boolean useOtherLocation = false;
 
 	/**
 	 * save last event list in shared preferences
@@ -76,6 +73,10 @@ public class EventController implements JsonConstants {
 	 * 
 	 */
 	private DateTime dateTime;
+	
+	private boolean useAlternativeTime = false;
+	
+	private DateTime alternativeTime = new DateTime();
 
 	private boolean showAll = true;
 
@@ -360,19 +361,18 @@ public class EventController implements JsonConstants {
 	 * @return
 	 */
 	public List<Event> storeDistance(List<Event> eL) {
-		List<Event> list = new ArrayList<Event>();
 		float distance;
 		for (Event event : eL) {
+			
+			// event location
 			Location destination = new Location("destination");
 			destination.setLatitude(Double.parseDouble(event.locationLatitude));
-			destination.setLongitude(Double
-					.parseDouble(event.locationLongitude));
-			Location currentLocation = event.currentLocation;
+			destination.setLongitude(Double.parseDouble(event.locationLongitude));
+			
 			distance = currentLocation.distanceTo(destination);
 			event.currentDistance = distance;
-			list.add(event);
 		}
-		return list;
+		return eL;
 	}
 
 	/**
@@ -396,6 +396,21 @@ public class EventController implements JsonConstants {
 			favoriteLocations.add(localEvents.get(i));
 		}
 		return favoriteLocations;
+	}
+	
+	/**
+	 * only show events from that date on
+	 * @param eL
+	 * @return
+	 */
+	private List<Event> filterDate(List<Event> eL) {
+		List<Event> events = new ArrayList<Event>();
+		for (int i = 0; i < eL.size(); i++) {
+			DateTime date = new DateTime(Long.parseLong((eL.get(i).startTime))).withTimeAtStartOfDay();
+			if(getDateTime().compareTo(date) == 0)
+				events.add(eL.get(i));
+		}
+		return events;
 	}
 
 	/**
@@ -461,6 +476,9 @@ public class EventController implements JsonConstants {
 		// List<Event> eL = new ArrayList<Event>(date(eventList));
 		storeDistance(eventList);
 		List<Event> eL = sortGenre(eventList);
+		if(useAlternativeTime){
+			eL = filterDate(eL);
+		}
 		Collections.sort(eL, new DateDistanceComparator());
 		Log.v("getEventList", eL.size() + "");
 		// if the list of events has no items, an empty item is stored into the
@@ -557,6 +575,10 @@ public class EventController implements JsonConstants {
 	public DateTime getDateTime() {
 		return dateTime;
 	}
+	
+	public void useAlternativeTime(boolean useAlternativeTime){
+		this.useAlternativeTime = useAlternativeTime;
+	}
 
 	public void setDateTime(DateTime dateTime) {
 		this.dateTime = dateTime;
@@ -577,5 +599,9 @@ public class EventController implements JsonConstants {
 			}
 		}
 		return null;
+	}
+
+	public void useOtherLocation(boolean useOtherLocation) {
+		this.useOtherLocation = useOtherLocation;
 	}
 }

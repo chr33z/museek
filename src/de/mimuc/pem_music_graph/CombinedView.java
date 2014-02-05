@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import org.joda.time.DateTime;
 import org.json.JSONException;
@@ -17,7 +18,6 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.maps.GeoPoint;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
@@ -28,24 +28,29 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.content.res.Resources.NotFoundException;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.DrawerLayout.DrawerListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
 
 import android.widget.Button;
@@ -54,17 +59,15 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import de.mimuc.pem_music_graph.favorite_list.ExpandableFavoriteListAdapter;
-import de.mimuc.pem_music_graph.favorite_list.FavoriteAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import android.widget.TextView.OnEditorActionListener;
-import android.widget.Toast;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
@@ -74,6 +77,7 @@ import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
 import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.list.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
+import de.mimuc.pem_music_graph.utils.LocationFromAdress;
 import de.mimuc.pem_music_graph.utils.UndoBarController;
 import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 
@@ -119,6 +123,9 @@ public class CombinedView extends FragmentActivity implements
 
 	private DatePicker datePicker;
 	private Button okB;
+	private Button resetB;
+	private DrawerLayout drawerLayout;
+	private ActionBarDrawerToggle drawerToggle;
 
 	// coordinates for moving the view
 	private double dy;
@@ -199,6 +206,7 @@ public class CombinedView extends FragmentActivity implements
 		return null;
 	}
 
+	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -342,6 +350,8 @@ public class CombinedView extends FragmentActivity implements
 		});
 
 		// get result from edit text
+		final RadioButton radioBtnOtherAddress = (RadioButton) findViewById(R.id.radio_otherStart);
+		final RadioButton radioBtnOwnLocation = (RadioButton) findViewById(R.id.radio_ownStart);
 		final EditText editText = (EditText) findViewById(R.id.auto_text);
 		editText.setOnEditorActionListener(new OnEditorActionListener() {
 			@Override
@@ -349,19 +359,105 @@ public class CombinedView extends FragmentActivity implements
 					KeyEvent event) {
 				boolean handled = false;
 				if (actionId == EditorInfo.IME_ACTION_SEND) {
-					handled = true;
-					otherAdress = editText.getText().toString();
+					String addressPattern = editText.getText().toString();
+					Address closestAddress = LocationFromAdress
+							.getLocationFromAddress(addressPattern);
+					if (closestAddress != null) {
+						double lat = closestAddress.getLatitude();
+						double lon = closestAddress.getLongitude();
+						Location otherLocation = new Location("otherLocation");
+						otherLocation.setLatitude(lat);
+						otherLocation.setLongitude(lon);
 
+						mEventController.setLocation(otherLocation);
+						mEventController.useOtherLocation(true);
+						onEventControllerUpdate();
+					} else {
+						Toast.makeText(context,
+								context.getString(R.string.address_not_found),
+								Toast.LENGTH_LONG).show();
+						editText.setHint(R.string.text_hint);
+						radioBtnOwnLocation.setChecked(true);
+					}
+					handled = true;
 				}
+
 				return handled;
 			}
 
 		});
 
+		editText.setOnFocusChangeListener(new OnFocusChangeListener() {
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if (hasFocus) {
+					radioBtnOtherAddress.setChecked(true);
+				}
+			}
+		});
+
 		datePicker = (DatePicker) this.findViewById(R.id.datePicker1);
+
 		okB = (Button) this.findViewById(R.id.ok_button);
+		resetB = (Button) this.findViewById(R.id.reset_button);
+
 		datePicker(null, null);
+
+		drawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
+		drawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
+				R.drawable.ic_drawer, R.string.drawer_open,
+				R.string.drawer_close) {
+
+			/** Called when a drawer has settled in a completely closed state. */
+			public void onDrawerClosed(View view) {
+				super.onDrawerClosed(view);
+				// getActionBar().setTitle(mTitle);
+				// invalidateOptionsMenu(); // creates call to
+				// onPrepareOptionsMenu()
+				graphView.onThreadResume();
+			}
+
+			/** Called when a drawer has settled in a completely open state. */
+			public void onDrawerOpened(View drawerView) {
+				super.onDrawerOpened(drawerView);
+				// getActionBar().setTitle(mDrawerTitle);
+				// invalidateOptionsMenu(); // creates call to
+				// onPrepareOptionsMenu()
+				graphView.onThreadPause();
+			}
+		};
+
+		// Set the drawer toggle as the DrawerListener
+		drawerLayout.setDrawerListener(drawerToggle);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setHomeButtonEnabled(true);
 	}
+
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
+		// Sync the toggle state after onRestoreInstanceState has occurred.
+		drawerToggle.syncState();
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		drawerToggle.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Pass the event to ActionBarDrawerToggle, if it returns
+		// true, then it has handled the app icon touch event
+		if (drawerToggle.onOptionsItemSelected(item)) {
+			return true;
+		}
+		// Handle your other action bar items...
+
+		return super.onOptionsItemSelected(item);
+	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -487,6 +583,12 @@ public class CombinedView extends FragmentActivity implements
 				return true;
 			}
 		}
+		if (keyCode == KeyEvent.KEYCODE_MENU) {
+			if (!drawerLayout.isDrawerOpen(Gravity.LEFT))
+				drawerLayout.openDrawer(Gravity.LEFT);
+			else
+				drawerLayout.closeDrawer(Gravity.LEFT);
+		}
 		return super.onKeyDown(keyCode, event);
 	}
 
@@ -546,7 +648,7 @@ public class CombinedView extends FragmentActivity implements
 		intent.setType("text/plain");
 		intent.putExtra(Intent.EXTRA_TITLE, event.eventName);
 		intent.putExtra(Intent.EXTRA_TEXT, "Ich gehe heute Abend zu "
-				+ event.eventName + " ins " + event.locationName +". Lust? (;");
+				+ event.eventName + " ins " + event.locationName + ". Lust? (;");
 		startActivity(Intent.createChooser(intent, "Share with..."));
 	}
 
@@ -585,21 +687,23 @@ public class CombinedView extends FragmentActivity implements
 		List<Event> eventList = mEventController.getEventList();
 
 		/*
-		 * iterate over all favorites and all events
-		 * if we find an event that takes place earlyer, save it
-		 * we want to have the events for the location that takes place next
+		 * iterate over all favorites and all events if we find an event that
+		 * takes place earlyer, save it we want to have the events for the
+		 * location that takes place next
 		 */
-		for (Entry<String, FavoriteLocation> entry : mEventController.getFavorites().entrySet()) {
+		for (Entry<String, FavoriteLocation> entry : mEventController
+				.getFavorites().entrySet()) {
 			Event nextEvent = null;
-			
+
 			for (Event event : eventList) {
 				String favoriteId = entry.getKey();
-				
-				if(event.locationID == favoriteId){
-					if(nextEvent == null){
+
+				if (event.locationID == favoriteId) {
+					if (nextEvent == null) {
 						nextEvent = event;
 					} else {
-						if(Long.parseLong(nextEvent.startTime) >= Long.parseLong(event.startTime)){
+						if (Long.parseLong(nextEvent.startTime) >= Long
+								.parseLong(event.startTime)) {
 							nextEvent = event;
 						}
 					}
@@ -680,6 +784,13 @@ public class CombinedView extends FragmentActivity implements
 		return null;
 	}
 
+	/**
+	 * set the color of the date picker dividers
+	 * 
+	 * @param listener
+	 * @param calendar
+	 * @return
+	 */
 	public DatePicker datePicker(OnDateSetListener listener, Calendar calendar) {
 		Calendar c;
 		if (calendar == null) {
@@ -700,11 +811,23 @@ public class CombinedView extends FragmentActivity implements
 						datePicker.getDayOfMonth() + " "
 								+ (datePicker.getMonth() + 1) + " "
 								+ datePicker.getYear());
-				String dateTime = datePicker.getYear() + "-" + datePicker.getMonth() + "-" + datePicker.getDayOfMonth() + "T" + "00" + ":" +
-						 "00" + ":00.000";
+				String dateTime = datePicker.getYear() + "-"
+						+ (datePicker.getMonth() + 1) + "-"
+						+ datePicker.getDayOfMonth() + "T" + "00" + ":" + "00"
+						+ ":00.000";
 				DateTime time = DateTime.parse(dateTime);
 				mEventController.setDateTime(time);
-				Log.v(TAG, time.toString());
+				mEventController.useAlternativeTime(true);
+				onEventControllerUpdate();
+			}
+		});
+
+		resetB.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				mEventController.useAlternativeTime(false);
+				onEventControllerUpdate();
 			}
 		});
 
@@ -712,8 +835,8 @@ public class CombinedView extends FragmentActivity implements
 		LinearLayout llSecond = (LinearLayout) llFirst.getChildAt(0);
 		for (int i = 0; i < llSecond.getChildCount(); i++) {
 			NumberPicker picker = (NumberPicker) llSecond.getChildAt(i); // Numberpickers
-																			// in
-																			// llSecond
+			// in
+			// llSecond
 			// reflection - picker.setDividerDrawable(divider); << didn't seem
 			// to work.
 			Field[] pickerFields = NumberPicker.class.getDeclaredFields();
@@ -722,9 +845,8 @@ public class CombinedView extends FragmentActivity implements
 					pf.setAccessible(true);
 					try {
 						pf.set(picker,
-								getResources()
-										.getDrawable(
-												R.drawable.np_numberpicker_selection_divider_green));
+								getResources().getDrawable(
+										R.drawable.date_picker_shape));
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NotFoundException e) {

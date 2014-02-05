@@ -86,8 +86,7 @@
                 android:layout_marginTop="15dp"
                 android:text="@string/changeStart"
                 android:textColor="@color/list_head_primary"
-                android:textSize="22sp"
-                android:typeface="sans" />
+                android:textSize="22sp" />
 
             <View style="@style/Divider" />
 
@@ -147,13 +146,29 @@
                 android:spinnersShown="true"
                 android:startYear="2014" />
 
-            <Button
-                android:id="@+id/ok_button"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:text="@string/ButtonOK" 
-                style="?android:attr/borderlessButtonStyle"/>
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" >
+
+                <Button
+                    android:id="@+id/ok_button"
+                    
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/ButtonOK" 
+                    android:background="?android:selectableItemBackground"/>
+
+                <Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:id="@+id/reset_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/ButtonReset" />
+            </LinearLayout>
+
+            
         </RadioGroup>
 
         <LinearLayout

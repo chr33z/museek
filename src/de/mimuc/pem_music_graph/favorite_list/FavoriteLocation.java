@@ -1,4 +1,6 @@
-package de.mimuc.pem_music_graph.list;
+package de.mimuc.pem_music_graph.favorite_list;
+
+import de.mimuc.pem_music_graph.list.Event;
 
 public class FavoriteLocation {
 
@@ -12,6 +14,8 @@ public class FavoriteLocation {
 	public String addressCity;
 	public String addressPostcode;
 	public String locationWebsite;
+	
+	public Event nextEvent;
 
 	public FavoriteLocation(String locationID, String locationName,
 			String locationLatitude, String locationLongitude,
@@ -29,5 +33,9 @@ public class FavoriteLocation {
 		this.addressCity = addressCity;
 		this.addressPostcode = addressPostcode;
 		this.locationWebsite = locationWebsite;
+	}
+	
+	public void setNextEvent(Event event){
+		this.nextEvent = event;
 	}
 }

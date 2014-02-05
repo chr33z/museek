@@ -207,7 +207,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 				@Override
 				public void onClick(View v) {
-					openMap(currentEvent);
+						openMap(Double.parseDouble(currentEvent.locationLatitude),Double.parseDouble(currentEvent.locationLongitude));
 				}
 			});
 
@@ -273,6 +273,17 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				convertView = layoutInflater.inflate(R.layout.headlinelist,
 						null);
 
+
+		// compute distance
+		// Location destination = new Location("destination");
+		// destination
+		// .setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
+		// destination.setLongitude(Double.parseDouble(eventList
+		// .get(groupPosition).locationLongitude));
+		// Location currentLocation =
+		// eventList.get(groupPosition).currentLocation;
+		// float distance = currentLocation.distanceTo(destination);
+
 			} else {
 				LayoutInflater layoutInflater = (LayoutInflater) context
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -297,6 +308,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			
 			CheckBox star = (CheckBox) convertView.findViewById(R.id.star);
 			star.setTag(groupPosition);
+
 
 			if (locationName != null) {
 				Log.v("adapter", currentEvent.locationName);
@@ -449,12 +461,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		return "ca. " + (int) distance + " " + distanceUnity;
 	}
 
-	public void openMap(Event event) {
-		
+	public void openMap(double lat, double longi) {
 		String uri = String.format(Locale.ENGLISH,
-				"http://maps.google.com/maps?&daddr=%f,%f (%s)", 
-				Double.parseDouble(event.locationLatitude), Double.parseDouble(event.locationLongitude),
-				"Where the party is");
+				"http://maps.google.com/maps?&daddr=%f,%f (%s)", lat, longi,
+				"Where the party is at");
+
 		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
 		intent.setClassName("com.google.android.apps.maps",
 				"com.google.android.maps.MapsActivity");

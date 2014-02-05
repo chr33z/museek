@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/list_header_height"
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingTop="10dp" >
+
+    <TextView
+        android:id="@+id/favorite_name"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:text="Nachtgallerie"
+        android:textColor="@color/list_head_primary"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/favorite_next_event"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text="Face the Demise"
+        android:textColor="@color/list_head_secondary"
+        android:textSize="17sp" />
+
+    <TextView
+        android:id="@+id/favorite_next_event_date"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text="Heute - ab 16:30 Uhr"
+        android:textColor="@color/list_head_tertiary"
+        android:textSize="17sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

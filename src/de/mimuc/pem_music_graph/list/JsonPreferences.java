@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
 
 public class JsonPreferences implements JsonConstants{

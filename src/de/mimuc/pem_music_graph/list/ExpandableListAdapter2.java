@@ -95,12 +95,10 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		if (currentEvent != null) {
 			TextView openingHours = (TextView) convertView
 					.findViewById(R.id.openinghours);
-			final TextView eventDescription = (TextView) convertView
+			TextView eventDescription = (TextView) convertView
 					.findViewById(R.id.eventdescription);
-			TextView admissionPriceGirls = (TextView) convertView
-					.findViewById(R.id.admissionpricegirls);
-			TextView admissionPriceBoys = (TextView) convertView
-					.findViewById(R.id.admissionpriceboys);
+			TextView admissionPrice = (TextView) convertView
+					.findViewById(R.id.admissionprice);
 			TextView addressStreet = (TextView) convertView
 					.findViewById(R.id.street);
 			TextView addressCity = (TextView) convertView
@@ -114,68 +112,17 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			
 			RelativeLayout map = (RelativeLayout) convertView.findViewById(R.id.map_layout);
 
-			// setting the Informations of the EventLocation
-			if (openingHours != null) {
-				if (currentEvent.endTime.equals("0"))
-					currentEvent.endTime = "";
-				if (stringNotEmpty(currentEvent.endTime))
-					openingHours.setText(context
-							.getString(R.string.list_detail_open)
-							+ " "
-							+ currentEvent.startTime
-							+ " - "
-							+ currentEvent.endTime
-							+ " "
-							+ context.getString(R.string.list_detail_clock));
-				else if (stringNotEmpty(currentEvent.startTime))
-					openingHours.setText(context
-							.getString(R.string.list_detail_open_from)
-							+ " "
-							+ currentEvent.startTime
-							+ " "
-							+ context.getString(R.string.list_detail_clock));
-				if (currentEvent.endTime.equals("0"))
-					currentEvent.endTime = "";
-				if (stringNotEmpty(currentEvent.endTime))
-					openingHours
-					.setText("Ge"
-							+ context.getString(R.string.oe)
-							+ "ffnet: "
-							+ formatTime(Long
-									.parseLong(currentEvent.startTime))
-									+ " - " + currentEvent.endTime + " Uhr");
-				else if (stringNotEmpty(currentEvent.startTime))
-					openingHours
-					.setText("Ge"
-							+ context.getString(R.string.oe)
-							+ "ffnet: "
-							+ " ab "
-							+ formatTime(Long
-									.parseLong(currentEvent.startTime))
-									+ " Uhr");
-			}
-			if (eventDescription != null)
-				if (stringNotEmpty(currentEvent.endTime))
-					eventDescription.setText(currentEvent.eventDescription);
-			if (stringNotEmpty(currentEvent.eventDescription))
+			if (eventDescription != null && stringNotEmpty(currentEvent.eventDescription))
 				eventDescription.setText(currentEvent.eventDescription);
 			else {
 				eventDescription.setVisibility(View.GONE);
 			}
-			if (admissionPriceGirls != null)
-				admissionPriceGirls.setText(context
-						.getString(R.string.list_detail_girls));
-			if (admissionPriceBoys != null)
-				admissionPriceBoys.setText(context
-						.getString(R.string.list_detail_boys));
-			// FIXME Abfrage, ob Preise vorhanden
-			admissionPriceGirls.setVisibility(View.GONE);
-			admissionPriceBoys.setVisibility(View.GONE);
-			// if (admissionPriceGirls != null)
-			// admissionPriceGirls.setText("M"
-			// + context.getString(R.string.ae) + "dels: " + ",-");
-			// if (admissionPriceBoys != null)
-			// admissionPriceBoys.setText("Jungs: " + ",-");
+			
+			if(admissionPrice != null && stringNotEmpty(currentEvent.price)){
+				admissionPrice.setText(currentEvent.price);
+			} else {
+				admissionPrice.setVisibility(View.GONE);
+			}
 
 			if (addressStreet != null)
 				if (stringNotEmpty(currentEvent.addressStreet)
@@ -226,10 +173,10 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				@Override
 				public void onClick(View v) {
 					if (!isDescriptionExpanded) {
-						eventDescription.setMaxLines(10);
+						((TextView)v).setMaxLines(10);
 						setTextExpanded(true);
 					} else {
-						eventDescription.setMaxLines(3);
+						((TextView)v).setMaxLines(3);
 						setTextExpanded(false);
 					}
 				}

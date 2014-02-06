@@ -16,6 +16,7 @@ public class Event {
 	public String endTime;
 	public String minAge;
 	public String specialOffer;
+	public String price;
 
 	public String locationID;
 	public String locationName;
@@ -69,7 +70,7 @@ public class Event {
 			String locationLongitude, String locationDescription,
 			String addressStreet, String addressNumber, String addressCity,
 			String addressPostcode, String locationWebsite,
-			Location currentLocation, float currentDistance,
+			Location currentLocation, String price, float currentDistance,
 			boolean isFavorite, boolean isExpanded) {
 		this.resultTime = resultTime;
 		this.resultRadius = resultRadius;
@@ -83,6 +84,7 @@ public class Event {
 		this.endTime = endTime;
 		this.minAge = minAge;
 		this.specialOffer = specialOffer;
+		this.price = price;
 
 		this.locationID = locationID;
 		this.locationName = locationName;

@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -314,6 +315,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 								}else{
 									graphListener.onGraphUpdate(node, graph.measureHeight());
 								}
+								graphListener.onGraphUpdate(node.getParent(), graph.measureHeight());
 							}
 							touchLocked = false;
 						}
@@ -514,6 +516,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	 * Start the drawing thread
 	 */
 	public void onThreadResume(){
+		Log.d(TAG, "Thread started running");
 		running = true;
 		thread = new Thread(this);
 		thread.start();
@@ -529,6 +532,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			try {
 				thread.join();
 				retry = false;
+				Log.d(TAG, "Thread stopped running");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -543,8 +547,11 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				continue;
 			} else {
 				Canvas canvas = surfaceHolder.lockCanvas();
-				onDraw(canvas);
-				surfaceHolder.unlockCanvasAndPost(canvas);
+				
+				if(canvas != null){
+					onDraw(canvas);
+					surfaceHolder.unlockCanvasAndPost(canvas);
+				}
 			}
 		}
 	}

@@ -40,6 +40,7 @@
             android:value="AIzaSyCqF3437UMpzw4nsdcuMmKnU-cShblSpIc" />
         -->
         <activity
+            android:screenOrientation="portrait"
             android:name="de.mimuc.pem_music_graph.StartScreen"
             android:icon="@drawable/ic_launcher"
             android:label="@string/app_name"
@@ -51,6 +52,7 @@
             </intent-filter>
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name="de.mimuc.pem_music_graph.CombinedView"
             android:icon="@drawable/ic_launcher"
             android:label="@string/app_name" >

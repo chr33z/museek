@@ -191,6 +191,7 @@ public class EventController implements JsonConstants {
 		String endTime = null;
 		String minAge = null;
 		String specialOffer = null;
+		String price = null;
 
 		String locationID = null;
 		String locationName = null;
@@ -231,6 +232,7 @@ public class EventController implements JsonConstants {
 				endTime = event.getString(TAG_EVENT_END_TIME);
 				minAge = event.getString(TAG_EVENT_MIN_AGE);
 				specialOffer = event.getString(TAG_EVENT_SPECIAL_OFFER);
+				price = event.getString(TAG_EVENT_PRICE);
 
 				locationID = event.getString(TAG_LOCATION_ID);
 				locationName = event.getString(TAG_LOCATION_NAME);
@@ -269,7 +271,7 @@ public class EventController implements JsonConstants {
 						locationLatitude, locationLongitude,
 						locationDescription, addressStreet, addressNumber,
 						addressCity, addressPostcode, locationWebsite,
-						currentLocation, currentDistance, isFavorite,
+						currentLocation, price, currentDistance, isFavorite,
 						isExpanded);
 
 				eventList.add(newEvent);
@@ -331,7 +333,6 @@ public class EventController implements JsonConstants {
 	 */
 	public void updateFavorites() {
 		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
-			Log.v("updateFavorites", entry.toString());
 			if (getEvent(entry.getKey()) != null) {
 				getEvent(entry.getKey()).isFavorite = true;
 			}
@@ -357,7 +358,8 @@ public class EventController implements JsonConstants {
 	 * string as expanded item
 	 */
 	public void onExpandedItemFalse() {
-		getEvent(expandedItem).isExpanded = false;
+		if(getEvent(expandedItem) != null)
+			getEvent(expandedItem).isExpanded = false;
 		expandedItem = "";
 	}
 
@@ -613,6 +615,10 @@ public class EventController implements JsonConstants {
 			}
 		}
 		return null;
+	}
+	
+	public List<Event> getCompleteEventList(){
+		return eventList;
 	}
 	
 	public List<Event> getAllEvents(String locationId) {

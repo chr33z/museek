@@ -30,7 +30,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources.NotFoundException;
 import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,7 +39,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.DrawerLayout.DrawerListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -67,6 +65,7 @@ import de.mimuc.pem_music_graph.favorite_list.ExpandableFavoriteListAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import android.widget.TextView.OnEditorActionListener;
+import de.mimuc.pem_music_graph.graph.GenreGraphConstants;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
@@ -135,6 +134,8 @@ public class CombinedView extends FragmentActivity implements
 	int height = 0;
 
 	private SharedPreferences sharedPreferences;
+	
+	View rootView;
 
 	/**
 	 * Is called when location updates arrive
@@ -174,36 +175,9 @@ public class CombinedView extends FragmentActivity implements
 		case R.id.radio_otherStart:
 			if (checked) {
 				useOwnLocation = false;
-				mEventController.setLocation(StringToLocation("start"));
-				// otherAdress to Location -> setLocation
-				onEventControllerUpdate();
 			}
 			break;
 		}
-	}
-
-	public Location StringToLocation(String start) {
-
-		Geocoder coder = new Geocoder(this);
-		List<Address> address;
-
-		try {
-			address = coder.getFromLocationName("Kienbergstr. 7", 5);
-			if (address == null) {
-				return null;
-			}
-			Address location = address.get(0);
-			double lat = location.getLatitude();
-			double longi = location.getLongitude();
-
-			Location p1 = new Location("Ziel");
-			p1.setLatitude(lat);
-			p1.setLongitude(longi);
-
-			return p1;
-		} catch (Exception e) {
-		}
-		return null;
 	}
 
 	@SuppressLint("NewApi")
@@ -211,6 +185,9 @@ public class CombinedView extends FragmentActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
+		
+		// to get the height of our view
+		rootView = findViewById(R.id.root);
 
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		String loadLastEvents = sharedPreferences.getString("events", "");
@@ -271,8 +248,6 @@ public class CombinedView extends FragmentActivity implements
 			updateFavoriteList();
 		}
 
-		updateFavoriteList();
-
 		this.context = this;
 
 		// intialize listview
@@ -280,6 +255,8 @@ public class CombinedView extends FragmentActivity implements
 		ExpandableListAdapter2 adapter = new ExpandableListAdapter2(this,
 				mEventController.getEventList());
 		locationListView.setAdapter(adapter);
+		
+		updateFavoriteList();
 
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController.getInstance()
@@ -308,25 +285,11 @@ public class CombinedView extends FragmentActivity implements
 						locationListView.getPaddingRight(), 
 						findViewById(R.id.list_container).getTop());
 						
-				// graphView.onThreadPause();
-
-				// if(android.os.Build.VERSION.SDK_INT >
-				// Build.VERSION_CODES.HONEYCOMB){
-				// if (slideOffset < 0.2) {
-				// if (getActionBar().isShowing()) {
-				// getActionBar().hide();
-				// }
-				// } else {
-				// if (!getActionBar().isShowing()) {
-				// getActionBar().show();
-				// }
-				// }
-				// }
 			}
 
 			@Override
 			public void onPanelExpanded(View panel) {
-				// graphView.onThreadPause();
+//				graphView.onThreadPause();
 
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
@@ -337,7 +300,7 @@ public class CombinedView extends FragmentActivity implements
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-				// graphView.onThreadResume();
+//				graphView.onThreadResume();
 
 				// FIXME find other method for Android 2.3
 				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
@@ -568,6 +531,7 @@ public class CombinedView extends FragmentActivity implements
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
+				
 				graphView.onThreadPause();
 
 				// save last scroll position
@@ -657,7 +621,6 @@ public class CombinedView extends FragmentActivity implements
 					.commit();
 	}
 
-	@SuppressLint("NewApi")
 	@Override
 	public void onGraphUpdate(GenreNode node, int newHeight) {
 		mEventController.setGenreNode(node);
@@ -665,6 +628,7 @@ public class CombinedView extends FragmentActivity implements
 		// layout.animatePanelHeight((int)(newHeight +
 		// GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
 		Log.d(TAG, "Click on node " + node.name);
+		layout.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
 	}
 
 	@Override
@@ -709,7 +673,7 @@ public class CombinedView extends FragmentActivity implements
 	 */
 	private void updateFavoriteList() {
 		LinkedList<FavoriteLocation> favLocations = new LinkedList<FavoriteLocation>();
-		List<Event> eventList = mEventController.getEventList();
+		List<Event> eventList = mEventController.getCompleteEventList();
 
 		/*
 		 * iterate over all favorites and all events if we find an event that
@@ -723,7 +687,7 @@ public class CombinedView extends FragmentActivity implements
 			for (Event event : eventList) {
 				String favoriteId = entry.getKey();
 
-				if (event.locationID == favoriteId) {
+				if (event.locationID.equals(favoriteId)) {
 					if (nextEvent == null) {
 						nextEvent = event;
 					} else {
@@ -894,7 +858,7 @@ public class CombinedView extends FragmentActivity implements
 		Event event = null;
 		int position = 0;
 		
-		if(adapter != null){
+		if(adapter != null && favoriteLocation.nextEvent != null){
 			for (int i = 0; i < adapter.getGroupCount(); i++) {
 				Event iEvent = (Event) adapter.getGroup(i);
 				
@@ -906,6 +870,7 @@ public class CombinedView extends FragmentActivity implements
 			
 			if(event != null){
 				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
+				// FIXME collapse other child views
 				layout.expandPane();
 				locationListView.smoothScrollToPositionFromTop(
 					position, 0);

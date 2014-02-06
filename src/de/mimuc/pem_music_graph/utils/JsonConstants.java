@@ -53,5 +53,6 @@ public interface JsonConstants {
 	public static final String TAG_EVENT_MIN_AGE = "event_age_restriction";
 	public static final String TAG_EVENT_SPECIAL_OFFER = "event_special_offer";
 	public static final String TAG_EVENT_GENRES = "event_genres";
+	public static final String TAG_EVENT_PRICE = "event_price";
 
 }

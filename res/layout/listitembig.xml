@@ -20,14 +20,6 @@
             android:paddingRight="5dp"
             android:paddingBottom="5dp">
 
-            <TextView
-                android:id="@+id/openinghours"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingBottom="10dp"
-                android:textColor="@color/list_head_secondary"
-                android:textSize="16sp" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -55,14 +47,7 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/admissionpricegirls"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/list_head_secondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/admissionpriceboys"
+                android:id="@+id/admissionprice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingBottom="10dp"

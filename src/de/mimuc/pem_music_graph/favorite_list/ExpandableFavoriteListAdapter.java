@@ -129,6 +129,9 @@ public class ExpandableFavoriteListAdapter extends BaseExpandableListAdapter {
 			
 			nextEvent.setText(favoriteLocation.nextEvent.eventName);
 			nextEventDate.setText(getHeaderTime(startTime));
+		} else {
+			nextEvent.setVisibility(View.GONE);
+			nextEventDate.setVisibility(View.GONE);
 		}
 		
 

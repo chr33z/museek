@@ -315,7 +315,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 								}else{
 									graphListener.onGraphUpdate(node, graph.measureHeight());
 								}
-								graphListener.onGraphUpdate(node.getParent(), graph.measureHeight());
 							}
 							touchLocked = false;
 						}

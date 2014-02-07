@@ -213,7 +213,6 @@ public class CombinedView extends FragmentActivity implements
 		setContentView(R.layout.activity_combined_view);
 
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		String loadLastEvents = sharedPreferences.getString("events", "");
 
 		mapFragment = new MapFragment();
 
@@ -252,25 +251,22 @@ public class CombinedView extends FragmentActivity implements
 				Log.w(TAG, "Could not create json from string");
 				e.printStackTrace();
 				mEventController = new EventController(this);
-				// mEventController = new EventController(this, new
-				// JSONObject(loadLastEvents));
 			}
 		} else {
 			mEventController = new EventController(this);
-			// mEventController = new EventController(this, new
-			// JSONObject(loadLastEvents));
 		}
 
 		mEventController.setGenreNode(graphView.getRootNode());
 
 		String favorites = sharedPreferences.getString("favorites", "");
 		if (!(favorites.isEmpty())) {
+			Log.v("favoriten", favorites);
 			mEventController.setFavorites(JsonPreferences
 					.createFavoritesFromJson(favorites));
 			mEventController.updateFavorites();
 			updateFavoriteList();
+			Log.v("updateFavoriteList", favorites);
 		}
-
 		updateFavoriteList();
 
 		this.context = this;
@@ -636,8 +632,8 @@ public class CombinedView extends FragmentActivity implements
 	}
 
 	@Override
-	public void onExpandedItemTrue(String locationID) {
-		mEventController.onExpandedItemTrue(locationID);
+	public void onExpandedItemTrue(int ID) {
+		mEventController.onExpandedItemTrue(ID);
 
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
@@ -719,11 +715,10 @@ public class CombinedView extends FragmentActivity implements
 		for (Entry<String, FavoriteLocation> entry : mEventController
 				.getFavorites().entrySet()) {
 			Event nextEvent = null;
-
 			for (Event event : eventList) {
 				String favoriteId = entry.getKey();
 
-				if (event.locationID == favoriteId) {
+				if (event.locationID.equals(favoriteId)) {
 					if (nextEvent == null) {
 						nextEvent = event;
 					} else {
@@ -897,10 +892,11 @@ public class CombinedView extends FragmentActivity implements
 		if(adapter != null){
 			for (int i = 0; i < adapter.getGroupCount(); i++) {
 				Event iEvent = (Event) adapter.getGroup(i);
-				
-				if(iEvent.startTime.equals(favoriteLocation.nextEvent.startTime)){
-					event = iEvent;
-					position = i;
+				if(favoriteLocation.nextEvent.startTime != null){
+					if((iEvent.startTime).equals(favoriteLocation.nextEvent.startTime)){
+						event = iEvent;
+						position = i;
+					}
 				}
 			}
 			

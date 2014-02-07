@@ -59,7 +59,7 @@ public class EventController implements JsonConstants {
 	/**
 	 * Keep track of expanded views to reset them on a adapter reload
 	 */
-	private String expandedItem = "";
+	private int expandedItem = 0;
 
 	/**
 	 * stores the current genrenode
@@ -179,6 +179,8 @@ public class EventController implements JsonConstants {
 	 * @param json
 	 */
 	protected void readJson(JSONObject json) {
+		int ID;
+		
 		String resultTime = null;
 		String resultRadius = null;
 		String resultLatitude = null;
@@ -212,10 +214,14 @@ public class EventController implements JsonConstants {
 
 			// eventLocations are stored in an array
 			JSONArray jsonArray = json.getJSONArray("events");
-
+			int currentID = 1;
+			
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject event = jsonArray.getJSONObject(i);
 
+				ID = currentID;
+				currentID++;
+				
 				resultTime = json.getString(TAG_RESULT_TIME);
 				resultRadius = json.getString(TAG_RESULT_RADIUS);
 				resultLatitude = json.getString(TAG_RESULT_LATITUDE);
@@ -262,7 +268,7 @@ public class EventController implements JsonConstants {
 					isExpanded = true;
 				}
 
-				Event newEvent = new Event(resultTime, resultRadius,
+				Event newEvent = new Event(ID, resultTime, resultRadius,
 						resultLatitude, resultLongitude, eventName, eventGenre,
 						eventDescription, startTime, endTime, minAge,
 						specialOffer, locationID, locationName,
@@ -344,12 +350,12 @@ public class EventController implements JsonConstants {
 	 * 
 	 * @param locationID
 	 */
-	public void onExpandedItemTrue(String locationID) {
+	public void onExpandedItemTrue(int ID) {
 		Log.v("expandedItemsnull", expandedItem + "");
-		if (!(expandedItem.equals("")))
-			getEvent(expandedItem).isExpanded = false;
-		expandedItem = locationID;
-		getEvent(expandedItem).isExpanded = true;
+		if (expandedItem != 0)
+			getEventID(expandedItem).isExpanded = false;
+		expandedItem = ID;
+		getEventID(expandedItem).isExpanded = true;
 	}
 
 	/**
@@ -357,8 +363,8 @@ public class EventController implements JsonConstants {
 	 * string as expanded item
 	 */
 	public void onExpandedItemFalse() {
-		getEvent(expandedItem).isExpanded = false;
-		expandedItem = "";
+		getEventID(expandedItem).isExpanded = false;
+		expandedItem = 0;
 	}
 
 	/**
@@ -606,6 +612,15 @@ public class EventController implements JsonConstants {
 		this.showAll = showAll;
 	}
 
+	public Event getEventID(int ID) {
+		for (int i = 0; i < eventList.size(); i++) {
+			if (eventList.get(i).ID == ID) {
+				return eventList.get(i);
+			}
+		}
+		return null;
+	}
+	
 	public Event getEvent(String locationId) {
 		for (int i = 0; i < eventList.size(); i++) {
 			if (eventList.get(i).locationID.equals(locationId)) {

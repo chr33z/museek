@@ -12,7 +12,7 @@ public interface EventControllerListener {
 
 	public void onRemoveFavorites(String locationID);
 
-	public void onExpandedItemTrue(String locationID);
+	public void onExpandedItemTrue(int ID);
 	
 	public void onExpandedItemFalse();
 	

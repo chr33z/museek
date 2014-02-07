@@ -4,6 +4,8 @@ import android.location.Location;
 
 public class Event {
 
+	public int ID;
+	
 	public String resultTime;
 	public String resultRadius;
 	public String resultLatitude;
@@ -35,6 +37,7 @@ public class Event {
 	/**
 	 * constructor
 	 * 
+	 * @param ID
 	 * @param resultTime
 	 * @param resultRadius
 	 * @param resultLatitude
@@ -61,7 +64,7 @@ public class Event {
 	 * @param isFavorite
 	 * @param isExpanded
 	 */
-	public Event(String resultTime, String resultRadius, String resultLatitude,
+	public Event(int ID, String resultTime, String resultRadius, String resultLatitude,
 			String resultLongitude, String eventName, String eventGenre,
 			String eventDescription, String startTime, String endTime,
 			String minAge, String specialOffer, String locationID,
@@ -71,6 +74,8 @@ public class Event {
 			String addressPostcode, String locationWebsite,
 			Location currentLocation, float currentDistance,
 			boolean isFavorite, boolean isExpanded) {
+		this.ID = ID;
+		
 		this.resultTime = resultTime;
 		this.resultRadius = resultRadius;
 		this.resultLatitude = resultLatitude;

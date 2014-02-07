@@ -359,7 +359,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						}
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						currentEvent.isExpanded = true;
-						callbackReceiver.onExpandedItemTrue(currentEvent.locationID);
+						callbackReceiver.onExpandedItemTrue(currentEvent.ID);
 						listView.expandGroup(groupPosition);
 						callbackReceiver.scrollEventTop(v);
 						callbackReceiver.attachMap(currentEvent);
@@ -393,7 +393,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						eventList.get(groupPosition).isExpanded = true;
 						callbackReceiver.onExpandedItemTrue(eventList
-								.get(groupPosition).locationID);
+								.get(groupPosition).ID);
 					}
 				}
 			});

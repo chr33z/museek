@@ -43,7 +43,7 @@ public class EventController implements JsonConstants {
 	 * The last known location
 	 */
 	private Location currentLocation;
-	
+
 	private boolean useOtherLocation = false;
 
 	/**
@@ -75,9 +75,9 @@ public class EventController implements JsonConstants {
 	 * 
 	 */
 	private DateTime dateTime;
-	
+
 	private boolean useAlternativeTime = false;
-	
+
 	private DateTime alternativeTime = new DateTime();
 
 	private boolean showAll = true;
@@ -180,7 +180,7 @@ public class EventController implements JsonConstants {
 	 */
 	protected void readJson(JSONObject json) {
 		int ID;
-		
+
 		String resultTime = null;
 		String resultRadius = null;
 		String resultLatitude = null;
@@ -215,13 +215,13 @@ public class EventController implements JsonConstants {
 			// eventLocations are stored in an array
 			JSONArray jsonArray = json.getJSONArray("events");
 			int currentID = 1;
-			
+
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject event = jsonArray.getJSONObject(i);
 
 				ID = currentID;
 				currentID++;
-				
+
 				resultTime = json.getString(TAG_RESULT_TIME);
 				resultRadius = json.getString(TAG_RESULT_RADIUS);
 				resultLatitude = json.getString(TAG_RESULT_LATITUDE);
@@ -264,7 +264,7 @@ public class EventController implements JsonConstants {
 				}
 
 				isExpanded = false;
-				if (locationID.equals(expandedItem)) {
+				if (ID == expandedItem) {
 					isExpanded = true;
 				}
 
@@ -294,21 +294,20 @@ public class EventController implements JsonConstants {
 	 */
 	public void onAddFavorites(String locationID) {
 		FavoriteLocation fLocation = new FavoriteLocation(locationID,
-			getEvent(locationID).locationName,
-			getEvent(locationID).locationLatitude,
-			getEvent(locationID).locationLongitude,
-			getEvent(locationID).locationDescription,
-			getEvent(locationID).addressStreet,
-			getEvent(locationID).addressNumber,
-			getEvent(locationID).addressCity,
-			getEvent(locationID).addressPostcode,
-			getEvent(locationID).locationWebsite);
-		
+				getEvent(locationID).locationName,
+				getEvent(locationID).locationLatitude,
+				getEvent(locationID).locationLongitude,
+				getEvent(locationID).locationDescription,
+				getEvent(locationID).addressStreet,
+				getEvent(locationID).addressNumber,
+				getEvent(locationID).addressCity,
+				getEvent(locationID).addressPostcode,
+				getEvent(locationID).locationWebsite);
 
-		if(fLocation != null){
+		if (fLocation != null) {
 			favorites.put(locationID, fLocation);
-			
-			for(Event event : getAllEvents(locationID)){
+
+			for (Event event : getAllEvents(locationID)) {
 				event.isFavorite = true;
 			}
 		}
@@ -324,7 +323,7 @@ public class EventController implements JsonConstants {
 	public void onRemoveFavorites(String locationID) {
 
 		if (favorites.containsKey(locationID)) {
-			for(Event event : getAllEvents(locationID)){
+			for (Event event : getAllEvents(locationID)) {
 				event.isFavorite = false;
 			}
 			favorites.remove(locationID);
@@ -377,12 +376,13 @@ public class EventController implements JsonConstants {
 	public List<Event> storeDistance(List<Event> eL) {
 		float distance;
 		for (Event event : eL) {
-			
+
 			// event location
 			Location destination = new Location("destination");
 			destination.setLatitude(Double.parseDouble(event.locationLatitude));
-			destination.setLongitude(Double.parseDouble(event.locationLongitude));
-			
+			destination.setLongitude(Double
+					.parseDouble(event.locationLongitude));
+
 			distance = currentLocation.distanceTo(destination);
 			event.currentDistance = distance;
 		}
@@ -411,17 +411,19 @@ public class EventController implements JsonConstants {
 		}
 		return favoriteLocations;
 	}
-	
+
 	/**
 	 * only show events from that date on
+	 * 
 	 * @param eL
 	 * @return
 	 */
 	private List<Event> filterDate(List<Event> eL) {
 		List<Event> events = new ArrayList<Event>();
 		for (int i = 0; i < eL.size(); i++) {
-			DateTime date = new DateTime(Long.parseLong((eL.get(i).startTime))).withTimeAtStartOfDay();
-			if(getDateTime().compareTo(date) == 0)
+			DateTime date = new DateTime(Long.parseLong((eL.get(i).startTime)))
+					.withTimeAtStartOfDay();
+			if (getDateTime().compareTo(date) == 0)
 				events.add(eL.get(i));
 		}
 		return events;
@@ -490,7 +492,7 @@ public class EventController implements JsonConstants {
 		// List<Event> eL = new ArrayList<Event>(date(eventList));
 		storeDistance(eventList);
 		List<Event> eL = sortGenre(eventList);
-		if(useAlternativeTime){
+		if (useAlternativeTime) {
 			eL = filterDate(eL);
 		}
 		Collections.sort(eL, new DateDistanceComparator());
@@ -501,6 +503,13 @@ public class EventController implements JsonConstants {
 		if (eL.size() == 0) {
 			eL.add(new Event());
 			setNoEvents(true);
+		}
+
+		for (int i = 0; i < eL.size(); i++) {
+			if (favorites.get(eL.get(i).locationID) != null)
+				eL.get(i).isFavorite = true;
+			else
+				eL.get(i).isFavorite = false;
 		}
 		return eL;
 	}
@@ -531,7 +540,7 @@ public class EventController implements JsonConstants {
 	public void setJsonForSharedPreferences(JSONObject jsonForSharedPreferences) {
 		DateTime now = new DateTime();
 		try {
-			jsonForSharedPreferences.put("saveDate", now.getMillis()+"");
+			jsonForSharedPreferences.put("saveDate", now.getMillis() + "");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -595,8 +604,8 @@ public class EventController implements JsonConstants {
 	public DateTime getDateTime() {
 		return dateTime;
 	}
-	
-	public void useAlternativeTime(boolean useAlternativeTime){
+
+	public void useAlternativeTime(boolean useAlternativeTime) {
 		this.useAlternativeTime = useAlternativeTime;
 	}
 
@@ -620,7 +629,7 @@ public class EventController implements JsonConstants {
 		}
 		return null;
 	}
-	
+
 	public Event getEvent(String locationId) {
 		for (int i = 0; i < eventList.size(); i++) {
 			if (eventList.get(i).locationID.equals(locationId)) {
@@ -629,12 +638,12 @@ public class EventController implements JsonConstants {
 		}
 		return null;
 	}
-	
+
 	public List<Event> getAllEvents(String locationId) {
 		LinkedList<Event> events = new LinkedList<Event>();
-		
+
 		for (int i = 0; i < eventList.size(); i++) {
-			if (eventList.get(i).locationID.equals(locationId)) {
+			if ((eventList.get(i).locationID).equals(locationId)) {
 				events.add(eventList.get(i));
 			}
 		}
@@ -643,5 +652,9 @@ public class EventController implements JsonConstants {
 
 	public void useOtherLocation(boolean useOtherLocation) {
 		this.useOtherLocation = useOtherLocation;
+	}
+	
+	public void setExpandedItem(int expandedItem) {
+		this.expandedItem = expandedItem;
 	}
 }

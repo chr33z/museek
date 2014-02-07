@@ -906,6 +906,8 @@ public class CombinedView extends FragmentActivity implements
 				locationListView.smoothScrollToPositionFromTop(
 					position, 0);
 				locationListView.expandGroup(position);
+				event.isExpanded = true;
+				mEventController.setExpandedItem(event.ID);
 			}
 		}
 	}

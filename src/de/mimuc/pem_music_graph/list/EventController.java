@@ -331,7 +331,9 @@ public class EventController implements JsonConstants {
 	public void updateFavorites() {
 		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
 			if (getEvent(entry.getKey()) != null) {
-				getEvent(entry.getKey()).isFavorite = true;
+				for (Event event : getAllEvents(entry.getKey())) {
+					event.isFavorite = true;
+				}
 			}
 		}
 	}
@@ -628,7 +630,7 @@ public class EventController implements JsonConstants {
 		return events;
 	}
 
-	public void useOtherLocation(boolean useOtherLocation) {
+	public void useAlternativeLocation(boolean useOtherLocation) {
 		this.useOtherLocation = useOtherLocation;
 	}
 }

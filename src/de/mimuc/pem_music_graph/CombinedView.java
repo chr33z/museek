@@ -7,9 +7,14 @@ import java.util.Map.Entry;
 import java.util.List;
 
 import org.joda.time.DateTime;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
@@ -23,11 +28,11 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources.NotFoundException;
-import android.location.Address;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -47,6 +52,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
@@ -76,7 +82,6 @@ import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.list.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.ApiGuard;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
-import de.mimuc.pem_music_graph.utils.LocationFromAdress;
 import de.mimuc.pem_music_graph.utils.UndoBarController;
 import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 
@@ -168,14 +173,20 @@ UndoListener {
 		switch (view.getId()) {
 		case R.id.radio_ownStart:
 			if (checked) {
-				mUseAlternativeLocation = true;
+				mUseAlternativeLocation = false;
+				mEventController.useAlternativeLocation(false);
 				mEventController.setLocation(mCurrentLocation);
-				drawerLayout.closeDrawer(Gravity.LEFT);
+				onEventControllerUpdate();
 			}
 			break;
 		case R.id.radio_otherStart:
 			if (checked) {
-				mUseAlternativeLocation = false;
+				mUseAlternativeLocation = true;
+				if(mAlternativeLocation != null){
+					mEventController.useAlternativeLocation(true);
+					mEventController.setLocation(mAlternativeLocation);
+					onEventControllerUpdate();
+				}
 			}
 			break;
 		}
@@ -341,31 +352,9 @@ UndoListener {
 					KeyEvent event) {
 				boolean handled = false;
 				if (actionId == EditorInfo.IME_ACTION_SEND) {
-					String addressPattern = editText.getText().toString();
-					Address closestAddress = LocationFromAdress
-							.getLocationFromAddress(addressPattern);
-					if (closestAddress != null) {
-						double lat = closestAddress.getLatitude();
-						double lon = closestAddress.getLongitude();
-						Location otherLocation = new Location("otherLocation");
-						otherLocation.setLatitude(lat);
-						otherLocation.setLongitude(lon);
-
-						drawerLayout.closeDrawer(Gravity.RIGHT);
-
-						mEventController.setLocation(otherLocation);
-						mEventController.useOtherLocation(true);
-						onEventControllerUpdate();
-					} else {
-						Toast.makeText(getApplicationContext(),
-								getApplicationContext().getString(R.string.address_not_found),
-								Toast.LENGTH_LONG).show();
-						editText.setHint(R.string.text_hint);
-						radioBtnOwnLocation.setChecked(true);
-					}
+					getLocationFromAddress(editText.getText().toString());
 					handled = true;
 				}
-
 				return handled;
 			}
 
@@ -447,6 +436,8 @@ UndoListener {
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 	}
+	
+	
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -488,7 +479,7 @@ UndoListener {
 
 		if (mLocationClient != null)
 			mLocationClient.connect();
-		
+
 		if(graphView != null)
 			graphView.onThreadResume();
 	}
@@ -645,9 +636,9 @@ UndoListener {
 			getSupportFragmentManager().beginTransaction().remove(fragment)
 			.commit();
 
-		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-			locationListView.findViewById(R.id.map_container).setVisibility(View.GONE);
-		}
+//		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+//			locationListView.findViewById(R.id.map_container).setVisibility(View.GONE);
+//		}
 	}
 
 	@Override
@@ -866,17 +857,111 @@ UndoListener {
 				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
 				slideUpPanel.expandPane();
 
-				for (int i = 0; i < adapter.getGroupCount(); i++) {
-					for (Event e : mEventController.getEventList()) {
-						e.isExpanded = false;
-					}
+				for (Event e : mEventController.getEventList()) {
+					e.isExpanded = false;
 				}
 
 				locationListView.smoothScrollToPositionFromTop(
 						position, 0);
 				event.isExpanded = true;
 				adapter.notifyDataSetChanged();
+				attachMap(event);
 			}
+		}
+	}
+	
+	private void getLocationFromAddress(String address){
+		address = address.replace(", ", " ");
+		address = address.replace(",", " ");
+		address = address.replace(" ", "+");
+		address = address.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
+        String url = "http://maps.googleapis.com/maps/api/geocode/json?address="+ address +"&sensor=true";
+		
+		// POST request
+		JsonObjectRequest req = new JsonObjectRequest(url, null, 
+				
+				new Response.Listener<JSONObject>() {
+					@Override
+					public void onResponse(JSONObject response) {
+						Log.i(TAG, "...success!");
+						onAlternativeLocationsReceived(response);
+					}
+				}, new Response.ErrorListener() {
+					@Override
+					public void onErrorResponse(VolleyError error) {
+						if (error.getMessage() == null) {
+							Log.e(TAG,
+									"...could not retrieve locations");
+							return;
+						}
+						VolleyLog.e("Error: ", error.getMessage());
+						Log.w(TAG, "...could not retrieve locations!");
+					}
+				});
+		ApplicationController.getInstance().addToRequestQueue(req);
+	}
+	
+	private void onAlternativeLocationsReceived(JSONObject result){
+		Location closestLocation = null;
+		float closestDistance = Float.MAX_VALUE;
+		
+		try {
+			JSONArray results = result.getJSONArray("results");
+
+			for (int i = 0; i < results.length(); i++) {
+				JSONObject addressNode = results.getJSONObject(i);
+				
+				if(addressNode.has("geometry")){
+					JSONObject locationNode = addressNode
+							.getJSONObject("geometry").getJSONObject("location");
+					
+					Double lat = Double.parseDouble(locationNode.getString("lat"));
+					Double lng = Double.parseDouble(locationNode.getString("lng"));
+					
+					Location location = new Location("location");
+					location.setLatitude(lat);
+					location.setLongitude(lng);
+					
+					// look for address, closest to our location
+					
+					if (closestLocation == null) {
+						closestLocation = location;
+					} else {
+						float[] tmp = new float[1];
+						Location.distanceBetween(
+								mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(), 
+								location.getLatitude(), location.getLongitude(), 
+								tmp);
+						
+						float distance = tmp[0];
+						if (distance < closestDistance) {
+							closestLocation = location;
+							closestDistance = distance;
+						}
+					}
+				}
+			}
+		} catch (JSONException error) {
+			Log.e(TAG, error.getMessage());
+		}
+		
+		if(closestLocation != null){
+			mAlternativeLocation = closestLocation;
+			mEventController.setLocation(mAlternativeLocation);
+			mUseAlternativeLocation = true;
+			mEventController.useAlternativeLocation(true);
+			onEventControllerUpdate();
+			
+			drawerLayout.closeDrawer(Gravity.LEFT);
+			InputMethodManager inputManager = (InputMethodManager)
+                    getSystemService(Context.INPUT_METHOD_SERVICE); 
+
+			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                       InputMethodManager.HIDE_NOT_ALWAYS);
+			
+			Toast.makeText(this, "Neue Adresse gefunden.", Toast.LENGTH_LONG).show();
+		} else {
+			Toast.makeText(this, "Es konnte keine Addresse gefunden werden", Toast.LENGTH_LONG).show();
 		}
 	}
 }

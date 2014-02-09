@@ -276,7 +276,6 @@ public class EventController implements JsonConstants {
 
 				eventList.add(newEvent);
 			}
-			Log.v(TAG, "eventListSizeController " + eventList.size() + "");
 		} catch (JSONException error) {
 			Log.e(TAG, error.getMessage());
 		}
@@ -490,7 +489,6 @@ public class EventController implements JsonConstants {
 			eL = filterDate(eL);
 		}
 		Collections.sort(eL, new DateDistanceComparator());
-		Log.v("getEventList", eL.size() + "");
 		// if the list of events has no items, an empty item is stored into the
 		// list and the boolean that shows that no events are in the list is set
 		// on true

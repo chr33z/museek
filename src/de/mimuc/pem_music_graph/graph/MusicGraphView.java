@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
+import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -20,7 +21,6 @@ import de.mimuc.pem_music_graph.utils.ApplicationController;
  * Music Graph SurfaceView. Draws the Node elements and handles touches and interaction
  * on the nodes
  * 
- * 
  * @author Christopher Gebhardt
  *
  */
@@ -32,7 +32,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	 * The genre graph contains all genre nodes
 	 */
 	GenreGraph graph;
-	
+
 	GenreGraphListener graphListener;
 
 	/**
@@ -85,12 +85,25 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 	private long fpsTimer = 0;
 
+	public MusicGraphView(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
+		initMusicGraph(context);
+	}
+
+	public MusicGraphView(Context context, AttributeSet attrs) {
+		super(context, attrs);
+		initMusicGraph(context);
+	}
+
 	public MusicGraphView(Context context){
 		super(context);
+		initMusicGraph(context);
+	}
 
+	private void initMusicGraph(Context context){
 		// Build GenreGraph and add nodes
 		graph = new GenreGraph();
-		
+
 		// initialize animation queue
 		animationQueue = new GraphAnimationQueue();
 
@@ -99,14 +112,14 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				.getInstance().getResources().getDisplayMetrics();
 		width = metrics.widthPixels;
 		height = metrics.heightPixels;
-		
+
 		paintFps.setColor(Color.RED);
 		paintFps.setTextSize(paintFps.getTextSize() * width * GenreGraph.TEXT_FACTOR * 0.5f);
 
 		paintNode.setColor(context.getResources().getColor(R.color.graph_node_lila));
 		paintText.setColor(Color.WHITE);
 		paintText.setTextSize(paintText.getTextSize() * textSizeScale);
-		
+
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(new SurfaceHolder.Callback() {
 
@@ -141,13 +154,13 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 		canvas.drawColor(Color.DKGRAY);
 
-//		// draw and update fps
-//		if(fpsTimer > FPS_UPDATE_DURATION){
-//			fps = (int) Math.round(1000.0 / (time - lastTime));
-//			fpsTimer = 0;
-//		}
-//		fpsTimer += (time - lastTime);
-//		canvas.drawText("FPS: "+fps , 10, height * GenreGraph.ROOT_Y_FACTOR, paintFps);
+		//		// draw and update fps
+		//		if(fpsTimer > FPS_UPDATE_DURATION){
+		//			fps = (int) Math.round(1000.0 / (time - lastTime));
+		//			fpsTimer = 0;
+		//		}
+		//		fpsTimer += (time - lastTime);
+		//		canvas.drawText("FPS: "+fps , 10, height * GenreGraph.ROOT_Y_FACTOR, paintFps);
 
 		// update the animations
 		animationQueue.update(time);
@@ -207,7 +220,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		if(hasParent){
 			root.getParent().draw(canvas, (int)width, (int)height, graph.translation);
 		}
-		
+
 		//		Log.d(TAG, "cchild: "+timeChildChild+" child: "+timeChild+" siblings: "+timeSibling+" animation: "+timeAnimation);
 
 		lastTime = time;
@@ -217,8 +230,6 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	public boolean onTouchEvent(MotionEvent event) {
 
 		if(touchLocked) return false;
-
-		//		onThreadResume();
 
 		float eventX = event.getX();
 		float eventY = event.getY();
@@ -285,7 +296,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 						{
 							graph.setAsRoot(node.name);
 							touchLocked = false;
-							
+
 							if(graphListener != null) {
 								graphListener.onGraphUpdate(node, graph.measureHeight());
 							}
@@ -344,25 +355,11 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 						}
 					}, animationQueue.getLongestQueue()+50);
 				}
-
-//				// After every ACTION_UP pause Thread
-//				Handler handler = new Handler();
-//				handler.postDelayed(new Runnable()
-//				{
-//					@Override
-//					public void run()
-//					{
-//						onThreadPause();
-//					}
-//				}, animationQueue.getLongestQueue()+50);
-
 			}
 
 			return true;
 
 		default:
-
-			invalidate();
 			return false;
 		}
 	};
@@ -371,7 +368,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		float paddingScreen = width * GenreGraph.SCREEN_MARGIN_FACTOR;
 		float paddingLabel = width * GenreGraph.LABEL_PADDING_HORIZONTAL_FACTOR;
 		float labelHeight = height * GenreGraph.LABEL_HEIGHT_FACTOR;
-		
+
 		final GenreNode parent = node.getParent();
 
 		// if there is no parent, we are already at the root node
@@ -391,14 +388,14 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			int size = parent.getChildren().size();
 			float currentX = node.x;
 			float currentY = height * GenreGraph.CHILD_Y_FACTOR;
-			
+
 			for (int i = 0; i < size ; i++) {
 				GenreNode sibling = parent.getChildren().get(i);
 
 				// where they go
 				float x_new = currentX;
 				float y_new = currentY;
-				
+
 				// save the new position of our current root and move it there
 				if(node.name.equalsIgnoreCase(sibling.name)){
 					animationQueue.add(new MoveAnimation(node, GenreGraph.ANIM_MOVE_DURATION, x_new, y_new), "root");
@@ -408,16 +405,16 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 					sibling.y = y_new;
 					sibling.setVisible(true);
 					sibling.setVisibility(1);
-					
+
 					animationQueue.add(new MoveAnimation(sibling, GenreGraph.ANIM_MOVE_DURATION, x_new, y_new), "siblingm"+i);
 				}
-				
+
 				// determine position of next child
 				if((i+1 < size)){
 					GenreNode nextChild = parent.getChildren().get(i+1);
 					String nextName = nextChild.name;
 					float textLength = nextChild.origPaintText.measureText(nextName);
-					
+
 					currentX -= (sibling.origPaintText.measureText(sibling.name)
 							+ paddingLabel * 2 + paddingScreen);
 					if(currentX < textLength + paddingScreen * 2 + paddingLabel * 2){
@@ -447,7 +444,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		float paddingScreen = width * GenreGraph.SCREEN_MARGIN_FACTOR;
 		float paddingLabel = width * GenreGraph.LABEL_PADDING_HORIZONTAL_FACTOR;
 		float labelHeight = height * GenreGraph.LABEL_HEIGHT_FACTOR;
-		
+
 		// shrink other siblings and lat them fall down
 		for(int i=0; i<node.getParent().getChildren().size(); i++) {
 			GenreNode sibling = node.getParent().getChildren().get(i);
@@ -473,10 +470,10 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 		int size = node.getChildren().size();
 		float currentX = node.getParent().x;
 		float currentY = height * GenreGraph.CHILD_Y_FACTOR;
-		
+
 		for (int i = 0; i < size; i++) {
 			GenreNode child = node.getChildren().get(i);
-			
+
 			// where they go
 			float x_new = currentX;
 			float y_new = currentY;
@@ -494,7 +491,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				GenreNode nextChild = node.getChildren().get(i+1);
 				String nextName = nextChild.name;
 				float textLength = nextChild.origPaintText.measureText(nextName);
-				
+
 				currentX -= (child.origPaintText.measureText(child.name)
 						+ paddingLabel * 2 + paddingScreen);
 				if(currentX < textLength + paddingScreen * 2 + paddingLabel * 2){
@@ -515,27 +512,30 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	 * Start the drawing thread
 	 */
 	public void onThreadResume(){
-		Log.d(TAG, "Thread started running");
-		running = true;
-		thread = new Thread(this);
-		thread.start();
+		if(!running){
+			Log.d(TAG, "Thread started running");
+			running = true;
+			thread = new Thread(this);
+			thread.start();
+		}
 	}
 
 	/**
 	 * Stop the drawing thread
 	 */
 	public void onThreadPause(){
-		boolean retry = true;
-		running = false;
-		while(retry){
-			try {
-				thread.join();
-				retry = false;
-				Log.d(TAG, "Thread stopped running");
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if(running){
+			boolean retry = true;
+			running = false;
+			while(retry){
+				try {
+					thread.join();
+					retry = false;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
+			Log.d(TAG, "Thread stopped running");
 		}
 	}
 
@@ -546,7 +546,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				continue;
 			} else {
 				Canvas canvas = surfaceHolder.lockCanvas();
-				
+
 				if(canvas != null){
 					onDraw(canvas);
 					surfaceHolder.unlockCanvasAndPost(canvas);
@@ -554,7 +554,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			}
 		}
 	}
-	
+
 	public void setGenreGraphListener(GenreGraphListener listener){
 		this.graphListener = listener;
 	}
@@ -566,7 +566,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 	public boolean isAtRoot(){
 		return (graph.getCurrentRoot().getParent() == null);
 	}
-	
+
 	/**
 	 * Navigate the graph to the upper root if possible
 	 */
@@ -593,7 +593,7 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 			}, animationQueue.getLongestQueue()+50);
 		}
 	}
-	
+
 	public GenreNode getRootNode(){
 		return graph.getCurrentRoot();
 	}

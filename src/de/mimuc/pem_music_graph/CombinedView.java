@@ -23,7 +23,6 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,19 +36,25 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.DrawerLayout.DrawerListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
+import android.view.View.OnGenericMotionListener;
+import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -74,6 +79,7 @@ import de.mimuc.pem_music_graph.list.EventControllerListener;
 import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
 import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.list.JsonPreferences;
+import de.mimuc.pem_music_graph.utils.ApiGuard;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.LocationFromAdress;
 import de.mimuc.pem_music_graph.utils.UndoBarController;
@@ -86,55 +92,55 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
  * 
  */
 public class CombinedView extends FragmentActivity implements
-		ConnectionCallbacks, OnConnectionFailedListener,
-		EventControllerListener, GenreGraphListener, FavoriteListListener,
-		UndoListener {
+ConnectionCallbacks, OnConnectionFailedListener,
+EventControllerListener, GenreGraphListener, FavoriteListListener,
+UndoListener {
 
 	private static final String TAG = CombinedView.class.getSimpleName();
 
-	private Context context;
+	// sliding panel
+	private SlidingUpPanelLayout slideUpPanel;
 
-	private SlidingUpPanelLayout layout;
-
+	// graph
 	private MusicGraphView graphView;
 
+	// list
 	private ExpandableListAdapter2 adapter;
 	private ExpandableListView locationListView;
 	private RelativeLayout listHandle;
+	private RelativeLayout listContainer;
+
 
 	private EventController mEventController;
-	private Location mLocation;
-	private Location otherStart;
-	private String otherAdress;
+	private Location mCurrentLocation;
+	private Location mAlternativeLocation;
 
-	private boolean useOwnLocation;
+	private boolean mUseAlternativeLocation;
 
+	// location services
 	private LocationClient mLocationClient;
 
-	private FragmentManager fragmentManager;
+	private Fragment mMapFragment;
 
-	private Fragment mapFragment;
-
-	private ExpandableListView listFavorites;
-
+	// navigation drawer right
+	private ExpandableListView mListFavorites;
 	private UndoBarController mUndoBarController;
 
+	// navigation drawer left
 	private DatePicker datePicker;
 	private Button okB;
 	private Button resetB;
 	private DrawerLayout drawerLayout;
 	private ActionBarDrawerToggle drawerToggle;
 
-	// coordinates for moving the view
-	private double dy;
-
 	boolean updated = false;
 
-	int width = 0;
-	int height = 0;
+	int screenWidth = 0;
+	int screenHeight = 0;
 
 	private SharedPreferences sharedPreferences;
-	
+
+	// root view for redraw operations
 	View rootView;
 
 	/**
@@ -146,8 +152,8 @@ public class CombinedView extends FragmentActivity implements
 			if (location == null)
 				return;
 
-			if (mLocation != null
-					&& location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE) {
+			if (mCurrentLocation != null
+					&& location.distanceTo(mCurrentLocation) < ApplicationController.MAX_UPDATE_DISTANCE) {
 				Log.i(TAG, "Location not changed.");
 				return;
 			}
@@ -167,14 +173,14 @@ public class CombinedView extends FragmentActivity implements
 		switch (view.getId()) {
 		case R.id.radio_ownStart:
 			if (checked) {
-				useOwnLocation = true;
-				mEventController.setLocation(mLocation);
+				mUseAlternativeLocation = true;
+				mEventController.setLocation(mCurrentLocation);
 				drawerLayout.closeDrawer(Gravity.LEFT);
 			}
 			break;
 		case R.id.radio_otherStart:
 			if (checked) {
-				useOwnLocation = false;
+				mUseAlternativeLocation = false;
 			}
 			break;
 		}
@@ -185,17 +191,15 @@ public class CombinedView extends FragmentActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
-		
-		// to get the height of our view
+
 		rootView = findViewById(R.id.root);
 
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		String loadLastEvents = sharedPreferences.getString("events", "");
 
-		mapFragment = new MapFragment();
+		mMapFragment = new MapFragment();
 
-		listFavorites = (ExpandableListView) findViewById(R.id.listFavorites);
-		listFavorites.setEmptyView(findViewById(R.id.favorite_empty));
+		mListFavorites = (ExpandableListView) findViewById(R.id.listFavorites);
+		mListFavorites.setEmptyView(findViewById(R.id.favorite_empty));
 
 		// set undo listener to undo favorite remove
 		mUndoBarController = new UndoBarController(findViewById(R.id.undobar),
@@ -204,11 +208,10 @@ public class CombinedView extends FragmentActivity implements
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
 
-		// Put graph in framelayout because otherwise there is an error
-		FrameLayout frame = (FrameLayout) findViewById(R.id.graph_view_frame);
+		// init graph
 		graphView = new MusicGraphView(this);
 		graphView.setGenreGraphListener(this);
-		frame.addView(graphView);
+		((FrameLayout)findViewById(R.id.graph_view_frame)).addView(graphView);
 		graphView.onThreadResume();
 
 		// try to load a json file we got from start screen
@@ -221,21 +224,16 @@ public class CombinedView extends FragmentActivity implements
 			Location location = new Location("location");
 			location.setLatitude(latitude);
 			location.setLongitude(longitude);
-			mLocation = location;
+			mCurrentLocation = location;
 			try {
 				mEventController = new EventController(this, new JSONObject(
 						json), location);
 			} catch (JSONException e) {
 				Log.w(TAG, "Could not create json from string");
-				e.printStackTrace();
 				mEventController = new EventController(this);
-				// mEventController = new EventController(this, new
-				// JSONObject(loadLastEvents));
 			}
 		} else {
 			mEventController = new EventController(this);
-			// mEventController = new EventController(this, new
-			// JSONObject(loadLastEvents));
 		}
 
 		mEventController.setGenreNode(graphView.getRootNode());
@@ -248,78 +246,94 @@ public class CombinedView extends FragmentActivity implements
 			updateFavoriteList();
 		}
 
-		this.context = this;
-
 		// intialize listview
+		listContainer = (RelativeLayout) findViewById(R.id.list_container);
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
 		ExpandableListAdapter2 adapter = new ExpandableListAdapter2(this,
 				mEventController.getEventList());
 		locationListView.setAdapter(adapter);
-		
+		listHandle = (RelativeLayout) findViewById(R.id.list_handle);
+
+		/*
+		 * Force redraw of list while scrolling to prevent glitches
+		 */
+		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+			locationListView.setOnScrollListener(new OnScrollListener() {
+
+				@Override
+				public void onScrollStateChanged(AbsListView view, int scrollState) {
+				}
+
+				@Override
+				public void onScroll(AbsListView view, int firstVisibleItem,
+						int visibleItemCount, int totalItemCount) {
+						listContainer.bringToFront();
+						rootView.requestLayout();
+						rootView.invalidate();
+				}
+			});
+		}
+
 		updateFavoriteList();
 
 		// initialize dimensions
 		DisplayMetrics metrics = ApplicationController.getInstance()
 				.getResources().getDisplayMetrics();
-		width = metrics.widthPixels;
-		height = metrics.heightPixels;
-
-		// get list handle
-		listHandle = (RelativeLayout) findViewById(R.id.list_handle);
+		screenWidth = metrics.widthPixels;
+		screenHeight = metrics.heightPixels;
 
 		// initialize slide panel
-		layout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-		layout.setPanelHeight((int) (height * 0.5));
-		layout.setDragView(listHandle);
-		layout.setCoveredFadeColor(getResources().getColor(
-				android.R.color.transparent));
-		layout.setPanelSlideListener(new PanelSlideListener() {
+		slideUpPanel = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+		slideUpPanel.setPanelHeight((int) (screenHeight * 0.5));
+		slideUpPanel.setDragView(listHandle);
+		slideUpPanel.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
+		slideUpPanel.setPanelSlideListener(new PanelSlideListener() {
 
 			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
-				
+				graphView.onThreadPause();
+
+				/*
+				 * Force redraw of list while panel sliding to prevent glitches
+				 */
+				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+					graphView.setVisibility(View.VISIBLE);
+					
+					listContainer.bringToFront();
+					rootView.requestLayout();
+					rootView.invalidate();
+				}
+
 				locationListView.setPadding(
 						locationListView.getPaddingLeft(), 
 						locationListView.getPaddingTop(), 
 						locationListView.getPaddingRight(), 
 						findViewById(R.id.list_container).getTop());
-						
 			}
 
 			@Override
 			public void onPanelExpanded(View panel) {
-//				graphView.onThreadPause();
-
-				// FIXME find other method for Android 2.3
-				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-					((FrameLayout) layout.findViewById(R.id.graph_view_frame))
-							.removeAllViews();
+				graphView.onThreadPause();
+				
+				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+					graphView.setVisibility(View.INVISIBLE);
 				}
 			}
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-//				graphView.onThreadResume();
-
-				// FIXME find other method for Android 2.3
-				if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-					FrameLayout frame = ((FrameLayout) layout
-							.findViewById(R.id.graph_view_frame));
-					if (frame.getChildCount() == 0) {
-						frame.addView(graphView);
-					}
-				}
+				graphView.onThreadPause();
 			}
 
 			@Override
 			public void onPanelAnchored(View panel) {
-
+				graphView.onThreadPause();
 			}
 		});
 
 		// get result from edit text
-		final RadioButton radioBtnOtherAddress = (RadioButton) findViewById(R.id.radio_otherStart);
+		final RadioButton radioBtnOtherLocation = (RadioButton) findViewById(R.id.radio_otherStart);
 		final RadioButton radioBtnOwnLocation = (RadioButton) findViewById(R.id.radio_ownStart);
 		final EditText editText = (EditText) findViewById(R.id.auto_text);
 		editText.setOnEditorActionListener(new OnEditorActionListener() {
@@ -337,15 +351,15 @@ public class CombinedView extends FragmentActivity implements
 						Location otherLocation = new Location("otherLocation");
 						otherLocation.setLatitude(lat);
 						otherLocation.setLongitude(lon);
-						
+
 						drawerLayout.closeDrawer(Gravity.RIGHT);
 
 						mEventController.setLocation(otherLocation);
 						mEventController.useOtherLocation(true);
 						onEventControllerUpdate();
 					} else {
-						Toast.makeText(context,
-								context.getString(R.string.address_not_found),
+						Toast.makeText(getApplicationContext(),
+								getApplicationContext().getString(R.string.address_not_found),
 								Toast.LENGTH_LONG).show();
 						editText.setHint(R.string.text_hint);
 						radioBtnOwnLocation.setChecked(true);
@@ -362,94 +376,109 @@ public class CombinedView extends FragmentActivity implements
 			@Override
 			public void onFocusChange(View v, boolean hasFocus) {
 				if (hasFocus) {
-					radioBtnOtherAddress.setChecked(true);
+					radioBtnOtherLocation.setChecked(true);
 				}
 			}
 		});
 
 		datePicker = (DatePicker) this.findViewById(R.id.datePicker1);
-
 		okB = (Button) this.findViewById(R.id.ok_button);
 		resetB = (Button) this.findViewById(R.id.reset_button);
-
 		datePicker(null, null);
 
 		drawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
-		drawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
-				R.drawable.ic_drawer, R.string.drawer_open,
-				R.string.drawer_close) {
 
-			/** Called when a drawer has settled in a completely closed state. */
-			public void onDrawerClosed(View view) {
-				super.onDrawerClosed(view);
-				// getActionBar().setTitle(mTitle);
-				// invalidateOptionsMenu(); // creates call to
-				// onPrepareOptionsMenu()
-				graphView.onThreadResume();
-			}
+		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+			drawerLayout.setScrimColor(getResources().getColor(android.R.color.transparent));
+		}
 
-			/** Called when a drawer has settled in a completely open state. */
-			public void onDrawerOpened(View drawerView) {
-				super.onDrawerOpened(drawerView);
-				// getActionBar().setTitle(mDrawerTitle);
-				// invalidateOptionsMenu(); // creates call to
-				// onPrepareOptionsMenu()
-				graphView.onThreadPause();
-			}
-		};
+		/*
+		 * Force redraw of drawer to prevent glitches
+		 */
+		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+			drawerLayout.setDrawerListener(new DrawerListener() {
+
+				@Override
+				public void onDrawerStateChanged(int arg0) {
+
+				}
+
+				@Override
+				public void onDrawerSlide(View arg0, float arg1) {
+					drawerLayout.bringToFront();
+					rootView.requestLayout();
+					rootView.invalidate();
+				}
+
+				@Override
+				public void onDrawerOpened(View arg0) {
+				}
+
+				@Override
+				public void onDrawerClosed(View arg0) {
+				}
+			});
+		}
+
+		//		drawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
+		//				R.drawable.ic_drawer, R.string.drawer_open,
+		//				R.string.drawer_close) {
+		//
+		//			/** Called when a drawer has settled in a completely closed state. */
+		//			public void onDrawerClosed(View view) {
+		//				super.onDrawerClosed(view);
+		//				// getActionBar().setTitle(mTitle);
+		//				// invalidateOptionsMenu(); // creates call to
+		//				// onPrepareOptionsMenu()
+		//				graphView.onThreadResume();
+		//			}
+		//
+		//			/** Called when a drawer has settled in a completely open state. */
+		//			public void onDrawerOpened(View drawerView) {
+		//				super.onDrawerOpened(drawerView);
+		//				// getActionBar().setTitle(mDrawerTitle);
+		//				// invalidateOptionsMenu(); // creates call to
+		//				// onPrepareOptionsMenu()
+		//				graphView.onThreadPause();
+		//			}
+		//		};
 
 		// Set the drawer toggle as the DrawerListener
-		drawerLayout.setDrawerListener(drawerToggle);
+		//		drawerLayout.setDrawerListener(drawerToggle);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 	}
 
 	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
-		super.onPostCreate(savedInstanceState);
-		// Sync the toggle state after onRestoreInstanceState has occurred.
-		drawerToggle.syncState();
-	}
-
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		drawerToggle.onConfigurationChanged(newConfig);
-	}
-
-	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Pass the event to ActionBarDrawerToggle, if it returns
-		// true, then it has handled the app icon touch event
-		if (drawerToggle.onOptionsItemSelected(item)) {
-			return true;
-		}
-			else	
-			{
-				switch (item.getItemId()) {
-			        case R.id.favorites:
-			        	if (!drawerLayout.isDrawerOpen(Gravity.RIGHT))
-							drawerLayout.openDrawer(Gravity.RIGHT);
-						else
-							drawerLayout.closeDrawer(Gravity.RIGHT);
-			        	
-			        	//drawerLayout.openDrawer(findViewById(R.id.right_drawer));
-			            return true;
-			      
-			        default:
-			            return super.onOptionsItemSelected(item);
-			    
-			}
-		}
-		
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			drawerLayout.closeDrawer(Gravity.RIGHT);
 
-		
+			if (!drawerLayout.isDrawerOpen(Gravity.LEFT))
+				drawerLayout.openDrawer(Gravity.LEFT);
+			else
+				drawerLayout.closeDrawer(Gravity.LEFT);
+			return true;
+
+		case R.id.favorites:
+			drawerLayout.closeDrawer(Gravity.LEFT);
+
+			if (!drawerLayout.isDrawerOpen(Gravity.RIGHT))
+				drawerLayout.openDrawer(Gravity.RIGHT);
+			else
+				drawerLayout.closeDrawer(Gravity.RIGHT);
+			return true;
+
+		default:
+			return super.onOptionsItemSelected(item);
+
+		}
 	}
 
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.combined_view, menu);
 		return true;
 	}
@@ -457,9 +486,6 @@ public class CombinedView extends FragmentActivity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
-
-		if (graphView != null)
-			graphView.onThreadResume();
 
 		if (mLocationClient != null)
 			mLocationClient.connect();
@@ -469,7 +495,8 @@ public class CombinedView extends FragmentActivity implements
 	protected void onPause() {
 		super.onPause();
 
-		graphView.onThreadPause();
+		if(graphView != null)
+			graphView.onThreadPause();
 
 		if (mLocationClient != null)
 			mLocationClient.disconnect();
@@ -485,7 +512,6 @@ public class CombinedView extends FragmentActivity implements
 		sharedPreferences.edit().putString("favorites", favorites).commit();
 		Log.v(TAG, "wrote "+json);
 
-		graphView.onThreadPause();
 		if (graphView != null)
 			graphView.onThreadPause();
 
@@ -495,7 +521,6 @@ public class CombinedView extends FragmentActivity implements
 
 	@Override
 	public void onConnectionFailed(ConnectionResult arg0) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -511,9 +536,9 @@ public class CombinedView extends FragmentActivity implements
 				.create()
 				.setInterval(
 						ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
-				.setExpirationDuration(
-						ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
-				.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+						.setExpirationDuration(
+								ApplicationController.DEFAULT_TERMINATE_SAT_FINDING)
+								.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
 		mLocationClient.requestLocationUpdates(locationRequest,
 				mLocationListener);
@@ -531,15 +556,13 @@ public class CombinedView extends FragmentActivity implements
 		this.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				
-				graphView.onThreadPause();
 
 				// save last scroll position
 				int index = locationListView.getFirstVisiblePosition();
 				View v = locationListView.getChildAt(0);
 				int top = (v == null) ? 0 : v.getTop();
 
-				adapter = new ExpandableListAdapter2(context, mEventController
+				adapter = new ExpandableListAdapter2(CombinedView.this, mEventController
 						.getEventList());
 				locationListView.setAdapter(adapter);
 				if (mEventController.isNoEvents()) {
@@ -549,8 +572,6 @@ public class CombinedView extends FragmentActivity implements
 
 				// restore scroll position
 				locationListView.setSelectionFromTop(index, top);
-
-				graphView.onThreadResume();
 			}
 		});
 	}
@@ -561,11 +582,11 @@ public class CombinedView extends FragmentActivity implements
 		// hijack back button to do what we want
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 
-			if (!layout.isExpanded() && !graphView.isAtRoot()) {
+			if (!slideUpPanel.isExpanded() && !graphView.isAtRoot()) {
 				graphView.graphNavigateBack();
 				return true;
-			} else if (layout.isExpanded()) {
-				layout.collapsePane();
+			} else if (slideUpPanel.isExpanded()) {
+				slideUpPanel.collapsePane();
 				return true;
 			} else {
 				moveTaskToBack(true);
@@ -607,7 +628,7 @@ public class CombinedView extends FragmentActivity implements
 				.findFragmentById(R.id.map);
 		if (fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment)
-					.commit();
+			.commit();
 	}
 
 	@Override
@@ -618,17 +639,14 @@ public class CombinedView extends FragmentActivity implements
 				.findFragmentById(R.id.map);
 		if (fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment)
-					.commit();
+			.commit();
 	}
 
 	@Override
 	public void onGraphUpdate(GenreNode node, int newHeight) {
 		mEventController.setGenreNode(node);
 		onEventControllerUpdate();
-		// layout.animatePanelHeight((int)(newHeight +
-		// GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
-		Log.d(TAG, "Click on node " + node.name);
-		layout.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * width * 3));
+		slideUpPanel.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * screenWidth * 3));
 	}
 
 	@Override
@@ -659,7 +677,7 @@ public class CombinedView extends FragmentActivity implements
 			MapFragment mapFragment = new MapFragment();
 			mapFragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.map_container, mapFragment).commit();
+				.replace(R.id.map_container, mapFragment).commit();
 		}
 	}
 
@@ -677,7 +695,7 @@ public class CombinedView extends FragmentActivity implements
 
 		/*
 		 * iterate over all favorites and all events if we find an event that
-		 * takes place earlyer, save it we want to have the events for the
+		 * takes place earlirer, save it we want to have the events for the
 		 * location that takes place next
 		 */
 		for (Entry<String, FavoriteLocation> entry : mEventController
@@ -703,7 +721,7 @@ public class CombinedView extends FragmentActivity implements
 			favLocations.add(favLocation);
 		}
 
-		listFavorites.setAdapter(new ExpandableFavoriteListAdapter(this,
+		mListFavorites.setAdapter(new ExpandableFavoriteListAdapter(this,
 				favLocations, this));
 	}
 
@@ -714,20 +732,20 @@ public class CombinedView extends FragmentActivity implements
 		if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 
 			new AlertDialog.Builder(this)
-					.setIcon(android.R.drawable.ic_dialog_alert)
-					.setTitle(R.string.dialog_title_delete_favorite)
-					.setPositiveButton(R.string.dialog_positiv_delete_favorite,
-							new DialogInterface.OnClickListener() {
+			.setIcon(android.R.drawable.ic_dialog_alert)
+			.setTitle(R.string.dialog_title_delete_favorite)
+			.setPositiveButton(R.string.dialog_positiv_delete_favorite,
+					new DialogInterface.OnClickListener() {
 
-								@Override
-								public void onClick(DialogInterface dialog,
-										int which) {
-									onRemoveFavorites(favoriteId);
-								}
+				@Override
+				public void onClick(DialogInterface dialog,
+						int which) {
+					onRemoveFavorites(favoriteId);
+				}
 
-							})
-					.setNegativeButton(
-							R.string.dialog_negative_delete_favorite, null)
+			})
+			.setNegativeButton(
+					R.string.dialog_negative_delete_favorite, null)
 					.show();
 
 		} else {
@@ -754,25 +772,6 @@ public class CombinedView extends FragmentActivity implements
 		}
 	}
 
-	public DateTime getDateFromPicker() {
-
-		// private DateTime getDateTimeFromPickers( int DatePickerId, int
-		// TimePickerId ) {
-
-		// String year = Integer.toString(dp.getYear()) ;
-		// String month = StringUtils.leftPad( Integer.toString(dp.getMonth() +
-		// 1), 2, "0" );
-		// String day = StringUtils.leftPad(
-		// Integer.toString(dp.getDayOfMonth()), 2, "0" );
-		//
-		// String dateTime = year + "-" + month + "-" + day + "T" + "00" + ":" +
-		// "00" + ":00.000";
-		//
-		// return DateTime.parse(dateTime);
-
-		return null;
-	}
-
 	/**
 	 * set the color of the date picker dividers
 	 * 
@@ -781,16 +780,6 @@ public class CombinedView extends FragmentActivity implements
 	 * @return
 	 */
 	public DatePicker datePicker(OnDateSetListener listener, Calendar calendar) {
-		Calendar c;
-		if (calendar == null) {
-			c = Calendar.getInstance();
-		} else {
-			c = calendar;
-		}
-		int year = c.get(Calendar.YEAR);
-		int month = c.get(Calendar.MONTH);
-		int day = c.get(Calendar.DAY_OF_MONTH);
-
 		okB.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -826,10 +815,6 @@ public class CombinedView extends FragmentActivity implements
 		LinearLayout llSecond = (LinearLayout) llFirst.getChildAt(0);
 		for (int i = 0; i < llSecond.getChildCount(); i++) {
 			NumberPicker picker = (NumberPicker) llSecond.getChildAt(i); // Numberpickers
-			// in
-			// llSecond
-			// reflection - picker.setDividerDrawable(divider); << didn't seem
-			// to work.
 			Field[] pickerFields = NumberPicker.class.getDeclaredFields();
 			for (Field pf : pickerFields) {
 				if (pf.getName().equals("mSelectionDivider")) {
@@ -857,23 +842,28 @@ public class CombinedView extends FragmentActivity implements
 	public void onFavoriteClick(FavoriteLocation favoriteLocation) {
 		Event event = null;
 		int position = 0;
-		
+
 		if(adapter != null && favoriteLocation.nextEvent != null){
 			for (int i = 0; i < adapter.getGroupCount(); i++) {
 				Event iEvent = (Event) adapter.getGroup(i);
-				
+
 				if(iEvent.startTime.equals(favoriteLocation.nextEvent.startTime)){
 					event = iEvent;
 					position = i;
+					break;
 				}
 			}
 			
 			if(event != null){
 				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
-				// FIXME collapse other child views
-				layout.expandPane();
+				slideUpPanel.expandPane();
+
+				for (int i = 0; i < adapter.getGroupCount(); i++) {
+					locationListView.collapseGroup(i);
+				}
+
 				locationListView.smoothScrollToPositionFromTop(
-					position, 0);
+						position, 0);
 				locationListView.expandGroup(position);
 			}
 		}

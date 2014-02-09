@@ -1,4 +1,6 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
@@ -21,7 +23,13 @@
                 <FrameLayout
                     android:id="@+id/graph_view_frame"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent">
+                </FrameLayout>
+                
+                <!-- <de.mimuc.pem_music_graph.graph.MusicGraphView
+                    android:id="@+id/graph_view_frame"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" /> -->
 
                 <RelativeLayout
                     android:id="@+id/list_container"
@@ -59,14 +67,6 @@
                         android:groupIndicator="@null" />
                 </RelativeLayout>
             </com.sothree.slidinguppanel.SlidingUpPanelLayout>
-
-            <FrameLayout
-                android:id="@+id/graph_view_frame"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_alignParentBottom="true"
-                android:scaleType="fitXY"
-                android:src="@drawable/shadow_layer" />
         </RelativeLayout>
 
         <RadioGroup
@@ -151,36 +151,34 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp">
+                android:layout_marginRight="10dp" >
 
                 <Button
-                    style="?android:attr/borderlessButtonStyle"
                     android:id="@+id/ok_button"
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginRight="2.5dp"
                     android:layout_marginBottom="5dp"
-                    android:text="@string/ButtonOK"
-                    android:background="@drawable/button_border"/>
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="2.5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/button_border"
+                    android:text="@string/ButtonOK" />
 
                 <Button
-                    style="?android:attr/borderlessButtonStyle"
                     android:id="@+id/reset_button"
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/ButtonReset"
-                    android:layout_marginLeft="2.5dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginRight="5dp"
                     android:layout_marginBottom="5dp"
-                    android:background="@drawable/button_border"/>
+                    android:layout_marginLeft="2.5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/button_border"
+                    android:text="@string/ButtonReset" />
             </LinearLayout>
-
-            
         </RadioGroup>
 
         <LinearLayout
@@ -210,14 +208,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:groupIndicator="@null" />
-
-            <!--
-            <ListView
-                android:id="@+id/listFavorites"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" >
-            </ListView>
-            -->
 
             <TextView
                 android:id="@+id/favorite_empty"

@@ -62,7 +62,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	 * @param eventList
 	 */
 	public ExpandableListAdapter2(Context context, List<Event> eventList) {
-		this.eventList = new ArrayList<Event>();
 		this.eventList = eventList;
 		this.callbackReceiver = (EventControllerListener) context;
 		this.context = context;
@@ -86,15 +85,14 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	@Override
 	public View getChildView(int groupPosition, int childPosition,
 			boolean isLastChild, View convertView, ViewGroup parent) {
-		final Event currentEvent = eventList.get(groupPosition);
+		final Event currentEvent = (Event) getGroup(groupPosition);
+		
 		if (convertView == null) {
 			LayoutInflater layoutInflater = (LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = layoutInflater.inflate(R.layout.listitembig, null);
 		}
 		if (currentEvent != null) {
-			TextView openingHours = (TextView) convertView
-					.findViewById(R.id.openinghours);
 			TextView eventDescription = (TextView) convertView
 					.findViewById(R.id.eventdescription);
 			TextView admissionPrice = (TextView) convertView
@@ -105,20 +103,19 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					.findViewById(R.id.city);
 			ImageView loadWebsite = (ImageView) convertView
 					.findViewById(R.id.website);
-			ImageView direction = (ImageView) convertView
-					.findViewById(R.id.direction);
 			ImageView share = (ImageView) convertView.findViewById(R.id.share);
-			share.setTag(groupPosition);
 			
 			RelativeLayout map = (RelativeLayout) convertView.findViewById(R.id.map_layout);
 
-			if (eventDescription != null && stringNotEmpty(currentEvent.eventDescription))
+			if (eventDescription != null && stringNotEmpty(currentEvent.eventDescription)){
+				eventDescription.setVisibility(View.VISIBLE);
 				eventDescription.setText(currentEvent.eventDescription);
-			else {
+			} else {
 				eventDescription.setVisibility(View.GONE);
 			}
 			
 			if(admissionPrice != null && stringNotEmpty(currentEvent.price)){
+				admissionPrice.setVisibility(View.VISIBLE);
 				admissionPrice.setText(currentEvent.price);
 			} else {
 				admissionPrice.setVisibility(View.GONE);
@@ -159,6 +156,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				}
 			});
 
+			share.setTag(groupPosition);
 			share.setOnClickListener(new OnClickListener() {
 
 				@Override
@@ -213,34 +211,11 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 		final ExpandableListView listView = (ExpandableListView) parent;
 		Event currentEvent = eventList.get(groupPosition);
 
-		if (convertView == null) {
-			// sets the layout
-			if (!noEvents) {
-				LayoutInflater layoutInflater = (LayoutInflater) context
-						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = layoutInflater.inflate(R.layout.headlinelist,
-						null);
-
-
-		// compute distance
-		// Location destination = new Location("destination");
-		// destination
-		// .setLatitude(Double.parseDouble(eventList.get(groupPosition).locationLatitude));
-		// destination.setLongitude(Double.parseDouble(eventList
-		// .get(groupPosition).locationLongitude));
-		// Location currentLocation =
-		// eventList.get(groupPosition).currentLocation;
-		// float distance = currentLocation.distanceTo(destination);
-
-			} else {
-				LayoutInflater layoutInflater = (LayoutInflater) context
-						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = layoutInflater.inflate(R.layout.noevents, null);
-			}
-		}
-		// sets the information if there are events in the list or the string if
-		// not
+		// event list is not empty
 		if (!noEvents) {
+			LayoutInflater layoutInflater = (LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			convertView = layoutInflater.inflate(R.layout.headlinelist, null);
 			convertView.setTag(groupPosition);
 			
 			TextView locationName = (TextView) convertView
@@ -259,7 +234,6 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 
 			if (locationName != null) {
-				Log.v("adapter", currentEvent.locationName);
 				if (stringNotEmpty(currentEvent.locationName))
 					locationName
 					.setText(eventList.get(groupPosition).locationName);
@@ -365,6 +339,10 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 
 			});
 		} else {
+			LayoutInflater layoutInflater = (LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			convertView = layoutInflater.inflate(R.layout.noevents, null);
+			
 			TextView noEvents = (TextView) convertView
 					.findViewById(R.id.noEvent);
 			noEvents.setText(R.string.no_events);

@@ -11,8 +11,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -20,6 +22,7 @@ import com.google.android.gms.location.LocationRequest;
 import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.JsonConstants;
+import de.mimuc.pem_music_graph.utils.PlayServicesManager;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -53,7 +56,9 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_startscreen);
 		
-		mLocationClient = new LocationClient(this, this, this);
+		if(PlayServicesManager.isGooglePlayServiceUpToDate(this)){
+			mLocationClient = new LocationClient(this, this, this);
+		}
 	}
 	
 	@Override
@@ -63,20 +68,20 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 	}
 	
 	private LocationListener mLocationListener = new LocationListener() {
-		
-		
 
 		@Override
 		public void onLocationChanged(Location location) {
-			if(location == null)
+			if(location == null){
+				Log.i(TAG, "Location is null.");
 				return;
+			}
 
-			if(mLocation != null &&
-					location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE){
+			if(mLocation != null && location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE){
 				Log.i(TAG, "Location not changed.");
 				return;
 			}
 			
+			mLocation = location;
 			Log.d(TAG, "Location changed to: "+ location.getLatitude() + "; " + location.getLongitude());
 			
 			SharedPreferences sharedPreferences = PreferenceManager
@@ -86,8 +91,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 			if(!loadLastEvents.equals("") && !eventListNeedsUpdate(loadLastEvents)){
 				Intent intent = new Intent(getBaseContext(), CombinedView.class);
 				intent.putExtra("json", loadLastEvents);
-				intent.putExtra("latitude", loadLastEvents);
-				intent.putExtra("longitude", loadLastEvents);
+				intent.putExtra("latitude", mLocation.getLatitude());
+				intent.putExtra("longitude", mLocation.getLongitude());
 				startActivity(intent);
 				Log.d(TAG, "Loaded events from Shared Preferences");
 			} else {
@@ -128,10 +133,11 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 	@Override
 	public void onConnected(Bundle arg0) {
 		Log.i(TAG, "Location Connected.");
+
 		// Get last known location
 		Location lastLocation = mLocationClient.getLastLocation();
 		mLocationListener.onLocationChanged(lastLocation);
-
+		
 		// Create location request
 		LocationRequest locationRequest = LocationRequest.create()
 				.setInterval(ApplicationController.DEFAULT_UPDATE_LOCATION_INTERVAL)
@@ -142,7 +148,6 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 
 	@Override
 	public void onDisconnected() {
-		// TODO Auto-generated method stub
 
 	}
 	
@@ -166,8 +171,6 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 					@Override
 					public void onResponse(JSONObject response) {
 						Log.i(TAG, "...success!");
-						
-			//			overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 						
 						Intent intent = new Intent(getBaseContext(), CombinedView.class);
 						intent.putExtra("json", response.toString());

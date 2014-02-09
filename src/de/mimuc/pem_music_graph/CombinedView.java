@@ -488,6 +488,9 @@ UndoListener {
 
 		if (mLocationClient != null)
 			mLocationClient.connect();
+		
+		if(graphView != null)
+			graphView.onThreadResume();
 	}
 
 	@Override
@@ -864,12 +867,15 @@ UndoListener {
 				slideUpPanel.expandPane();
 
 				for (int i = 0; i < adapter.getGroupCount(); i++) {
-					locationListView.collapseGroup(i);
+					for (Event e : mEventController.getEventList()) {
+						e.isExpanded = false;
+					}
 				}
 
 				locationListView.smoothScrollToPositionFromTop(
 						position, 0);
-				locationListView.expandGroup(position);
+				event.isExpanded = true;
+				adapter.notifyDataSetChanged();
 			}
 		}
 	}

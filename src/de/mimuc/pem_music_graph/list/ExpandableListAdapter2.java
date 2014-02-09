@@ -257,6 +257,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 				listView.expandGroup(groupPosition);
 				arrow.setImageResource(R.drawable.ic_action_collapse);
 			} else {
+				listView.collapseGroup(groupPosition);
 				arrow.setImageResource(R.drawable.ic_action_expand);
 			}
 

@@ -26,7 +26,6 @@ import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.content.res.Resources.NotFoundException;
 import android.location.Address;
 import android.location.Location;
@@ -44,13 +43,9 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
-import android.view.View.OnGenericMotionListener;
-import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 
 import android.widget.AbsListView;
@@ -249,7 +244,7 @@ UndoListener {
 		// intialize listview
 		listContainer = (RelativeLayout) findViewById(R.id.list_container);
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
-		ExpandableListAdapter2 adapter = new ExpandableListAdapter2(this,
+		adapter = new ExpandableListAdapter2(this,
 				mEventController.getEventList());
 		locationListView.setAdapter(adapter);
 		listHandle = (RelativeLayout) findViewById(R.id.list_handle);
@@ -267,9 +262,10 @@ UndoListener {
 				@Override
 				public void onScroll(AbsListView view, int firstVisibleItem,
 						int visibleItemCount, int totalItemCount) {
-						listContainer.bringToFront();
-						rootView.requestLayout();
-						rootView.invalidate();
+
+					locationListView.bringToFront();
+					rootView.requestLayout();
+					rootView.invalidate();
 				}
 			});
 		}
@@ -289,17 +285,12 @@ UndoListener {
 		slideUpPanel.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
 		slideUpPanel.setPanelSlideListener(new PanelSlideListener() {
 
-			@SuppressLint("NewApi")
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
-				graphView.onThreadPause();
-
 				/*
 				 * Force redraw of list while panel sliding to prevent glitches
 				 */
 				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-					graphView.setVisibility(View.VISIBLE);
-					
 					listContainer.bringToFront();
 					rootView.requestLayout();
 					rootView.invalidate();
@@ -314,21 +305,29 @@ UndoListener {
 
 			@Override
 			public void onPanelExpanded(View panel) {
-				graphView.onThreadPause();
-				
 				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-					graphView.setVisibility(View.INVISIBLE);
+					//					FrameLayout graphContainer = (FrameLayout) rootView.findViewById(R.id.graph_view_frame);
+					//					for (int i = 0; i < slideUpPanel.getChildCount(); i++) {
+					//						View child = slideUpPanel.getChildAt(i);
+					//						if(child.getId() == R.id.graph_view_frame){
+					//							slideUpPanel.removeViewAt(i);
+					//						}
+					//					}
+					//					slideUpPanel.addView(graphContainer);
+					//					graphView.onThreadResume();
 				}
 			}
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-				graphView.onThreadPause();
+				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+				}
 			}
 
 			@Override
 			public void onPanelAnchored(View panel) {
-				graphView.onThreadPause();
+				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+				}
 			}
 		});
 
@@ -607,7 +606,8 @@ UndoListener {
 	 */
 	@Override
 	public void onAddFavorites(String locationID) {
-		mEventController.onAddFavorites(locationID);
+		mEventController.addFavorite(locationID);
+		adapter.notifyDataSetChanged();
 		updateFavoriteList();
 	}
 
@@ -616,13 +616,14 @@ UndoListener {
 	 */
 	@Override
 	public void onRemoveFavorites(String locationID) {
-		mEventController.onRemoveFavorites(locationID);
+		mEventController.removeFavorite(locationID);
+		adapter.notifyDataSetChanged();
 		updateFavoriteList();
 	}
 
 	@Override
-	public void onExpandedItemTrue(String locationID) {
-		mEventController.onExpandedItemTrue(locationID);
+	public void onExpandItem(String locationID) {
+		mEventController.expandItem(locationID);
 
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
@@ -632,14 +633,18 @@ UndoListener {
 	}
 
 	@Override
-	public void onExpandedItemFalse() {
-		mEventController.onExpandedItemFalse();
+	public void onCollapseItem() {
+		mEventController.collapseItem();
 
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
 		if (fragment != null)
 			getSupportFragmentManager().beginTransaction().remove(fragment)
 			.commit();
+
+		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+			locationListView.findViewById(R.id.map_container).setVisibility(View.GONE);
+		}
 	}
 
 	@Override
@@ -677,7 +682,7 @@ UndoListener {
 			MapFragment mapFragment = new MapFragment();
 			mapFragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction()
-				.replace(R.id.map_container, mapFragment).commit();
+			.replace(R.id.map_container, mapFragment).commit();
 		}
 	}
 
@@ -853,7 +858,7 @@ UndoListener {
 					break;
 				}
 			}
-			
+
 			if(event != null){
 				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
 				slideUpPanel.expandPane();

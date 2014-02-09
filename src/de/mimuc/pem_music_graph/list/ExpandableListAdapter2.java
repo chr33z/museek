@@ -209,7 +209,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	public View getGroupView(final int groupPosition, boolean isExpanded,
 			View convertView, ViewGroup parent) {
 		final ExpandableListView listView = (ExpandableListView) parent;
-		Event currentEvent = eventList.get(groupPosition);
+		Event currentEvent = (Event) getGroup(groupPosition);
 
 		// event list is not empty
 		if (!noEvents) {
@@ -236,7 +236,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			if (locationName != null) {
 				if (stringNotEmpty(currentEvent.locationName))
 					locationName
-					.setText(eventList.get(groupPosition).locationName);
+					.setText(currentEvent.locationName);
 			}
 			if (eventName != null) {
 				if (stringNotEmpty(currentEvent.eventName))
@@ -271,7 +271,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 					if (currentEvent.isExpanded) {
 						arrow.setImageResource(R.drawable.ic_action_expand);
 						currentEvent.isExpanded = false;
-						callbackReceiver.onExpandedItemFalse();
+						callbackReceiver.onCollapseItem();
 						listView.collapseGroup(groupPosition);
 					} else {
 						for (int i = 0; i < getGroupCount(); i++) {
@@ -280,7 +280,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						}
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						currentEvent.isExpanded = true;
-						callbackReceiver.onExpandedItemTrue(currentEvent.locationID);
+						callbackReceiver.onExpandItem(currentEvent.locationID);
 						listView.expandGroup(groupPosition);
 						callbackReceiver.scrollEventTop(v);
 						callbackReceiver.attachMap(currentEvent);
@@ -299,7 +299,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						listView.collapseGroup(groupPosition);
 						arrow.setImageResource(R.drawable.ic_action_expand);
 						eventList.get(groupPosition).isExpanded = false;
-						callbackReceiver.onExpandedItemFalse();
+						callbackReceiver.onCollapseItem();
 					} else {
 						// all items are collapsed and the value of the previous
 						// expanded listitem is set on false, after that the
@@ -313,7 +313,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						listView.expandGroup(groupPosition);
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						eventList.get(groupPosition).isExpanded = true;
-						callbackReceiver.onExpandedItemTrue(eventList
+						callbackReceiver.onExpandItem(eventList
 								.get(groupPosition).locationID);
 					}
 				}

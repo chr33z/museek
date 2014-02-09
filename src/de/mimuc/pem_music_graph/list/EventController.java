@@ -287,7 +287,7 @@ public class EventController implements JsonConstants {
 	 * 
 	 * @param locationID
 	 */
-	public void onAddFavorites(String locationID) {
+	public void addFavorite(String locationID) {
 		FavoriteLocation fLocation = new FavoriteLocation(locationID,
 			getEvent(locationID).locationName,
 			getEvent(locationID).locationLatitude,
@@ -307,7 +307,6 @@ public class EventController implements JsonConstants {
 				event.isFavorite = true;
 			}
 		}
-		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**
@@ -316,7 +315,7 @@ public class EventController implements JsonConstants {
 	 * 
 	 * @param locationID
 	 */
-	public void onRemoveFavorites(String locationID) {
+	public void removeFavorite(String locationID) {
 
 		if (favorites.containsKey(locationID)) {
 			for(Event event : getAllEvents(locationID)){
@@ -324,7 +323,6 @@ public class EventController implements JsonConstants {
 			}
 			favorites.remove(locationID);
 		}
-		callbackReceiver.onEventControllerUpdate();
 	}
 
 	/**
@@ -344,7 +342,7 @@ public class EventController implements JsonConstants {
 	 * 
 	 * @param locationID
 	 */
-	public void onExpandedItemTrue(String locationID) {
+	public void expandItem(String locationID) {
 		Log.v("expandedItemsnull", expandedItem + "");
 		if (!(expandedItem.equals("")))
 			getEvent(expandedItem).isExpanded = false;
@@ -356,7 +354,7 @@ public class EventController implements JsonConstants {
 	 * sets the collapsed item in the eventList on false and stores an empty
 	 * string as expanded item
 	 */
-	public void onExpandedItemFalse() {
+	public void collapseItem() {
 		if(getEvent(expandedItem) != null)
 			getEvent(expandedItem).isExpanded = false;
 		expandedItem = "";

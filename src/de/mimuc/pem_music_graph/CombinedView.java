@@ -645,7 +645,7 @@ UndoListener {
 	public void onGraphUpdate(GenreNode node, int newHeight) {
 		mEventController.setGenreNode(node);
 		onEventControllerUpdate();
-		slideUpPanel.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * screenWidth * 3));
+//		slideUpPanel.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * screenWidth * 3));
 	}
 
 	@Override

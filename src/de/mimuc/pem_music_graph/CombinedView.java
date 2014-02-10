@@ -37,6 +37,7 @@ import android.content.res.Resources.NotFoundException;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
@@ -63,6 +64,7 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
@@ -143,6 +145,15 @@ UndoListener {
 
 	// root view for redraw operations
 	View rootView;
+	
+	/*
+	 * 
+	 * 
+	 */
+	boolean doAttachMap = false;
+	Event eventToAttach;
+	
+	
 
 	/**
 	 * Is called when location updates arrive
@@ -256,6 +267,24 @@ UndoListener {
 		// intialize listview
 		listContainer = (RelativeLayout) findViewById(R.id.list_container);
 		locationListView = (ExpandableListView) findViewById(R.id.list_view);
+		locationListView.setOnScrollListener(new OnScrollListener() {
+			
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				if(doAttachMap && eventToAttach != null){
+					attachMap(eventToAttach);
+					doAttachMap = false;
+				}
+			}
+			
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
 		adapter = new ExpandableListAdapter2(this,
 				mEventController.getEventList());
 		locationListView.setAdapter(adapter);
@@ -682,10 +711,22 @@ UndoListener {
 			args.putDouble("lat", Double.parseDouble(event.locationLatitude));
 			args.putDouble("lon", Double.parseDouble(event.locationLongitude));
 
-			PemMapFragment mapFragment = new PemMapFragment();
-			mapFragment.setArguments(args);
-			getSupportFragmentManager().beginTransaction()
-				.replace(R.id.map_container, mapFragment).commit();
+			try {
+				PemMapFragment mapFragment = new PemMapFragment();
+				mapFragment.setArguments(args);
+				getSupportFragmentManager().beginTransaction()
+					.replace(R.id.map_container, mapFragment).commit();
+			} catch(Exception e){
+				try {
+					PemMapFragment mapFragment = new PemMapFragment();
+					mapFragment.setArguments(args);
+					getSupportFragmentManager().beginTransaction()
+						.replace(R.id.map, mapFragment).commit();
+				} catch(Exception e1){
+					
+				}
+			}
+			
 		}
 	}
 
@@ -845,7 +886,7 @@ UndoListener {
 
 		return datePicker;
 	}
-
+	
 	@Override
 	public void onFavoriteClick(FavoriteLocation favoriteLocation) {
 		Event event = null;
@@ -854,7 +895,7 @@ UndoListener {
 		List<Event> eventList = mEventController.getEventList();
 
 		if(adapter != null && favoriteLocation.nextEvent != null){
-			for (int i = 0; i < adapter.getGroupCount(); i++) {
+			for (int i = 0; i < eventList.size(); i++) {
 //				Event iEvent = (Event) adapter.getGroup(i);
 				Event iEvent = eventList.get(i);
 
@@ -866,17 +907,30 @@ UndoListener {
 			}
 
 			if(event != null){
+				for (int i = 0; i < eventList.size(); i++) {
+					locationListView.collapseGroup(i);
+					eventList.get(i).isExpanded = false;
+				}
+				
 				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
 				slideUpPanel.expandPane();
-				locationListView.smoothScrollToPositionFromTop(
-					position, 0);
+				locationListView.smoothScrollToPositionFromTop(position, 0, 0);
 				
-				if(!event.isExpanded){
-					locationListView.expandGroup(position);
-					event.isExpanded = true;
-					mEventController.expandItem(event.ID);
-					attachMap(event);
-				}
+				event.isExpanded = true;
+				onExpandItem(event.ID);
+				locationListView.expandGroup(position);
+				
+				final Event attachEvent = event;
+				
+				Handler handler = new Handler();
+				handler.postDelayed(new Runnable()
+				{
+					@Override
+					public void run()
+					{
+						attachMap(attachEvent);
+					}
+				}, 750);
 			}
 		}
 	}

@@ -51,6 +51,8 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 	
 	private boolean localEventList = false;
 	
+	private boolean mDataLoaded = false;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,7 +78,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 				return;
 			}
 
-			if(mLocation != null && location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE){
+			if(mDataLoaded && mLocation != null && location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE){
 				Log.i(TAG, "Location not changed.");
 				return;
 			}
@@ -94,6 +96,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 				intent.putExtra("latitude", mLocation.getLatitude());
 				intent.putExtra("longitude", mLocation.getLongitude());
 				startActivity(intent);
+				mDataLoaded = true;
 				Log.d(TAG, "Loaded events from Shared Preferences");
 			} else {
 				getEventsFromServer(location);
@@ -177,6 +180,7 @@ implements ConnectionCallbacks, OnConnectionFailedListener, JsonConstants {
 						intent.putExtra("latitude", location.getLatitude());
 						intent.putExtra("longitude", location.getLongitude());
 						startActivity(intent);
+						mDataLoaded = true;
 						finish();
 					}
 				}, new Response.ErrorListener() {

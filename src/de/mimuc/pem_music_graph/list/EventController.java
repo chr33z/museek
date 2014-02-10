@@ -59,7 +59,7 @@ public class EventController implements JsonConstants {
 	/**
 	 * Keep track of expanded views to reset them on a adapter reload
 	 */
-	private String expandedItem = "";
+	private int expandedItem = 0;
 
 	/**
 	 * stores the current genrenode
@@ -179,6 +179,9 @@ public class EventController implements JsonConstants {
 	 * @param json
 	 */
 	protected void readJson(JSONObject json) {
+		
+		int ID;
+		
 		String resultTime = null;
 		String resultRadius = null;
 		String resultLatitude = null;
@@ -213,9 +216,13 @@ public class EventController implements JsonConstants {
 
 			// eventLocations are stored in an array
 			JSONArray jsonArray = json.getJSONArray("events");
+			int currentID = 1;
 
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONObject event = jsonArray.getJSONObject(i);
+				
+				ID = currentID;
+				currentID++;
 
 				resultTime = json.getString(TAG_RESULT_TIME);
 				resultRadius = json.getString(TAG_RESULT_RADIUS);
@@ -262,6 +269,11 @@ public class EventController implements JsonConstants {
 				isExpanded = false;
 				if (locationID.equals(expandedItem)) {
 					isExpanded = true;
+				}
+				
+				DateTime now = new DateTime();
+				if(Long.parseLong(startTime) < now.minusHours(8).getMillis()){
+					continue;
 				}
 
 				Event newEvent = new Event(resultTime, resultRadius,
@@ -344,12 +356,12 @@ public class EventController implements JsonConstants {
 	 * 
 	 * @param locationID
 	 */
-	public void expandItem(String locationID) {
+	public void expandItem(int ID) {
 		Log.v("expandedItemsnull", expandedItem + "");
-		if (!(expandedItem.equals("")))
-			getEvent(expandedItem).isExpanded = false;
-		expandedItem = locationID;
-		getEvent(expandedItem).isExpanded = true;
+		if (expandedItem != 0)
+			getEventID(expandedItem).isExpanded = false;
+		expandedItem = ID;
+		getEventID(expandedItem).isExpanded = true;
 	}
 
 	/**
@@ -357,11 +369,10 @@ public class EventController implements JsonConstants {
 	 * string as expanded item
 	 */
 	public void collapseItem() {
-		if(getEvent(expandedItem) != null)
-			getEvent(expandedItem).isExpanded = false;
-		expandedItem = "";
+		getEventID(expandedItem).isExpanded = false;
+		expandedItem = 0;
 	}
-
+	
 	/**
 	 * calculates the distance from the currentDistance to the destination and
 	 * stores it in every event
@@ -482,9 +493,17 @@ public class EventController implements JsonConstants {
 	 */
 	public List<Event> getEventList() {
 		updateFavorites();
-		// List<Event> eL = new ArrayList<Event>(date(eventList));
-		storeDistance(eventList);
-		List<Event> eL = sortGenre(eventList);
+		
+		List<Event> eL = new LinkedList<Event>();
+		DateTime now = (new DateTime()).minusHours(8);
+		for (Event event : eventList) {
+			if(Long.parseLong(event.startTime) >= now.getMillis()){
+				eL.add(event);
+			}
+		}
+		
+		eL = storeDistance(eL);
+		eL = sortGenre(eL);
 		if(useAlternativeTime){
 			eL = filterDate(eL);
 		}
@@ -617,6 +636,15 @@ public class EventController implements JsonConstants {
 	
 	public List<Event> getCompleteEventList(){
 		return eventList;
+	}
+	
+	public Event getEventID(int ID) {
+		for (int i = 0; i < eventList.size(); i++) {
+			if (eventList.get(i).ID == ID) {
+				return eventList.get(i);
+			}
+		}
+		return null;
 	}
 	
 	public List<Event> getAllEvents(String locationId) {

@@ -3,6 +3,8 @@ package de.mimuc.pem_music_graph.list;
 import android.location.Location;
 
 public class Event {
+	
+	public int ID;
 
 	public String resultTime;
 	public String resultRadius;

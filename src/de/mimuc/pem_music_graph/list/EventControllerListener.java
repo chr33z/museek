@@ -12,7 +12,7 @@ public interface EventControllerListener {
 
 	public void onRemoveFavorites(String locationID);
 
-	public void onExpandItem(String locationID);
+	public void onExpandItem(int ID);
 	
 	public void onCollapseItem();
 	

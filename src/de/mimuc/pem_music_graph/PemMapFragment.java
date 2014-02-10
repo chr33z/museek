@@ -26,7 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-public class MapFragment extends Fragment {
+public class PemMapFragment extends Fragment {
 
 	private GoogleMap map;
 

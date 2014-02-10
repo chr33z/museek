@@ -21,6 +21,7 @@ import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailed
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
@@ -202,7 +203,7 @@ UndoListener {
 
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-		mMapFragment = new MapFragment();
+		mMapFragment = new PemMapFragment();
 
 		mListFavorites = (ExpandableListView) findViewById(R.id.listFavorites);
 		mListFavorites.setEmptyView(findViewById(R.id.favorite_empty));
@@ -616,8 +617,9 @@ UndoListener {
 	}
 
 	@Override
-	public void onExpandItem(String locationID) {
-		mEventController.expandItem(locationID);
+	public void onExpandItem(int ID) {
+		mEventController.expandItem(ID);
+		adapter.notifyDataSetChanged();
 
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
@@ -629,6 +631,7 @@ UndoListener {
 	@Override
 	public void onCollapseItem() {
 		mEventController.collapseItem();
+		adapter.notifyDataSetChanged();
 
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
@@ -645,7 +648,7 @@ UndoListener {
 	public void onGraphUpdate(GenreNode node, int newHeight) {
 		mEventController.setGenreNode(node);
 		onEventControllerUpdate();
-//		slideUpPanel.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * screenWidth * 3));
+		slideUpPanel.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * screenWidth * 3));
 	}
 
 	@Override
@@ -673,10 +676,10 @@ UndoListener {
 			args.putDouble("lat", Double.parseDouble(event.locationLatitude));
 			args.putDouble("lon", Double.parseDouble(event.locationLongitude));
 
-			MapFragment mapFragment = new MapFragment();
+			PemMapFragment mapFragment = new PemMapFragment();
 			mapFragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction()
-			.replace(R.id.map_container, mapFragment).commit();
+				.replace(R.id.map_container, mapFragment).commit();
 		}
 	}
 
@@ -863,7 +866,7 @@ UndoListener {
 
 				locationListView.smoothScrollToPositionFromTop(
 						position, 0);
-				event.isExpanded = true;
+				mEventController.expandItem(event.ID);
 				adapter.notifyDataSetChanged();
 				attachMap(event);
 			}

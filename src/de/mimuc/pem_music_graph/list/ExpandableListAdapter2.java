@@ -254,15 +254,15 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 			star.setChecked(currentEvent.isFavorite);
 
 			if (currentEvent.isExpanded) {
-				listView.expandGroup(groupPosition);
+//				listView.expandGroup(groupPosition);
 				arrow.setImageResource(R.drawable.ic_action_collapse);
 			} else {
-				listView.collapseGroup(groupPosition);
+//				listView.collapseGroup(groupPosition);
 				arrow.setImageResource(R.drawable.ic_action_expand);
 			}
-
+			
 			convertView.setOnClickListener(new OnClickListener() {
-				
+
 				@Override
 				public void onClick(View v) {
 					int groupPosition = (Integer) v.getTag();
@@ -281,7 +281,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						}
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						currentEvent.isExpanded = true;
-						callbackReceiver.onExpandItem(currentEvent.locationID);
+						callbackReceiver.onExpandItem(currentEvent.ID);
 						listView.expandGroup(groupPosition);
 						callbackReceiver.scrollEventTop(v);
 						callbackReceiver.attachMap(currentEvent);
@@ -315,7 +315,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 						arrow.setImageResource(R.drawable.ic_action_collapse);
 						eventList.get(groupPosition).isExpanded = true;
 						callbackReceiver.onExpandItem(eventList
-								.get(groupPosition).locationID);
+								.get(groupPosition).ID);
 					}
 				}
 			});

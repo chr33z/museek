@@ -64,7 +64,7 @@ public class Event {
 	 * @param isFavorite
 	 * @param isExpanded
 	 */
-	public Event(String resultTime, String resultRadius, String resultLatitude,
+	public Event(int ID, String resultTime, String resultRadius, String resultLatitude,
 			String resultLongitude, String eventName, String eventGenre,
 			String eventDescription, String startTime, String endTime,
 			String minAge, String specialOffer, String locationID,
@@ -74,6 +74,7 @@ public class Event {
 			String addressPostcode, String locationWebsite,
 			Location currentLocation, String price, float currentDistance,
 			boolean isFavorite, boolean isExpanded) {
+		this.ID = ID;
 		this.resultTime = resultTime;
 		this.resultRadius = resultRadius;
 		this.resultLatitude = resultLatitude;

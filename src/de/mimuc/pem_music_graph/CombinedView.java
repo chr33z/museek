@@ -672,6 +672,12 @@ UndoListener {
 	@Override
 	public void attachMap(Event event) {
 		if (event != null) {
+			SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
+					.findFragmentById(R.id.map);
+			if (fragment != null)
+				getSupportFragmentManager().beginTransaction().remove(fragment)
+				.commit();
+			
 			Bundle args = new Bundle();
 			args.putDouble("lat", Double.parseDouble(event.locationLatitude));
 			args.putDouble("lon", Double.parseDouble(event.locationLongitude));
@@ -844,12 +850,15 @@ UndoListener {
 	public void onFavoriteClick(FavoriteLocation favoriteLocation) {
 		Event event = null;
 		int position = 0;
+		
+		List<Event> eventList = mEventController.getEventList();
 
 		if(adapter != null && favoriteLocation.nextEvent != null){
 			for (int i = 0; i < adapter.getGroupCount(); i++) {
-				Event iEvent = (Event) adapter.getGroup(i);
+//				Event iEvent = (Event) adapter.getGroup(i);
+				Event iEvent = eventList.get(i);
 
-				if(iEvent.startTime.equals(favoriteLocation.nextEvent.startTime)){
+				if(iEvent.ID == favoriteLocation.nextEvent.ID){
 					event = iEvent;
 					position = i;
 					break;
@@ -859,16 +868,15 @@ UndoListener {
 			if(event != null){
 				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
 				slideUpPanel.expandPane();
-
-				for (Event e : mEventController.getEventList()) {
-					e.isExpanded = false;
-				}
-
 				locationListView.smoothScrollToPositionFromTop(
-						position, 0);
-				mEventController.expandItem(event.ID);
-				adapter.notifyDataSetChanged();
-				attachMap(event);
+					position, 0);
+				
+				if(!event.isExpanded){
+					locationListView.expandGroup(position);
+					event.isExpanded = true;
+					mEventController.expandItem(event.ID);
+					attachMap(event);
+				}
 			}
 		}
 	}

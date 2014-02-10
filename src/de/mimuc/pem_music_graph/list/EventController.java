@@ -276,7 +276,7 @@ public class EventController implements JsonConstants {
 					continue;
 				}
 
-				Event newEvent = new Event(resultTime, resultRadius,
+				Event newEvent = new Event(ID, resultTime, resultRadius,
 						resultLatitude, resultLongitude, eventName, eventGenre,
 						eventDescription, startTime, endTime, minAge,
 						specialOffer, locationID, locationName,

@@ -587,6 +587,8 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 				{
 					if(node.getParent() != null){
 						graph.setAsRoot(node.getParent().name);
+						graphListener.onGraphUpdate(node.getParent(), graph.measureHeight());
+						
 					}
 					touchLocked = false;
 				}
@@ -596,5 +598,9 @@ public class MusicGraphView extends SurfaceView implements Runnable {
 
 	public GenreNode getRootNode(){
 		return graph.getCurrentRoot();
+	}
+	
+	public int getGraphHeight(){
+		return graph.measureHeight();
 	}
 }

@@ -7,6 +7,12 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
+/**
+ * Manages connection to google play services and in case of an error tries to recover play services.
+ * 
+ * @author Christopher Gebhardt
+ *
+ */
 public class PlayServicesManager {
 	
 	private static final String TAG = PlayServicesManager.class.getSimpleName();
@@ -14,9 +20,10 @@ public class PlayServicesManager {
 	private static final int MISSING_PLAY_SERVICES = 0;
 
 	/**
-	 * Check if google play services are available and, if not, try updateing or downloading them
+	 * Check if google play services are available and, if not, try updating or downloading them
+	 * 
 	 * @param context
-	 * @return true if play services available
+	 * @return true if play services available, false otherwise
 	 */
 	public static boolean isGooglePlayServiceUpToDate(Context context){
 		int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);

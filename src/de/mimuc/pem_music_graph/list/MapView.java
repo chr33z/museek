@@ -4,7 +4,7 @@ package de.mimuc.pem_music_graph.list;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.maps.MapActivity;
 
-import de.mimuc.pem_music_graph.CombinedView;
+import de.mimuc.pem_music_graph.MainActivity;
 
 public class MapView extends MapActivity {
 	
@@ -12,9 +12,9 @@ public class MapView extends MapActivity {
 	private String lon;
 	private String lat;
 	
-	CombinedView combinendView;
+	MainActivity combinendView;
 
-	public MapView(CombinedView cv){
+	public MapView(MainActivity cv){
 		this.combinendView = cv;
 	}
 	

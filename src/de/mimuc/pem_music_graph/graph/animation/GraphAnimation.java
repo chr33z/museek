@@ -1,5 +1,11 @@
 package de.mimuc.pem_music_graph.graph.animation;
 
+/**
+ * Abstract parent class for all animations
+ * 
+ * @author Christopher Gebhardt
+ *
+ */
 public abstract class GraphAnimation {
 	
 	protected GraphAnimationListener callbackReceiver;

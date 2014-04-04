@@ -85,6 +85,7 @@ import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.list.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.ApiGuard;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
+import de.mimuc.pem_music_graph.utils.FileUtils;
 import de.mimuc.pem_music_graph.utils.UndoBarController;
 import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 
@@ -94,12 +95,12 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
  * @author Christopher Gebhardt, Anna Kienle, Nicole Lipppner, Edina Smajic
  * 
  */
-public class CombinedView extends FragmentActivity implements
+public class MainActivity extends FragmentActivity implements
 ConnectionCallbacks, OnConnectionFailedListener,
 EventControllerListener, GenreGraphListener, FavoriteListListener,
 UndoListener {
 
-	private static final String TAG = CombinedView.class.getSimpleName();
+	private static final String TAG = MainActivity.class.getSimpleName();
 
 	// sliding panel
 	private SlidingUpPanelLayout slideUpPanel;
@@ -233,23 +234,18 @@ UndoListener {
 		graphView.onThreadResume();
 
 		// try to load a json file we got from start screen
-		if (getIntent().getStringExtra("json") != null) {
+		JSONObject eventList = FileUtils.readEventListFromStorage(this);
+		if (eventList != null) {
 
 			// initialize controller
-			String json = getIntent().getStringExtra("json");
 			double latitude = getIntent().getDoubleExtra("latitude", 0.0);
 			double longitude = getIntent().getDoubleExtra("longitude", 0.0);
+			
 			Location location = new Location("location");
 			location.setLatitude(latitude);
 			location.setLongitude(longitude);
 			mCurrentLocation = location;
-			try {
-				mEventController = new EventController(this, new JSONObject(
-						json), location);
-			} catch (JSONException e) {
-				Log.w(TAG, "Could not create json from string");
-				mEventController = new EventController(this);
-			}
+			mEventController = new EventController(this, eventList, location);
 		} else {
 			mEventController = new EventController(this);
 		}
@@ -585,7 +581,7 @@ UndoListener {
 				View v = locationListView.getChildAt(0);
 				int top = (v == null) ? 0 : v.getTop();
 
-				adapter = new ExpandableListAdapter2(CombinedView.this, mEventController
+				adapter = new ExpandableListAdapter2(MainActivity.this, mEventController
 						.getEventList());
 				locationListView.setAdapter(adapter);
 				if (mEventController.isNoEvents()) {

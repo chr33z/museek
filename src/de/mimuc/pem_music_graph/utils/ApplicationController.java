@@ -125,5 +125,12 @@ public class ApplicationController extends Application {
 			mRequestQueue.cancelAll(tag);
 		}
 	}
+	
+	public static int getScreenWidth(){
+		return getInstance().getResources().getDisplayMetrics().widthPixels;
+	}
 
+	public static int getScreenHeight(){
+		return getInstance().getResources().getDisplayMetrics().heightPixels;
+	}
 }

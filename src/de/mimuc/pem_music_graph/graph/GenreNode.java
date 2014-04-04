@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.drawable.Drawable;
+import android.support.v4.widget.DrawerLayout.DrawerListener;
 
 /**
  * A node that represents one genre on the screen.

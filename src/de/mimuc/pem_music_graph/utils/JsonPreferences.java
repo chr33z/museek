@@ -1,4 +1,4 @@
-package de.mimuc.pem_music_graph.list;
+package de.mimuc.pem_music_graph.utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import android.util.Log;
 
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
-import de.mimuc.pem_music_graph.utils.JsonConstants;
 
 public class JsonPreferences implements JsonConstants{
 

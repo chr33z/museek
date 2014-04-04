@@ -46,10 +46,8 @@ public class GenreGraph implements IGraph, GenreGraphConstants {
 	private GenreNode currentRoot;
 
 	public GenreGraph(){
-		DisplayMetrics metrics = ApplicationController
-				.getInstance().getResources().getDisplayMetrics();
-		width = metrics.widthPixels;
-		height = metrics.heightPixels;
+		width = ApplicationController.getScreenWidth();
+		height = ApplicationController.getScreenHeight();
 
 		translationMax = (height * ROOT_Y_FACTOR) - (height * PARENT_Y_FACTOR);
 

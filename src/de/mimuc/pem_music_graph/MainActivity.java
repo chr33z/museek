@@ -80,12 +80,12 @@ import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.graph.MusicGraphView;
 import de.mimuc.pem_music_graph.list.Event;
 import de.mimuc.pem_music_graph.list.EventControllerListener;
-import de.mimuc.pem_music_graph.list.ExpandableListAdapter2;
+import de.mimuc.pem_music_graph.list.EventListAdapter;
 import de.mimuc.pem_music_graph.list.EventController;
-import de.mimuc.pem_music_graph.list.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.ApiGuard;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.FileUtils;
+import de.mimuc.pem_music_graph.utils.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.UndoBarController;
 import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 
@@ -96,24 +96,21 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
  * 
  */
 public class MainActivity extends FragmentActivity implements
-ConnectionCallbacks, OnConnectionFailedListener,
-EventControllerListener, GenreGraphListener, FavoriteListListener,
-UndoListener {
+	ConnectionCallbacks, OnConnectionFailedListener,
+	EventControllerListener, GenreGraphListener, FavoriteListListener,
+	UndoListener {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
 	// sliding panel
-	private SlidingUpPanelLayout slideUpPanel;
+	private SlidingUpPanelLayout mSlideUpPanel;
 
 	// graph
-	private MusicGraphView graphView;
+	private MusicGraphView mGraphView;
 
 	// list
-	private ExpandableListAdapter2 adapter;
-	private ExpandableListView locationListView;
-	private RelativeLayout listHandle;
-	private RelativeLayout listContainer;
-
+	private EventListAdapter mAdapter;
+	private ExpandableListView mEventListView;
 
 	private EventController mEventController;
 	private Location mCurrentLocation;
@@ -124,37 +121,30 @@ UndoListener {
 	// location services
 	private LocationClient mLocationClient;
 
-	private Fragment mMapFragment;
-
 	// navigation drawer right
 	private ExpandableListView mListFavorites;
 	private UndoBarController mUndoBarController;
 
 	// navigation drawer left
-	private DatePicker datePicker;
-	private Button okB;
-	private Button resetB;
-	private DrawerLayout drawerLayout;
-	private ActionBarDrawerToggle drawerToggle;
+	private DatePicker mDatePicker;
+	private Button mBtnOk;
+	private Button mBtnReset;
+	private DrawerLayout mDrawerLayout;
+	private ActionBarDrawerToggle mDrawerToggle;
 
-	boolean updated = false;
-
-	int screenWidth = 0;
-	int screenHeight = 0;
-
-	private SharedPreferences sharedPreferences;
-
-	// root view for redraw operations
-	View rootView;
+	int mScreenWidth= 0;
+	int mScreenHeight = 0;
 	
-	/*
-	 * 
-	 * 
-	 */
-	boolean doAttachMap = false;
-	Event eventToAttach;
+	private SharedPreferences mSharedPreferences;
+
+	// needed for redraw operations
+	private View mRootView;
+	private RelativeLayout mListContainer;
 	
+	private boolean mAttachMap = false;
+	private Event mEventToAttach;
 	
+	private Fragment mMapFragment;
 
 	/**
 	 * Is called when location updates arrive
@@ -211,9 +201,9 @@ UndoListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
 
-		rootView = findViewById(R.id.root);
+		mRootView = findViewById(R.id.root);
 
-		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 		mMapFragment = new PemMapFragment();
 
@@ -228,10 +218,10 @@ UndoListener {
 		mLocationClient = new LocationClient(this, this, this);
 
 		// init graph
-		graphView = new MusicGraphView(this);
-		graphView.setGenreGraphListener(this);
-		((FrameLayout)findViewById(R.id.graph_view_frame)).addView(graphView);
-		graphView.onThreadResume();
+		mGraphView = new MusicGraphView(this);
+		mGraphView.setGenreGraphListener(this);
+		((FrameLayout)findViewById(R.id.graph_view_frame)).addView(mGraphView);
+		mGraphView.onThreadResume();
 
 		// try to load a json file we got from start screen
 		JSONObject eventList = FileUtils.readEventListFromStorage(this);
@@ -250,9 +240,9 @@ UndoListener {
 			mEventController = new EventController(this);
 		}
 
-		mEventController.setGenreNode(graphView.getRootNode());
+		mEventController.setGenreNode(mGraphView.getRootNode());
 
-		String favorites = sharedPreferences.getString("favorites", "");
+		String favorites = mSharedPreferences.getString("favorites", "");
 		if (!(favorites.isEmpty())) {
 			mEventController.setFavorites(JsonPreferences
 					.createFavoritesFromJson(favorites));
@@ -261,15 +251,15 @@ UndoListener {
 		}
 
 		// intialize listview
-		listContainer = (RelativeLayout) findViewById(R.id.list_container);
-		locationListView = (ExpandableListView) findViewById(R.id.list_view);
-		locationListView.setOnScrollListener(new OnScrollListener() {
+		mListContainer = (RelativeLayout) findViewById(R.id.list_container);
+		mEventListView = (ExpandableListView) findViewById(R.id.list_view);
+		mEventListView.setOnScrollListener(new OnScrollListener() {
 			
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-				if(doAttachMap && eventToAttach != null){
-					attachMap(eventToAttach);
-					doAttachMap = false;
+				if(mAttachMap && mEventToAttach != null){
+					attachMap(mEventToAttach);
+					mAttachMap = false;
 				}
 			}
 			
@@ -281,16 +271,15 @@ UndoListener {
 			}
 		});
 		
-		adapter = new ExpandableListAdapter2(this,
+		mAdapter = new EventListAdapter(this,
 				mEventController.getEventList());
-		locationListView.setAdapter(adapter);
-		listHandle = (RelativeLayout) findViewById(R.id.list_handle);
+		mEventListView.setAdapter(mAdapter);
 
 		/*
 		 * Force redraw of list while scrolling to prevent glitches
 		 */
 		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-			locationListView.setOnScrollListener(new OnScrollListener() {
+			mEventListView.setOnScrollListener(new OnScrollListener() {
 
 				@Override
 				public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -300,9 +289,9 @@ UndoListener {
 				public void onScroll(AbsListView view, int firstVisibleItem,
 						int visibleItemCount, int totalItemCount) {
 
-					locationListView.bringToFront();
-					rootView.requestLayout();
-					rootView.invalidate();
+					mEventListView.bringToFront();
+					mRootView.requestLayout();
+					mRootView.invalidate();
 				}
 			});
 		}
@@ -310,17 +299,15 @@ UndoListener {
 		updateFavoriteList();
 
 		// initialize dimensions
-		DisplayMetrics metrics = ApplicationController.getInstance()
-				.getResources().getDisplayMetrics();
-		screenWidth = metrics.widthPixels;
-		screenHeight = metrics.heightPixels;
+		mScreenWidth = ApplicationController.getScreenWidth();
+		mScreenHeight = ApplicationController.getScreenHeight();
 
 		// initialize slide panel
-		slideUpPanel = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-		slideUpPanel.setPanelHeight((int) (screenHeight * 0.5));
-		slideUpPanel.setDragView(listHandle);
-		slideUpPanel.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
-		slideUpPanel.setPanelSlideListener(new PanelSlideListener() {
+		mSlideUpPanel = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+		mSlideUpPanel.setPanelHeight((int) (mScreenHeight * 0.5));
+		mSlideUpPanel.setDragView(findViewById(R.id.list_handle));
+		mSlideUpPanel.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
+		mSlideUpPanel.setPanelSlideListener(new PanelSlideListener() {
 
 			@Override
 			public void onPanelSlide(View panel, float slideOffset) {
@@ -328,15 +315,15 @@ UndoListener {
 				 * Force redraw of list while panel sliding to prevent glitches
 				 */
 				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-					listContainer.bringToFront();
-					rootView.requestLayout();
-					rootView.invalidate();
+					mListContainer.bringToFront();
+					mRootView.requestLayout();
+					mRootView.invalidate();
 				}
 
-				locationListView.setPadding(
-						locationListView.getPaddingLeft(), 
-						locationListView.getPaddingTop(), 
-						locationListView.getPaddingRight(), 
+				mEventListView.setPadding(
+						mEventListView.getPaddingLeft(), 
+						mEventListView.getPaddingTop(), 
+						mEventListView.getPaddingRight(), 
 						findViewById(R.id.list_container).getTop());
 			}
 
@@ -395,42 +382,38 @@ UndoListener {
 			}
 		});
 
-		datePicker = (DatePicker) this.findViewById(R.id.datePicker1);
-		okB = (Button) this.findViewById(R.id.ok_button);
-		resetB = (Button) this.findViewById(R.id.reset_button);
+		mDatePicker = (DatePicker) this.findViewById(R.id.datePicker1);
+		mBtnOk = (Button) this.findViewById(R.id.ok_button);
+		mBtnReset = (Button) this.findViewById(R.id.reset_button);
 		datePicker(null, null);
 
-		drawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
+		mDrawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
 
 		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-			drawerLayout.setScrimColor(getResources().getColor(android.R.color.transparent));
+			mDrawerLayout.setScrimColor(getResources().getColor(android.R.color.transparent));
 		}
 
 		/*
 		 * Force redraw of drawer to prevent glitches
 		 */
 		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-			drawerLayout.setDrawerListener(new DrawerListener() {
+			mDrawerLayout.setDrawerListener(new DrawerListener() {
 
 				@Override
-				public void onDrawerStateChanged(int arg0) {
-
-				}
+				public void onDrawerStateChanged(int arg0) { }
 
 				@Override
 				public void onDrawerSlide(View arg0, float arg1) {
-					drawerLayout.bringToFront();
-					rootView.requestLayout();
-					rootView.invalidate();
+					mDrawerLayout.bringToFront();
+					mRootView.requestLayout();
+					mRootView.invalidate();
 				}
 
 				@Override
-				public void onDrawerOpened(View arg0) {
-				}
+				public void onDrawerOpened(View arg0) { }
 
 				@Override
-				public void onDrawerClosed(View arg0) {
-				}
+				public void onDrawerClosed(View arg0) { }
 			});
 		}
 
@@ -469,21 +452,21 @@ UndoListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
-			drawerLayout.closeDrawer(Gravity.RIGHT);
+			mDrawerLayout.closeDrawer(Gravity.RIGHT);
 
-			if (!drawerLayout.isDrawerOpen(Gravity.LEFT))
-				drawerLayout.openDrawer(Gravity.LEFT);
+			if (!mDrawerLayout.isDrawerOpen(Gravity.LEFT))
+				mDrawerLayout.openDrawer(Gravity.LEFT);
 			else
-				drawerLayout.closeDrawer(Gravity.LEFT);
+				mDrawerLayout.closeDrawer(Gravity.LEFT);
 			return true;
 
 		case R.id.favorites:
-			drawerLayout.closeDrawer(Gravity.LEFT);
+			mDrawerLayout.closeDrawer(Gravity.LEFT);
 
-			if (!drawerLayout.isDrawerOpen(Gravity.RIGHT))
-				drawerLayout.openDrawer(Gravity.RIGHT);
+			if (!mDrawerLayout.isDrawerOpen(Gravity.RIGHT))
+				mDrawerLayout.openDrawer(Gravity.RIGHT);
 			else
-				drawerLayout.closeDrawer(Gravity.RIGHT);
+				mDrawerLayout.closeDrawer(Gravity.RIGHT);
 			return true;
 
 		default:
@@ -506,16 +489,16 @@ UndoListener {
 		if (mLocationClient != null)
 			mLocationClient.connect();
 
-		if(graphView != null)
-			graphView.onThreadResume();
+		if(mGraphView != null)
+			mGraphView.onThreadResume();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
 
-		if(graphView != null)
-			graphView.onThreadPause();
+		if(mGraphView != null)
+			mGraphView.onThreadPause();
 
 		if (mLocationClient != null)
 			mLocationClient.disconnect();
@@ -525,14 +508,14 @@ UndoListener {
 	protected void onStop() {
 		super.onStop();
 		String json = mEventController.getJsonForSharedPreferences();
-		sharedPreferences.edit().putString("events", json).commit();
+		mSharedPreferences.edit().putString("events", json).commit();
 		String favorites = JsonPreferences
 				.createJsonFromFavorites(mEventController.getFavorites());
-		sharedPreferences.edit().putString("favorites", favorites).commit();
+		mSharedPreferences.edit().putString("favorites", favorites).commit();
 		Log.v(TAG, "wrote "+json);
 
-		if (graphView != null)
-			graphView.onThreadPause();
+		if (mGraphView != null)
+			mGraphView.onThreadPause();
 
 		if (mLocationClient != null)
 			mLocationClient.disconnect();
@@ -577,20 +560,20 @@ UndoListener {
 			public void run() {
 
 				// save last scroll position
-				int index = locationListView.getFirstVisiblePosition();
-				View v = locationListView.getChildAt(0);
+				int index = mEventListView.getFirstVisiblePosition();
+				View v = mEventListView.getChildAt(0);
 				int top = (v == null) ? 0 : v.getTop();
 
-				adapter = new ExpandableListAdapter2(MainActivity.this, mEventController
+				mAdapter = new EventListAdapter(MainActivity.this, mEventController
 						.getEventList());
-				locationListView.setAdapter(adapter);
+				mEventListView.setAdapter(mAdapter);
 				if (mEventController.isNoEvents()) {
-					adapter.setNoEvents(true);
+					mAdapter.setNoEvents(true);
 					mEventController.setNoEvents(false);
 				}
 
 				// restore scroll position
-				locationListView.setSelectionFromTop(index, top);
+				mEventListView.setSelectionFromTop(index, top);
 			}
 		});
 	}
@@ -601,11 +584,11 @@ UndoListener {
 		// hijack back button to do what we want
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 
-			if (!slideUpPanel.isExpanded() && !graphView.isAtRoot()) {
-				graphView.graphNavigateBack();
+			if (!mSlideUpPanel.isExpanded() && !mGraphView.isAtRoot()) {
+				mGraphView.graphNavigateBack();
 				return true;
-			} else if (slideUpPanel.isExpanded()) {
-				slideUpPanel.collapsePane();
+			} else if (mSlideUpPanel.isExpanded()) {
+				mSlideUpPanel.collapsePane();
 				return true;
 			} else {
 				moveTaskToBack(true);
@@ -613,10 +596,10 @@ UndoListener {
 			}
 		}
 		if (keyCode == KeyEvent.KEYCODE_MENU) {
-			if (!drawerLayout.isDrawerOpen(Gravity.LEFT))
-				drawerLayout.openDrawer(Gravity.LEFT);
+			if (!mDrawerLayout.isDrawerOpen(Gravity.LEFT))
+				mDrawerLayout.openDrawer(Gravity.LEFT);
 			else
-				drawerLayout.closeDrawer(Gravity.LEFT);
+				mDrawerLayout.closeDrawer(Gravity.LEFT);
 		}
 		return super.onKeyDown(keyCode, event);
 	}
@@ -627,7 +610,7 @@ UndoListener {
 	@Override
 	public void onAddFavorites(String locationID) {
 		mEventController.addFavorite(locationID);
-		adapter.notifyDataSetChanged();
+		mAdapter.notifyDataSetChanged();
 		updateFavoriteList();
 	}
 
@@ -637,14 +620,14 @@ UndoListener {
 	@Override
 	public void onRemoveFavorites(String locationID) {
 		mEventController.removeFavorite(locationID);
-		adapter.notifyDataSetChanged();
+		mAdapter.notifyDataSetChanged();
 		updateFavoriteList();
 	}
 
 	@Override
 	public void onExpandItem(int ID) {
 		mEventController.expandItem(ID);
-		adapter.notifyDataSetChanged();
+		mAdapter.notifyDataSetChanged();
 
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
@@ -656,7 +639,7 @@ UndoListener {
 	@Override
 	public void onCollapseItem() {
 		mEventController.collapseItem();
-		adapter.notifyDataSetChanged();
+		mAdapter.notifyDataSetChanged();
 
 		SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
@@ -673,7 +656,7 @@ UndoListener {
 	public void onGraphUpdate(GenreNode node, int newHeight) {
 		mEventController.setGenreNode(node);
 		onEventControllerUpdate();
-		slideUpPanel.animatePanelHeight(rootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * screenWidth * 3));
+		mSlideUpPanel.animatePanelHeight(mRootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * mScreenWidth * 3));
 	}
 
 	@Override
@@ -689,7 +672,7 @@ UndoListener {
 	@Override
 	public void scrollEventTop(View listItem) {
 		if (listItem != null) {
-			locationListView.smoothScrollToPositionFromTop(
+			mEventListView.smoothScrollToPositionFromTop(
 					(Integer) listItem.getTag(), 0);
 		}
 	}
@@ -825,38 +808,38 @@ UndoListener {
 	 * @return
 	 */
 	public DatePicker datePicker(OnDateSetListener listener, Calendar calendar) {
-		okB.setOnClickListener(new OnClickListener() {
+		mBtnOk.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				Log.v(TAG,
-						datePicker.getDayOfMonth() + " "
-								+ (datePicker.getMonth() + 1) + " "
-								+ datePicker.getYear());
-				String dateTime = datePicker.getYear() + "-"
-						+ (datePicker.getMonth() + 1) + "-"
-						+ datePicker.getDayOfMonth() + "T" + "00" + ":" + "00"
+						mDatePicker.getDayOfMonth() + " "
+								+ (mDatePicker.getMonth() + 1) + " "
+								+ mDatePicker.getYear());
+				String dateTime = mDatePicker.getYear() + "-"
+						+ (mDatePicker.getMonth() + 1) + "-"
+						+ mDatePicker.getDayOfMonth() + "T" + "00" + ":" + "00"
 						+ ":00.000";
 				DateTime time = DateTime.parse(dateTime);
 				mEventController.setDateTime(time);
 				mEventController.useAlternativeTime(true);
 				onEventControllerUpdate();
-				drawerLayout.closeDrawer(Gravity.LEFT);
+				mDrawerLayout.closeDrawer(Gravity.LEFT);
 			}
 		});
 
-		resetB.setOnClickListener(new OnClickListener() {
+		mBtnReset.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				mEventController.useAlternativeTime(false);
 				onEventControllerUpdate();
-				drawerLayout.closeDrawer(Gravity.LEFT);
+				mDrawerLayout.closeDrawer(Gravity.LEFT);
 			}
 		});
 
-		LinearLayout llFirst = (LinearLayout) datePicker.getChildAt(0);
+		LinearLayout llFirst = (LinearLayout) mDatePicker.getChildAt(0);
 		LinearLayout llSecond = (LinearLayout) llFirst.getChildAt(0);
 		for (int i = 0; i < llSecond.getChildCount(); i++) {
 			NumberPicker picker = (NumberPicker) llSecond.getChildAt(i); // Numberpickers
@@ -880,7 +863,7 @@ UndoListener {
 			}
 		}
 
-		return datePicker;
+		return mDatePicker;
 	}
 	
 	@Override
@@ -890,7 +873,7 @@ UndoListener {
 		
 		List<Event> eventList = mEventController.getEventList();
 
-		if(adapter != null && favoriteLocation.nextEvent != null){
+		if(mAdapter != null && favoriteLocation.nextEvent != null){
 			for (int i = 0; i < eventList.size(); i++) {
 //				Event iEvent = (Event) adapter.getGroup(i);
 				Event iEvent = eventList.get(i);
@@ -904,17 +887,17 @@ UndoListener {
 
 			if(event != null){
 				for (int i = 0; i < eventList.size(); i++) {
-					locationListView.collapseGroup(i);
+					mEventListView.collapseGroup(i);
 					eventList.get(i).isExpanded = false;
 				}
 				
-				drawerLayout.closeDrawer(findViewById(R.id.right_drawer));
-				slideUpPanel.expandPane();
-				locationListView.smoothScrollToPositionFromTop(position, 0, 0);
+				mDrawerLayout.closeDrawer(findViewById(R.id.right_drawer));
+				mSlideUpPanel.expandPane();
+				mEventListView.smoothScrollToPositionFromTop(position, 0, 0);
 				
 				event.isExpanded = true;
 				onExpandItem(event.ID);
-				locationListView.expandGroup(position);
+				mEventListView.expandGroup(position);
 				
 				final Event attachEvent = event;
 				
@@ -1013,7 +996,7 @@ UndoListener {
 			mEventController.useAlternativeLocation(true);
 			onEventControllerUpdate();
 			
-			drawerLayout.closeDrawer(Gravity.LEFT);
+			mDrawerLayout.closeDrawer(Gravity.LEFT);
 			InputMethodManager inputManager = (InputMethodManager)
                     getSystemService(Context.INPUT_METHOD_SERVICE); 
 

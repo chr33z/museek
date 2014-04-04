@@ -28,9 +28,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
+public class EventListAdapter extends BaseExpandableListAdapter {
 
-	private static final String TAG = ExpandableListAdapter2.class.getName();
+	private static final String TAG = EventListAdapter.class.getName();
 
 	/**
 	 * Saves the context
@@ -61,7 +61,7 @@ public class ExpandableListAdapter2 extends BaseExpandableListAdapter {
 	 * @param context
 	 * @param eventList
 	 */
-	public ExpandableListAdapter2(Context context, List<Event> eventList) {
+	public EventListAdapter(Context context, List<Event> eventList) {
 		this.eventList = eventList;
 		this.callbackReceiver = (EventControllerListener) context;
 		this.context = context;

@@ -21,7 +21,6 @@ import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailed
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -41,11 +40,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.DrawerLayout.DrawerListener;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -65,7 +62,6 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
@@ -102,6 +98,8 @@ public class ListActivity extends FragmentActivity implements
 	UndoListener {
 
 	private static final String TAG = ListActivity.class.getSimpleName();
+	
+	private static final int REQUEST_ALTERNATIVE_LOCATION = 1337;
 
 	// sliding panel
 	private SlidingUpPanelLayout mSlideUpPanel;
@@ -170,6 +168,8 @@ public class ListActivity extends FragmentActivity implements
 	};
 
 	public void onRadioButtonClicked(View view) {
+		startActivityForResult(new Intent(getBaseContext(), AlternativeLocationMap.class), REQUEST_ALTERNATIVE_LOCATION);
+		
 		// Is the button now checked?
 		boolean checked = ((RadioButton) view).isChecked();
 

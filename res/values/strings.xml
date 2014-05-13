@@ -14,17 +14,15 @@
     <string name="title_activity_combined_view">CombinedView</string>
     <string name="oe">\u00F6</string>
     <string name="ae">\u00E4</string>
-    
     <string name="changeStart">Startpunkt</string>
     <string name="changeDate">Datum</string>
     <string name="stand">Aktueller Standort</string>
     <string name="andererStand">Standort wählen:</string>
     <string name="text_hint">Adresse eingeben</string>
     <string name="start">Go!</string>
-    <string name ="ButtonOK">OK</string>
-    <string name ="ButtonReset">Ab Heute</string>
+    <string name="ButtonOK">OK</string>
+    <string name="ButtonReset">Ab Heute</string>
     <string name="drawer_favorites_title">Favoriten - nächste Events</string>
-    
     <string name="list_header_date_today">Heute</string>
     <string name="list_header_date_tomorrow">Morgen</string>
     <string name="list_header_date_from">ab</string>
@@ -33,7 +31,8 @@
     <string name="list_detail_clock">Uhr</string>
     <string name="list_detail_girls">Mädels:</string>
     <string name="list_detail_boys">Jungs:</string>
- 	<string name="no_events">Keine Veranstaltungen gefunden.</string>
+    <string name="no_events">Keine Veranstaltungen gefunden.</string>
+
     <string-array name="weekdays">
         <item>Mo</item>
         <item>Di</item>
@@ -62,17 +61,16 @@
         <item>Find People</item>
         <item>What\'s Hot</item>
     </string-array>
-    
+
     <string name="undobar_sample_message">Favorit gelöscht.</string>
     <string name="undo">Rückgängig</string>
-    
     <string name="dialog_title_delete_favorite">Favorit löschen</string>
     <string name="dialog_positiv_delete_favorite">löschen</string>
     <string name="dialog_negative_delete_favorite">abbrechen</string>
-    
     <string name="favorite_list_empty">Keine Favoriten gespeichert.</string>
     <string name="address_not_found">Keine Addresse gefunden :(</string>
     <string name="drawer_open">Drawer offen</string>
     <string name="drawer_close">Drawer geschlossen</string>
+    <string name="title_activity_alternative_location_map">AlternativeLocationMap</string>
 
 </resources>

@@ -1,5 +1,4 @@
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
@@ -9,6 +8,8 @@
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
+
+        <!-- graph + listview -->
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -23,13 +24,15 @@
                 <FrameLayout
                     android:id="@+id/graph_view_frame"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent" >
                 </FrameLayout>
-                
-                <!-- <de.mimuc.pem_music_graph.graph.MusicGraphView
+
+                <!--
+                    <de.mimuc.pem_music_graph.graph.MusicGraphView
                     android:id="@+id/graph_view_frame"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" /> -->
+                    android:layout_height="match_parent" />
+                -->
 
                 <RelativeLayout
                     android:id="@+id/list_container"
@@ -69,15 +72,14 @@
             </com.sothree.slidinguppanel.SlidingUpPanelLayout>
         </RelativeLayout>
 
-        <RadioGroup
+        <!-- Left drawer -->
+
+        <LinearLayout
             android:id="@+id/left_drawer"
-            android:layout_width="260dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:background="#e0e0e0"
-            android:choiceMode="singleChoice"
-            android:divider="@android:color/transparent"
-            android:dividerHeight="0dp"
             android:orientation="vertical" >
 
             <TextView
@@ -91,27 +93,36 @@
 
             <View style="@style/Divider" />
 
-            <RadioButton
-                android:id="@+id/radio_ownStart"
-                style="@style/RadioButtonStyle"
-                android:layout_width="wrap_content"
+            <RadioGroup
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:layout_marginTop="5dp"
-                android:checked="true"
-                android:onClick="onRadioButtonClicked"
-                android:text="@string/stand"
-                android:textSize="20sp" />
+                android:choiceMode="singleChoice"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="0dp"
+                android:orientation="vertical" >
 
-            <RadioButton
-                android:id="@+id/radio_otherStart"
-                style="@style/RadioButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:onClick="onRadioButtonClicked"
-                android:text="@string/andererStand"
-                android:textSize="20sp" />
+                <RadioButton
+                    android:id="@+id/radio_ownStart"
+                    style="@style/RadioButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="5dp"
+                    android:checked="true"
+                    android:onClick="onRadioButtonClicked"
+                    android:text="@string/stand"
+                    android:textSize="20sp" />
+
+                <RadioButton
+                    android:id="@+id/radio_otherStart"
+                    style="@style/RadioButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="20dp"
+                    android:onClick="onRadioButtonClicked"
+                    android:text="@string/andererStand"
+                    android:textSize="20sp" />
+            </RadioGroup>
 
             <EditText
                 android:id="@+id/auto_text"
@@ -179,11 +190,13 @@
                     android:background="@drawable/button_border"
                     android:text="@string/ButtonReset" />
             </LinearLayout>
-        </RadioGroup>
+        </LinearLayout>
+
+        <!-- right drawer -->
 
         <LinearLayout
             android:id="@+id/right_drawer"
-            android:layout_width="281dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="end"
             android:background="#e0e0e0"
@@ -223,6 +236,8 @@
                 android:visibility="gone" />
         </LinearLayout>
     </android.support.v4.widget.DrawerLayout>
+
+    <!-- undo bar -->
 
     <LinearLayout
         android:id="@+id/undobar"

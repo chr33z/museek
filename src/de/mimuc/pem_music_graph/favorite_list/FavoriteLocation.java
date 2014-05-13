@@ -22,7 +22,7 @@ public class FavoriteLocation {
 			String locationDescription, String addressStreet,
 			String addressNumber, String addressCity, String addressPostcode,
 			String locationWebsite) {
-		super();
+		
 		this.locationID = locationID;
 		this.locationName = locationName;
 		this.locationLatitude = locationLatitude;

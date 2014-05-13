@@ -1,9 +1,5 @@
 package de.mimuc.pem_music_graph.utils;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
 import org.json.JSONObject;
 
 import com.android.volley.Response;
@@ -13,8 +9,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import android.content.Context;
 import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;

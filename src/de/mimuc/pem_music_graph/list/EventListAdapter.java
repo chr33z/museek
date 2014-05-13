@@ -1,6 +1,5 @@
 package de.mimuc.pem_music_graph.list;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -8,6 +7,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.utils.Utils;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -17,11 +17,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.webkit.WebView.FindListener;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckBox;
 import android.widget.ExpandableListView;
-import android.widget.FrameLayout;
 import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -32,27 +30,19 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 
 	private static final String TAG = EventListAdapter.class.getName();
 
-	/**
-	 * Saves the context
-	 */
+	/** Saves the context */
 	private Context context;
 
 	// TODO store in event
 	private boolean isDescriptionExpanded;
 
-	/**
-	 * Saves events in an arrayList
-	 */
+	/** Saves events in an arrayList */
 	private List<Event> eventList;
 
-	/**
-	 * The activity that handles all callbacks (parent Activity)
-	 */
+	/** The activity that handles all callbacks (parent Activity) */
 	private EventControllerListener callbackReceiver;
 
-	/**
-	 * is true if the currentNode has no events
-	 */
+	/** is true if the currentNode has no events */
 	private boolean noEvents = false;
 
 	/**
@@ -107,14 +97,14 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 			
 			RelativeLayout map = (RelativeLayout) convertView.findViewById(R.id.map_layout);
 
-			if (eventDescription != null && stringNotEmpty(currentEvent.eventDescription)){
+			if (eventDescription != null && Utils.stringNotEmpty(currentEvent.eventDescription)){
 				eventDescription.setVisibility(View.VISIBLE);
 				eventDescription.setText(currentEvent.eventDescription);
 			} else {
 				eventDescription.setVisibility(View.GONE);
 			}
 			
-			if(admissionPrice != null && stringNotEmpty(currentEvent.price)){
+			if(admissionPrice != null && Utils.stringNotEmpty(currentEvent.price)){
 				admissionPrice.setVisibility(View.VISIBLE);
 				admissionPrice.setText(currentEvent.price);
 			} else {
@@ -122,17 +112,17 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 			}
 
 			if (addressStreet != null)
-				if (stringNotEmpty(currentEvent.addressStreet)
-						&& stringNotEmpty(currentEvent.addressNumber))
+				if (Utils.stringNotEmpty(currentEvent.addressStreet)
+						&& Utils.stringNotEmpty(currentEvent.addressNumber))
 					addressStreet.setText(currentEvent.addressStreet + " "
 							+ currentEvent.addressNumber);
 			if (addressCity != null)
-				if (stringNotEmpty(currentEvent.addressPostcode)
-						&& stringNotEmpty(currentEvent.addressCity))
+				if (Utils.stringNotEmpty(currentEvent.addressPostcode)
+						&& Utils.stringNotEmpty(currentEvent.addressCity))
 					addressCity.setText(currentEvent.addressPostcode + " "
 							+ currentEvent.addressCity);
 
-			if (!stringNotEmpty(currentEvent.locationWebsite)) {
+			if (!Utils.stringNotEmpty(currentEvent.locationWebsite)) {
 				loadWebsite.setVisibility(View.GONE);
 			}
 
@@ -140,7 +130,7 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 
 				@Override
 				public void onClick(View v) {
-					if (stringNotEmpty(currentEvent.locationWebsite)) {
+					if (Utils.stringNotEmpty(currentEvent.locationWebsite)) {
 						Intent browserIntent = new Intent(Intent.ACTION_VIEW,
 								Uri.parse(currentEvent.locationWebsite));
 						context.startActivity(browserIntent);
@@ -186,7 +176,6 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 
 	@Override
 	public int getChildrenCount(int groupPosition) {
-		// always only one child in the expandable ListView
 		return 1;
 	}
 
@@ -234,30 +223,28 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 
 
 			if (locationName != null) {
-				if (stringNotEmpty(currentEvent.locationName))
+				if (Utils.stringNotEmpty(currentEvent.locationName))
 					locationName
 					.setText(currentEvent.locationName);
 			}
 			if (eventName != null) {
-				if (stringNotEmpty(currentEvent.eventName))
+				if (Utils.stringNotEmpty(currentEvent.eventName))
 					eventName.setText(currentEvent.eventName);
 			}
 			if(eventDate != null){
-				eventDate.setText(getHeaderTime(Long.parseLong(currentEvent.startTime)));
+				eventDate.setText(Utils.getHeaderTime(Long.parseLong(currentEvent.startTime)));
 			}
 			
 			if (currentDistance != null) {
 				currentDistance
-				.setText(roundDistance(currentEvent.currentDistance));
+				.setText(Utils.roundDistance(currentEvent.currentDistance));
 			}
 			
 			star.setChecked(currentEvent.isFavorite);
 
 			if (currentEvent.isExpanded) {
-//				listView.expandGroup(groupPosition);
 				arrow.setImageResource(R.drawable.ic_action_collapse);
 			} else {
-//				listView.collapseGroup(groupPosition);
 				arrow.setImageResource(R.drawable.ic_action_expand);
 			}
 			
@@ -308,7 +295,6 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 						// expanded
 						for (int i = 0; i < getGroupCount(); i++) {
 							listView.collapseGroup(i);
-							Log.v("collapse", "collapse");
 							eventList.get(i).isExpanded = false;
 						}
 						listView.expandGroup(groupPosition);
@@ -368,26 +354,6 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 		return false;
 	}
 
-	/**
-	 * if distance >=1000m, information in km, else in m
-	 * 
-	 * @param distance
-	 * @return string
-	 */
-	private String roundDistance(float distance) {
-		String distanceUnity = "m";
-		if (distance >= 1000) {
-			float dist = distance;
-			dist = distance / 1000;
-			dist = Math.round(dist * 10);
-			dist = dist / 10;
-			distance = dist;
-			distanceUnity = "km";
-		} else
-			distance = Math.round(distance);
-		return "ca. " + (int) distance + " " + distanceUnity;
-	}
-
 	public void openMap(double lat, double longi) {
 		String uri = String.format(Locale.ENGLISH,
 				"http://maps.google.com/maps?&daddr=%f,%f (%s)", lat, longi,
@@ -417,68 +383,6 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 	public void setTextExpanded(boolean isTextExpanded) {
 		this.isDescriptionExpanded = isTextExpanded;
 	}
-
-	/**
-	 * formats the date
-	 * 
-	 * @param time
-	 * @return
-	 */
-	private String formatTime(long time) {
-		String[] weekdays = context.getResources().getStringArray(
-				R.array.weekdays);
-		String[] months = context.getResources().getStringArray(R.array.months);
-
-		DateTime date = new DateTime(time);
-
-		String dayWeek = weekdays[date.getDayOfWeek() - 1];
-		String dayMonth = date.getDayOfMonth() + "";
-		String month = months[date.getMonthOfYear() - 1];
-		String hours = (date.getHourOfDay() < 10) ? "0" + date.getHourOfDay()
-				: date.getHourOfDay() + "";
-		String minutes = (date.getMinuteOfHour() < 10) ? "0"
-				+ date.getMinuteOfHour() : date.getMinuteOfHour() + "";
-
-				return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
-				+ minutes;
-
-	}
-	
-	private String getHeaderTime(long startTime){
-		DateTime eventTime = new DateTime(startTime);
-		DateTime now = new DateTime();
-		LocalDate today = now.toLocalDate();
-		LocalDate tomorrow = today.plusDays(1);
-		LocalDate afterTomorrow = today.plusDays(2);
-
-		DateTime startOfToday = today.toDateTimeAtStartOfDay(now.getZone());
-		DateTime startOfTomorrow = tomorrow.toDateTimeAtStartOfDay(now.getZone()).plusHours(8);
-		DateTime startOfDayAfterTomorrow = afterTomorrow.toDateTimeAtStartOfDay(now.getZone()).plusHours(8);
-		
-		String timeString;
-		if(startOfToday.getMillis() <= eventTime.getMillis() &&
-			eventTime.getMillis() < startOfTomorrow.getMillis()){
-			timeString = context.getString(R.string.list_header_date_today) + " - "+
-					context.getString(R.string.list_header_date_from) + " "+
-					((eventTime.getHourOfDay() < 10) ? "0"+eventTime.getHourOfDay() : eventTime.getHourOfDay()) + ":"+
-					((eventTime.getMinuteOfHour() < 10) ? "0"+eventTime.getMinuteOfHour() : eventTime.getMinuteOfHour()) + " "+
-					context.getString(R.string.list_detail_clock);
-		}
-		else if(startOfTomorrow.getMillis() <= eventTime.getMillis() &&
-				eventTime.getMillis() < startOfDayAfterTomorrow.getMillis()){
-			timeString = context.getString(R.string.list_header_date_tomorrow) + " - "+
-					context.getString(R.string.list_header_date_from) + " "+
-					((eventTime.getHourOfDay() < 10) ? "0"+eventTime.getHourOfDay() : eventTime.getHourOfDay()) + ":"+
-					((eventTime.getMinuteOfHour() < 10) ? "0"+eventTime.getMinuteOfHour() : eventTime.getMinuteOfHour()) + " "+
-					context.getString(R.string.list_detail_clock);
-			
-		}
-		else {
-			timeString = formatTime(eventTime.getMillis());
-		}
-		
-		return timeString;
-	}
 	
 	/**
 	 * sets the boolean on true if the eventList has no items
@@ -488,18 +392,4 @@ public class EventListAdapter extends BaseExpandableListAdapter {
 	public void setNoEvents(boolean noEvents) {
 		this.noEvents = noEvents;
 	}
-
-	/**
-	 * 
-	 * @param string
-	 * @return
-	 */
-	private boolean stringNotEmpty(String string) {
-		if (string.equals("") || string.equals("null") || string == null){
-			return false;
-		} else {
-			return true;
-		}
-	}
-	
 }

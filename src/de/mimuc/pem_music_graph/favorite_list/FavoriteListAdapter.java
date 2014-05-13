@@ -7,6 +7,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import de.mimuc.pem_music_graph.R;
+import de.mimuc.pem_music_graph.utils.Utils;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -134,7 +135,6 @@ public class FavoriteListAdapter extends BaseExpandableListAdapter {
 			nextEventDate.setVisibility(View.GONE);
 		}
 		
-
 		convertView.findViewById(R.id.favorite_delete).setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -149,74 +149,6 @@ public class FavoriteListAdapter extends BaseExpandableListAdapter {
 	@Override
 	public boolean isChildSelectable(int groupPosition, int childPosition) {
 		return false;
-	}
-
-	/**
-	 * if distance >=1000m, information in km, else in m
-	 * 
-	 * @param distance
-	 * @return string
-	 */
-	private String roundDistance(float distance) {
-		String distanceUnity = "m";
-		if (distance >= 1000) {
-			float dist = distance;
-			dist = distance / 1000;
-			dist = Math.round(dist * 10);
-			dist = dist / 10;
-			distance = dist;
-			distanceUnity = "km";
-		} else
-			distance = Math.round(distance);
-		return "ca. " + (int) distance + " " + distanceUnity;
-	}
-
-	public void openMap(double lat, double longi) {
-		String uri = String.format(Locale.ENGLISH,
-				"http://maps.google.com/maps?&daddr=%f,%f (%s)", lat, longi,
-				"Where the party is at");
-
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-		intent.setClassName("com.google.android.apps.maps",
-				"com.google.android.maps.MapsActivity");
-		try {
-			context.startActivity(intent);
-		} catch (ActivityNotFoundException ex) {
-			try {
-				Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW,
-						Uri.parse(uri));
-				context.startActivity(unrestrictedIntent);
-			} catch (ActivityNotFoundException innerEx) {
-				Toast.makeText(context, "Please install a maps application",
-						Toast.LENGTH_LONG).show();
-			}
-		}
-	}
-
-	/**
-	 * formats the date
-	 * 
-	 * @param time
-	 * @return
-	 */
-	private String formatTime(long time) {
-		String[] weekdays = context.getResources().getStringArray(
-				R.array.weekdays);
-		String[] months = context.getResources().getStringArray(R.array.months);
-
-		DateTime date = new DateTime(time);
-
-		String dayWeek = weekdays[date.getDayOfWeek() - 1];
-		String dayMonth = date.getDayOfMonth() + "";
-		String month = months[date.getMonthOfYear() - 1];
-		String hours = (date.getHourOfDay() < 10) ? "0" + date.getHourOfDay()
-				: date.getHourOfDay() + "";
-		String minutes = (date.getMinuteOfHour() < 10) ? "0"
-				+ date.getMinuteOfHour() : date.getMinuteOfHour() + "";
-
-				return dayWeek + ", " + dayMonth + ". " + month + ". " + hours + ":"
-				+ minutes;
-
 	}
 
 	private String getHeaderTime(long startTime){
@@ -249,23 +181,9 @@ public class FavoriteListAdapter extends BaseExpandableListAdapter {
 
 		}
 		else {
-			timeString = formatTime(eventTime.getMillis());
+			timeString = Utils.formatTime(eventTime.getMillis());
 		}
 
 		return timeString;
 	}
-
-	/**
-	 * 
-	 * @param string
-	 * @return
-	 */
-	private boolean stringNotEmpty(String string) {
-		if (string.equals("") || string.equals("null") || string == null){
-			return false;
-		} else {
-			return true;
-		}
-	}
-
 }

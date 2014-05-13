@@ -169,32 +169,32 @@ public class ListActivity extends FragmentActivity implements
 		}
 	};
 
-//	public void onRadioButtonClicked(View view) {
-//		// Is the button now checked?
-//		boolean checked = ((RadioButton) view).isChecked();
-//
-//		// Check which radio button was clicked
-//		switch (view.getId()) {
-//		case R.id.radio_ownStart:
-//			if (checked) {
-//				mUseAlternativeLocation = false;
-//				mEventController.useAlternativeLocation(false);
-//				mEventController.setLocation(mCurrentLocation);
-//				onEventControllerUpdate();
-//			}
-//			break;
-//		case R.id.radio_otherStart:
-//			if (checked) {
-//				mUseAlternativeLocation = true;
-//				if(mAlternativeLocation != null){
-//					mEventController.useAlternativeLocation(true);
-//					mEventController.setLocation(mAlternativeLocation);
-//					onEventControllerUpdate();
-//				}
-//			}
-//			break;
-//		}
-//	}
+	public void onRadioButtonClicked(View view) {
+		// Is the button now checked?
+		boolean checked = ((RadioButton) view).isChecked();
+
+		// Check which radio button was clicked
+		switch (view.getId()) {
+		case R.id.radio_ownStart:
+			if (checked) {
+				mUseAlternativeLocation = false;
+				mEventController.useAlternativeLocation(false);
+				mEventController.setLocation(mCurrentLocation);
+				onEventControllerUpdate();
+			}
+			break;
+		case R.id.radio_otherStart:
+			if (checked) {
+				mUseAlternativeLocation = true;
+				if(mAlternativeLocation != null){
+					mEventController.useAlternativeLocation(true);
+					mEventController.setLocation(mAlternativeLocation);
+					onEventControllerUpdate();
+				}
+			}
+			break;
+		}
+	}
 
 	@SuppressLint("NewApi")
 	@Override

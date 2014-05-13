@@ -70,7 +70,7 @@ import android.widget.RadioButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import de.mimuc.pem_music_graph.favorite_list.ExpandableFavoriteListAdapter;
+import de.mimuc.pem_music_graph.favorite_list.FavoriteListAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import android.widget.TextView.OnEditorActionListener;
@@ -95,12 +95,12 @@ import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
  * @author Christopher Gebhardt, Anna Kienle, Nicole Lipppner, Edina Smajic
  * 
  */
-public class MainActivity extends FragmentActivity implements
+public class ListActivity extends FragmentActivity implements
 	ConnectionCallbacks, OnConnectionFailedListener,
 	EventControllerListener, GenreGraphListener, FavoriteListListener,
 	UndoListener {
 
-	private static final String TAG = MainActivity.class.getSimpleName();
+	private static final String TAG = ListActivity.class.getSimpleName();
 
 	// sliding panel
 	private SlidingUpPanelLayout mSlideUpPanel;
@@ -512,7 +512,6 @@ public class MainActivity extends FragmentActivity implements
 		String favorites = JsonPreferences
 				.createJsonFromFavorites(mEventController.getFavorites());
 		mSharedPreferences.edit().putString("favorites", favorites).commit();
-		Log.v(TAG, "wrote "+json);
 
 		if (mGraphView != null)
 			mGraphView.onThreadPause();
@@ -564,7 +563,7 @@ public class MainActivity extends FragmentActivity implements
 				View v = mEventListView.getChildAt(0);
 				int top = (v == null) ? 0 : v.getTop();
 
-				mAdapter = new EventListAdapter(MainActivity.this, mEventController
+				mAdapter = new EventListAdapter(ListActivity.this, mEventController
 						.getEventList());
 				mEventListView.setAdapter(mAdapter);
 				if (mEventController.isNoEvents()) {
@@ -749,7 +748,7 @@ public class MainActivity extends FragmentActivity implements
 			favLocations.add(favLocation);
 		}
 
-		mListFavorites.setAdapter(new ExpandableFavoriteListAdapter(this,
+		mListFavorites.setAdapter(new FavoriteListAdapter(this,
 				favLocations, this));
 	}
 

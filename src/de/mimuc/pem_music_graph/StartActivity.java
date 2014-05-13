@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
+import android.widget.ProgressBar;
 
 /**
  * Start Activity of Museek. Show splashscreen and get a valid event list either from server or out of storage.
@@ -106,7 +107,7 @@ public class StartActivity extends Activity implements JsonConstants {
 	
 	private Handler maxWaitingTimeHandler = new Handler();
 	
-	private ProgressDialog progress;
+	private ProgressBar progress;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -125,12 +126,7 @@ public class StartActivity extends Activity implements JsonConstants {
 		}, MAX_WAITING_TIME);
 		
 		// show progress bar while loading
-		progress = new ProgressDialog(this);
-        progress.setTitle("Please Wait!!");
-        progress.setMessage("Wait!!");
-        progress.setCancelable(false);
-        progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progress.show();
+		progress = new ProgressBar(this);
 		
 		/*
 		 * the app can only work if we get a location. so the interesting part starts in onLocationChanged()
@@ -166,7 +162,7 @@ public class StartActivity extends Activity implements JsonConstants {
 	 * Starts the main activity. At this point a valid event list must be stored in internal storage
 	 */
 	private void startMuseek(){
-		Intent mainActivity = new Intent(getBaseContext(), MainActivity.class);
+		Intent mainActivity = new Intent(getBaseContext(), ListActivity.class);
 		mainActivity.putExtra("latitude", mLocation.getLatitude());
 		mainActivity.putExtra("longitude", mLocation.getLongitude());
 		startActivity(mainActivity);
@@ -214,9 +210,13 @@ public class StartActivity extends Activity implements JsonConstants {
 
 	private void registerLocationUpdates(){
 		if(mLocationManager != null){
-			mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
-			mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
-			mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, mLocationListener);
+//			mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+//			mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+//			mLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, mLocationListener);
+			
+			for (String provider : mLocationManager.getAllProviders()) { 
+				mLocationManager.requestLocationUpdates( provider, 500, 0, mLocationListener); 
+			}
 		}
 	}
 

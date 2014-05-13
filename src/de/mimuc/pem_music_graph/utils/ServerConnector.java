@@ -36,7 +36,7 @@ public class ServerConnector implements JsonConstants {
 	 * @param listener
 	 */
 	public static void getEventListFromServer(final ServerConnectorListener listener, Location location){
-		Log.d(TAG, "Try to retrieve locations from server...");
+		Log.d(TAG, "Try to retrieve events from server...");
 
 		// Json for the POST Request
 		HashMap<String, String> params = new HashMap<String, String>();
@@ -52,9 +52,6 @@ public class ServerConnector implements JsonConstants {
 					@Override
 					public void onResponse(JSONObject response) {
 						Log.i(TAG, "...success!");
-						
-						Log.i(TAG, response.toString());
-						
 						listener.requestFinished(response);
 					}
 				}, 
@@ -66,7 +63,7 @@ public class ServerConnector implements JsonConstants {
 							Log.e(TAG,"...could not retrieve events or a meaningfull error");
 						}
 						VolleyLog.e("Error: ", error.getMessage());
-						Log.w(TAG, "...could not retrieve locations!");
+						Log.w(TAG, "...could not retrieve events!");
 						listener.requestError();
 					}
 				});

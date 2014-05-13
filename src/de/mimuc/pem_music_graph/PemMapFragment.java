@@ -13,7 +13,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import de.mimuc.pem_music_graph.list.Event;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 
 import android.content.ActivityNotFoundException;
@@ -21,14 +20,17 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 public class PemMapFragment extends Fragment {
+	
+	private static final String TAG = PemMapFragment.class.getSimpleName();
 
-	private GoogleMap map;
+	private GoogleMap mMap;
 
 	LatLng mEventLocation = new LatLng(0, 0);
 
@@ -45,30 +47,34 @@ public class PemMapFragment extends Fragment {
 					getArguments().getDouble("lon"));
 		}
 
-		map = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.map))
+		mMap = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.map))
 				.getMap();
 
-		map.setOnMapClickListener(new OnMapClickListener() {
+		if(mMap != null){
+			mMap.setOnMapClickListener(new OnMapClickListener() {
+				
+				@Override
+				public void onMapClick(LatLng arg0) {
+					openMap(mEventLocation);
+				}
+			});
 			
-			@Override
-			public void onMapClick(LatLng arg0) {
-				openMap(mEventLocation);
-			}
-		});
-		
-		map.setOnMarkerClickListener(new OnMarkerClickListener() {
-			
-			public boolean onMarkerClick(Marker marker) {
-				openMap(mEventLocation);
-				return true;
-			}
-		});
-
-		UiSettings uiSettings = map.getUiSettings();
-		uiSettings.setAllGesturesEnabled(false);
-		uiSettings.setZoomControlsEnabled(false);
-
-		setMarker();
+			mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+				
+				public boolean onMarkerClick(Marker marker) {
+					openMap(mEventLocation);
+					return true;
+				}
+			});
+	
+			UiSettings uiSettings = mMap.getUiSettings();
+			uiSettings.setAllGesturesEnabled(false);
+			uiSettings.setZoomControlsEnabled(false);
+	
+			setMarker();
+		} else {
+			Log.e(TAG, "Could not find map fragment!");
+		}
 
 		return v;
 	}
@@ -85,11 +91,11 @@ public class PemMapFragment extends Fragment {
 	}
 
 	private void setMarker(){
-		if(map != null){
+		if(mMap != null){
 			if(mEventLocation != null){
-				Marker event = map.addMarker(new MarkerOptions().position(mEventLocation)
+				Marker event = mMap.addMarker(new MarkerOptions().position(mEventLocation)
 						.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker)));
-				map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+				mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
 						new LatLng(mEventLocation.latitude+0.0003, mEventLocation.longitude), ZOOM));
 			}
 		}

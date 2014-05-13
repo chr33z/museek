@@ -21,9 +21,9 @@ import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ExpandableFavoriteListAdapter extends BaseExpandableListAdapter {
+public class FavoriteListAdapter extends BaseExpandableListAdapter {
 
-	private static final String TAG = ExpandableFavoriteListAdapter.class.getName();
+	private static final String TAG = FavoriteListAdapter.class.getName();
 
 	/**
 	 * Saves the context
@@ -44,7 +44,7 @@ public class ExpandableFavoriteListAdapter extends BaseExpandableListAdapter {
 	 * @param context
 	 * @param eventList
 	 */
-	public ExpandableFavoriteListAdapter(Context context, List<FavoriteLocation> favoriteList, FavoriteListListener listener) {
+	public FavoriteListAdapter(Context context, List<FavoriteLocation> favoriteList, FavoriteListListener listener) {
 		this.listener = listener;
 		this.context = context;
 		this.favoriteList = favoriteList;

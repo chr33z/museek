@@ -22,6 +22,13 @@ public class ApiGuard {
 	    } else {
 	    	return false;
 	    }
-		
+	}
+	
+	public static boolean belowJellyBean(){
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+	        return true;
+	    } else {
+	    	return false;
+	    }
 	}
 }

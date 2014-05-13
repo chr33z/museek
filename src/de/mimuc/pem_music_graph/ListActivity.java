@@ -23,6 +23,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
@@ -144,7 +145,7 @@ public class ListActivity extends FragmentActivity implements
 	private boolean mAttachMap = false;
 	private Event mEventToAttach;
 	
-	private Fragment mMapFragment;
+	private PemMapFragment mMapFragment;
 
 	/**
 	 * Is called when location updates arrive
@@ -168,32 +169,32 @@ public class ListActivity extends FragmentActivity implements
 		}
 	};
 
-	public void onRadioButtonClicked(View view) {
-		// Is the button now checked?
-		boolean checked = ((RadioButton) view).isChecked();
-
-		// Check which radio button was clicked
-		switch (view.getId()) {
-		case R.id.radio_ownStart:
-			if (checked) {
-				mUseAlternativeLocation = false;
-				mEventController.useAlternativeLocation(false);
-				mEventController.setLocation(mCurrentLocation);
-				onEventControllerUpdate();
-			}
-			break;
-		case R.id.radio_otherStart:
-			if (checked) {
-				mUseAlternativeLocation = true;
-				if(mAlternativeLocation != null){
-					mEventController.useAlternativeLocation(true);
-					mEventController.setLocation(mAlternativeLocation);
-					onEventControllerUpdate();
-				}
-			}
-			break;
-		}
-	}
+//	public void onRadioButtonClicked(View view) {
+//		// Is the button now checked?
+//		boolean checked = ((RadioButton) view).isChecked();
+//
+//		// Check which radio button was clicked
+//		switch (view.getId()) {
+//		case R.id.radio_ownStart:
+//			if (checked) {
+//				mUseAlternativeLocation = false;
+//				mEventController.useAlternativeLocation(false);
+//				mEventController.setLocation(mCurrentLocation);
+//				onEventControllerUpdate();
+//			}
+//			break;
+//		case R.id.radio_otherStart:
+//			if (checked) {
+//				mUseAlternativeLocation = true;
+//				if(mAlternativeLocation != null){
+//					mEventController.useAlternativeLocation(true);
+//					mEventController.setLocation(mAlternativeLocation);
+//					onEventControllerUpdate();
+//				}
+//			}
+//			break;
+//		}
+//	}
 
 	@SuppressLint("NewApi")
 	@Override
@@ -211,8 +212,7 @@ public class ListActivity extends FragmentActivity implements
 		mListFavorites.setEmptyView(findViewById(R.id.favorite_empty));
 
 		// set undo listener to undo favorite remove
-		mUndoBarController = new UndoBarController(findViewById(R.id.undobar),
-				this);
+		mUndoBarController = new UndoBarController(findViewById(R.id.undobar), this);
 
 		// get location updates
 		mLocationClient = new LocationClient(this, this, this);
@@ -266,19 +266,16 @@ public class ListActivity extends FragmentActivity implements
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem,
 					int visibleItemCount, int totalItemCount) {
-				// TODO Auto-generated method stub
-				
 			}
 		});
 		
-		mAdapter = new EventListAdapter(this,
-				mEventController.getEventList());
+		mAdapter = new EventListAdapter(this, mEventController.getEventList());
 		mEventListView.setAdapter(mAdapter);
 
 		/*
 		 * Force redraw of list while scrolling to prevent glitches
 		 */
-		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+		if(ApiGuard.belowJellyBean()){
 			mEventListView.setOnScrollListener(new OnScrollListener() {
 
 				@Override
@@ -329,7 +326,7 @@ public class ListActivity extends FragmentActivity implements
 
 			@Override
 			public void onPanelExpanded(View panel) {
-				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+				if(ApiGuard.belowJellyBean()){
 					//					FrameLayout graphContainer = (FrameLayout) rootView.findViewById(R.id.graph_view_frame);
 					//					for (int i = 0; i < slideUpPanel.getChildCount(); i++) {
 					//						View child = slideUpPanel.getChildAt(i);
@@ -344,14 +341,10 @@ public class ListActivity extends FragmentActivity implements
 
 			@Override
 			public void onPanelCollapsed(View panel) {
-				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-				}
 			}
 
 			@Override
 			public void onPanelAnchored(View panel) {
-				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-				}
 			}
 		});
 
@@ -389,14 +382,14 @@ public class ListActivity extends FragmentActivity implements
 
 		mDrawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
 
-		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+		if(ApiGuard.belowJellyBean()){
 			mDrawerLayout.setScrimColor(getResources().getColor(android.R.color.transparent));
 		}
 
 		/*
 		 * Force redraw of drawer to prevent glitches
 		 */
-		if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+		if(ApiGuard.belowJellyBean()){
 			mDrawerLayout.setDrawerListener(new DrawerListener() {
 
 				@Override
@@ -685,24 +678,23 @@ public class ListActivity extends FragmentActivity implements
 				getSupportFragmentManager().beginTransaction().remove(fragment)
 				.commit();
 			
-			Bundle args = new Bundle();
-			args.putDouble("lat", Double.parseDouble(event.locationLatitude));
-			args.putDouble("lon", Double.parseDouble(event.locationLongitude));
-
+			if(mMapFragment == null){
+				Bundle args = new Bundle();
+				args.putDouble("lat", Double.parseDouble(event.locationLatitude));
+				args.putDouble("lon", Double.parseDouble(event.locationLongitude));
+				mMapFragment = new PemMapFragment();
+				mMapFragment.setArguments(args);
+			} else {
+				mMapFragment.setLocation(new LatLng(
+						Double.parseDouble(event.locationLatitude), 
+						Double.parseDouble(event.locationLongitude)));
+			}
+			
 			try {
-				PemMapFragment mapFragment = new PemMapFragment();
-				mapFragment.setArguments(args);
 				getSupportFragmentManager().beginTransaction()
-					.replace(R.id.map_container, mapFragment).commit();
+					.replace(R.id.map_container, mMapFragment).commit();
 			} catch(Exception e){
-				try {
-					PemMapFragment mapFragment = new PemMapFragment();
-					mapFragment.setArguments(args);
-					getSupportFragmentManager().beginTransaction()
-						.replace(R.id.map, mapFragment).commit();
-				} catch(Exception e1){
-					
-				}
+				Log.e(TAG, "attachMap | could not find layout id \"map_container\"!");
 			}
 			
 		}

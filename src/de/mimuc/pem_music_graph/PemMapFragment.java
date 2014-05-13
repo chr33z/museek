@@ -31,8 +31,10 @@ public class PemMapFragment extends Fragment {
 	private static final String TAG = PemMapFragment.class.getSimpleName();
 
 	private GoogleMap mMap;
+	
+	private Marker mMarker = null;
 
-	LatLng mEventLocation = new LatLng(0, 0);
+	private LatLng mEventLocation = new LatLng(0, 0);
 
 	private static final int ZOOM = 15;
 
@@ -93,7 +95,7 @@ public class PemMapFragment extends Fragment {
 	private void setMarker(){
 		if(mMap != null){
 			if(mEventLocation != null){
-				Marker event = mMap.addMarker(new MarkerOptions().position(mEventLocation)
+				mMarker = mMap.addMarker(new MarkerOptions().position(mEventLocation)
 						.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker)));
 				mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
 						new LatLng(mEventLocation.latitude+0.0003, mEventLocation.longitude), ZOOM));

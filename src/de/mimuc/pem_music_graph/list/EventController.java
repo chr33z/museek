@@ -39,17 +39,10 @@ public class EventController implements JsonConstants {
 	 */
 	private EventControllerListener callbackReceiver;
 
-	/**
-	 * The last known location
-	 */
-	private Location currentLocation;
-	
-	private boolean useOtherLocation = false;
-
-	/**
-	 * save last event list in shared preferences
-	 */
-	private JSONObject jsonForSharedPreferences;
+	/** the actual position of the device */
+	private Location mLocation;
+	/** true if an alternative location is used to load events */
+	private boolean mUseAlternativeLocation = false;
 
 	/**
 	 * save favorites in locationId-FavoriteLocation pairs
@@ -71,15 +64,11 @@ public class EventController implements JsonConstants {
 	 */
 	private boolean noEvents;
 
-	/**
-	 * 
-	 */
-	private DateTime dateTime;
+	/** alternative date to sort events to, chosen by user */
+	private DateTime mAlternativeDate;
+	/** true if alternative date to sort events to os used */
+	private boolean mUseAlternativeDate = false;
 	
-	private boolean useAlternativeTime = false;
-	
-	private DateTime alternativeTime = new DateTime();
-
 	private boolean showAll = true;
 
 	/**
@@ -121,10 +110,9 @@ public class EventController implements JsonConstants {
 			JSONObject json, Location location) {
 		this.callbackReceiver = callbackReceiver;
 		this.eventList = new ArrayList<Event>();
-		this.currentLocation = location;
+		this.mLocation = location;
 		this.favorites = new HashMap<String, FavoriteLocation>();
 		readJson(json);
-		setJsonForSharedPreferences(json);
 	}
 
 	/**
@@ -136,7 +124,7 @@ public class EventController implements JsonConstants {
 	public void updateEvents(Location location) {
 		Log.d(TAG, "Try to retrieve locations from server...");
 
-		currentLocation = location;
+		mLocation = location;
 
 		// Json fuer POST Request
 		HashMap<String, String> params = new HashMap<String, String>();
@@ -152,7 +140,6 @@ public class EventController implements JsonConstants {
 					public void onResponse(JSONObject response) {
 						// Log.d(TAG, response.toString());
 						readJson(response);
-						setJsonForSharedPreferences(response);
 						Log.i(TAG, "...success!");
 					}
 				}, new Response.ErrorListener() {
@@ -283,7 +270,7 @@ public class EventController implements JsonConstants {
 						locationLatitude, locationLongitude,
 						locationDescription, addressStreet, addressNumber,
 						addressCity, addressPostcode, locationWebsite,
-						currentLocation, price, currentDistance, isFavorite,
+						mLocation, price, currentDistance, isFavorite,
 						isExpanded);
 
 				eventList.add(newEvent);
@@ -389,7 +376,7 @@ public class EventController implements JsonConstants {
 			destination.setLatitude(Double.parseDouble(event.locationLatitude));
 			destination.setLongitude(Double.parseDouble(event.locationLongitude));
 			
-			distance = currentLocation.distanceTo(destination);
+			distance = mLocation.distanceTo(destination);
 			event.currentDistance = distance;
 		}
 		return eL;
@@ -504,7 +491,7 @@ public class EventController implements JsonConstants {
 		
 		eL = storeDistance(eL);
 		eL = sortGenre(eL);
-		if(useAlternativeTime){
+		if(mUseAlternativeDate){
 			eL = filterDate(eL);
 		}
 		Collections.sort(eL, new DateDistanceComparator());
@@ -528,30 +515,6 @@ public class EventController implements JsonConstants {
 	}
 
 	/**
-	 * getter for the string of json which is stored in shared preferenced
-	 * 
-	 * @return
-	 */
-	public String getJsonForSharedPreferences() {
-		return jsonForSharedPreferences.toString();
-	}
-
-	/**
-	 * sets the json for shared preferences
-	 * 
-	 * @param jsonForSharedPreferences
-	 */
-	public void setJsonForSharedPreferences(JSONObject jsonForSharedPreferences) {
-		DateTime now = new DateTime();
-		try {
-			jsonForSharedPreferences.put("saveDate", now.getMillis()+"");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		this.jsonForSharedPreferences = jsonForSharedPreferences;
-	}
-
-	/**
 	 * sets the map of favorites
 	 * 
 	 * @param favorites
@@ -566,7 +529,7 @@ public class EventController implements JsonConstants {
 	 * @param location
 	 */
 	public void setLocation(Location location) {
-		currentLocation = location;
+		mLocation = location;
 	}
 
 	/**
@@ -606,15 +569,15 @@ public class EventController implements JsonConstants {
 	}
 
 	public DateTime getDateTime() {
-		return dateTime;
+		return mAlternativeDate;
 	}
 	
-	public void useAlternativeTime(boolean useAlternativeTime){
-		this.useAlternativeTime = useAlternativeTime;
+	public void useAlternativeTime(boolean useAlternativeDate){
+		this.mUseAlternativeDate = useAlternativeDate;
 	}
 
 	public void setDateTime(DateTime dateTime) {
-		this.dateTime = dateTime;
+		this.mAlternativeDate = dateTime;
 	}
 
 	public boolean isShowAll() {
@@ -657,8 +620,8 @@ public class EventController implements JsonConstants {
 		}
 		return events;
 	}
-
-	public void useAlternativeLocation(boolean useOtherLocation) {
-		this.useOtherLocation = useOtherLocation;
+	
+	public void useAlternativeLocation(boolean useAlternativeLocation) {
+		this.mUseAlternativeLocation = useAlternativeLocation;
 	}
 }

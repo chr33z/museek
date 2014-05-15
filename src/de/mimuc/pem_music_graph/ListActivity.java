@@ -7,29 +7,29 @@ import java.util.Map.Entry;
 import java.util.List;
 
 import org.joda.time.DateTime;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -50,27 +50,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnFocusChangeListener;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
-import android.widget.RadioButton;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
-import android.widget.TextView.OnEditorActionListener;
 import de.mimuc.pem_music_graph.graph.GenreGraphConstants;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
@@ -100,6 +92,8 @@ public class ListActivity extends FragmentActivity implements
 	private static final String TAG = ListActivity.class.getSimpleName();
 	
 	private static final int REQUEST_ALTERNATIVE_LOCATION = 1337;
+	
+	private static final float CAMERA_ZOOM_MAX = 15f;
 
 	// sliding panel
 	private SlidingUpPanelLayout mSlideUpPanel;
@@ -110,12 +104,14 @@ public class ListActivity extends FragmentActivity implements
 	// list
 	private EventListAdapter mAdapter;
 	private ExpandableListView mEventListView;
-
 	private EventController mEventController;
-	private Location mCurrentLocation;
+	
+	/** the actual position of the device */
+	private Location mLocation;
+	/** an alternative location, chosen by the user */
 	private Location mAlternativeLocation;
-
-	private boolean mUseAlternativeLocation;
+	/** true if an alternative location is used to load events */
+	private boolean mUseAlternativeLocation = false;
 
 	// location services
 	private LocationClient mLocationClient;
@@ -129,11 +125,9 @@ public class ListActivity extends FragmentActivity implements
 	private Button mBtnOk;
 	private Button mBtnReset;
 	private DrawerLayout mDrawerLayout;
-	private ActionBarDrawerToggle mDrawerToggle;
+	private GoogleMap mDrawerMap;
+	private Marker mDrawerMapMarker;
 
-	int mScreenWidth= 0;
-	int mScreenHeight = 0;
-	
 	private SharedPreferences mSharedPreferences;
 
 	// needed for redraw operations
@@ -143,7 +137,7 @@ public class ListActivity extends FragmentActivity implements
 	private boolean mAttachMap = false;
 	private Event mEventToAttach;
 	
-	private PemMapFragment mMapFragment;
+	private PemMapFragment mMapFragment = new PemMapFragment();;
 
 	/**
 	 * Is called when location updates arrive
@@ -154,8 +148,8 @@ public class ListActivity extends FragmentActivity implements
 			if (location == null)
 				return;
 
-			if (mCurrentLocation != null
-					&& location.distanceTo(mCurrentLocation) < ApplicationController.MAX_UPDATE_DISTANCE) {
+			if (mLocation != null
+					&& location.distanceTo(mLocation) < ApplicationController.MAX_UPDATE_DISTANCE) {
 				Log.i(TAG, "Location not changed.");
 				return;
 			}
@@ -166,47 +160,18 @@ public class ListActivity extends FragmentActivity implements
 			mEventController.updateEvents(location);
 		}
 	};
-
-	public void onRadioButtonClicked(View view) {
-		startActivityForResult(new Intent(getBaseContext(), AlternativeLocationMap.class), REQUEST_ALTERNATIVE_LOCATION);
-		
-		// Is the button now checked?
-		boolean checked = ((RadioButton) view).isChecked();
-
-		// Check which radio button was clicked
-		switch (view.getId()) {
-		case R.id.radio_ownStart:
-			if (checked) {
-				mUseAlternativeLocation = false;
-				mEventController.useAlternativeLocation(false);
-				mEventController.setLocation(mCurrentLocation);
-				onEventControllerUpdate();
-			}
-			break;
-		case R.id.radio_otherStart:
-			if (checked) {
-				mUseAlternativeLocation = true;
-				if(mAlternativeLocation != null){
-					mEventController.useAlternativeLocation(true);
-					mEventController.setLocation(mAlternativeLocation);
-					onEventControllerUpdate();
-				}
-			}
-			break;
-		}
-	}
-
+	
 	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_combined_view);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setHomeButtonEnabled(true);
 
 		mRootView = findViewById(R.id.root);
 
 		mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-		mMapFragment = new PemMapFragment();
 
 		mListFavorites = (ExpandableListView) findViewById(R.id.listFavorites);
 		mListFavorites.setEmptyView(findViewById(R.id.favorite_empty));
@@ -234,12 +199,11 @@ public class ListActivity extends FragmentActivity implements
 			Location location = new Location("location");
 			location.setLatitude(latitude);
 			location.setLongitude(longitude);
-			mCurrentLocation = location;
+			mLocation = location;
 			mEventController = new EventController(this, eventList, location);
 		} else {
 			mEventController = new EventController(this);
 		}
-
 		mEventController.setGenreNode(mGraphView.getRootNode());
 
 		String favorites = mSharedPreferences.getString("favorites", "");
@@ -268,179 +232,38 @@ public class ListActivity extends FragmentActivity implements
 					int visibleItemCount, int totalItemCount) {
 			}
 		});
-		
 		mAdapter = new EventListAdapter(this, mEventController.getEventList());
 		mEventListView.setAdapter(mAdapter);
-
-		/*
-		 * Force redraw of list while scrolling to prevent glitches
-		 */
-		if(ApiGuard.belowJellyBean()){
-			mEventListView.setOnScrollListener(new OnScrollListener() {
-
-				@Override
-				public void onScrollStateChanged(AbsListView view, int scrollState) {
-				}
-
-				@Override
-				public void onScroll(AbsListView view, int firstVisibleItem,
-						int visibleItemCount, int totalItemCount) {
-
-					mEventListView.bringToFront();
-					mRootView.requestLayout();
-					mRootView.invalidate();
-				}
-			});
-		}
-
+		onEventControllerUpdate();
 		updateFavoriteList();
 
-		// initialize dimensions
-		mScreenWidth = ApplicationController.getScreenWidth();
-		mScreenHeight = ApplicationController.getScreenHeight();
-
-		// initialize slide panel
-		mSlideUpPanel = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-		mSlideUpPanel.setPanelHeight((int) (mScreenHeight * 0.5));
-		mSlideUpPanel.setDragView(findViewById(R.id.list_handle));
-		mSlideUpPanel.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
-		mSlideUpPanel.setPanelSlideListener(new PanelSlideListener() {
-
-			@Override
-			public void onPanelSlide(View panel, float slideOffset) {
-				/*
-				 * Force redraw of list while panel sliding to prevent glitches
-				 */
-				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
-					mListContainer.bringToFront();
-					mRootView.requestLayout();
-					mRootView.invalidate();
-				}
-
-				mEventListView.setPadding(
-						mEventListView.getPaddingLeft(), 
-						mEventListView.getPaddingTop(), 
-						mEventListView.getPaddingRight(), 
-						findViewById(R.id.list_container).getTop());
-			}
-
-			@Override
-			public void onPanelExpanded(View panel) {
-				if(ApiGuard.belowJellyBean()){
-					//					FrameLayout graphContainer = (FrameLayout) rootView.findViewById(R.id.graph_view_frame);
-					//					for (int i = 0; i < slideUpPanel.getChildCount(); i++) {
-					//						View child = slideUpPanel.getChildAt(i);
-					//						if(child.getId() == R.id.graph_view_frame){
-					//							slideUpPanel.removeViewAt(i);
-					//						}
-					//					}
-					//					slideUpPanel.addView(graphContainer);
-					//					graphView.onThreadResume();
-				}
-			}
-
-			@Override
-			public void onPanelCollapsed(View panel) {
-			}
-
-			@Override
-			public void onPanelAnchored(View panel) {
-			}
-		});
-
-		// get result from edit text
-		final RadioButton radioBtnOtherLocation = (RadioButton) findViewById(R.id.radio_otherStart);
-		final RadioButton radioBtnOwnLocation = (RadioButton) findViewById(R.id.radio_ownStart);
-		final EditText editText = (EditText) findViewById(R.id.auto_text);
-		editText.setOnEditorActionListener(new OnEditorActionListener() {
-			@Override
-			public boolean onEditorAction(TextView v, int actionId,
-					KeyEvent event) {
-				boolean handled = false;
-				if (actionId == EditorInfo.IME_ACTION_SEND) {
-					getLocationFromAddress(editText.getText().toString());
-					handled = true;
-				}
-				return handled;
-			}
-
-		});
-
-		editText.setOnFocusChangeListener(new OnFocusChangeListener() {
-			@Override
-			public void onFocusChange(View v, boolean hasFocus) {
-				if (hasFocus) {
-					radioBtnOtherLocation.setChecked(true);
-				}
-			}
-		});
+		initSlideUpPanel();
+		
+		initDrawer();
 
 		mDatePicker = (DatePicker) this.findViewById(R.id.datePicker1);
 		mBtnOk = (Button) this.findViewById(R.id.ok_button);
 		mBtnReset = (Button) this.findViewById(R.id.reset_button);
 		datePicker(null, null);
 
-		mDrawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
-
+		// Force redraw of list while scrolling to prevent glitches
 		if(ApiGuard.belowJellyBean()){
-			mDrawerLayout.setScrimColor(getResources().getColor(android.R.color.transparent));
-		}
-
-		/*
-		 * Force redraw of drawer to prevent glitches
-		 */
-		if(ApiGuard.belowJellyBean()){
-			mDrawerLayout.setDrawerListener(new DrawerListener() {
+			mEventListView.setOnScrollListener(new OnScrollListener() {
 
 				@Override
-				public void onDrawerStateChanged(int arg0) { }
+				public void onScrollStateChanged(AbsListView view, int scrollState) { }
 
 				@Override
-				public void onDrawerSlide(View arg0, float arg1) {
-					mDrawerLayout.bringToFront();
+				public void onScroll(AbsListView view, int firstVisibleItem,
+						int visibleItemCount, int totalItemCount) {
+					mEventListView.bringToFront();
 					mRootView.requestLayout();
 					mRootView.invalidate();
 				}
-
-				@Override
-				public void onDrawerOpened(View arg0) { }
-
-				@Override
-				public void onDrawerClosed(View arg0) { }
 			});
 		}
-
-		//		drawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
-		//				R.drawable.ic_drawer, R.string.drawer_open,
-		//				R.string.drawer_close) {
-		//
-		//			/** Called when a drawer has settled in a completely closed state. */
-		//			public void onDrawerClosed(View view) {
-		//				super.onDrawerClosed(view);
-		//				// getActionBar().setTitle(mTitle);
-		//				// invalidateOptionsMenu(); // creates call to
-		//				// onPrepareOptionsMenu()
-		//				graphView.onThreadResume();
-		//			}
-		//
-		//			/** Called when a drawer has settled in a completely open state. */
-		//			public void onDrawerOpened(View drawerView) {
-		//				super.onDrawerOpened(drawerView);
-		//				// getActionBar().setTitle(mDrawerTitle);
-		//				// invalidateOptionsMenu(); // creates call to
-		//				// onPrepareOptionsMenu()
-		//				graphView.onThreadPause();
-		//			}
-		//		};
-
-		// Set the drawer toggle as the DrawerListener
-		//		drawerLayout.setDrawerListener(drawerToggle);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
-		getActionBar().setHomeButtonEnabled(true);
 	}
 	
-	
-
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -467,7 +290,6 @@ public class ListActivity extends FragmentActivity implements
 
 		}
 	}
-
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -500,12 +322,7 @@ public class ListActivity extends FragmentActivity implements
 	@Override
 	protected void onStop() {
 		super.onStop();
-		String json = mEventController.getJsonForSharedPreferences();
-		mSharedPreferences.edit().putString("events", json).commit();
-		String favorites = JsonPreferences
-				.createJsonFromFavorites(mEventController.getFavorites());
-		mSharedPreferences.edit().putString("favorites", favorites).commit();
-
+		
 		if (mGraphView != null)
 			mGraphView.onThreadPause();
 
@@ -648,7 +465,8 @@ public class ListActivity extends FragmentActivity implements
 	public void onGraphUpdate(GenreNode node, int newHeight) {
 		mEventController.setGenreNode(node);
 		onEventControllerUpdate();
-		mSlideUpPanel.animatePanelHeight(mRootView.getMeasuredHeight(), (int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * mScreenWidth * 3));
+		mSlideUpPanel.animatePanelHeight(mRootView.getMeasuredHeight(), 
+				(int) (newHeight + GenreGraphConstants.SCREEN_MARGIN_FACTOR * ApplicationController.getScreenWidth() * 3));
 	}
 
 	@Override
@@ -905,98 +723,149 @@ public class ListActivity extends FragmentActivity implements
 		}
 	}
 	
-	private void getLocationFromAddress(String address){
-		address = address.replace(", ", " ");
-		address = address.replace(",", " ");
-		address = address.replace(" ", "+");
-		address = address.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
-        String url = "http://maps.googleapis.com/maps/api/geocode/json?address="+ address +"&sensor=true";
-		
-		// POST request
-		JsonObjectRequest req = new JsonObjectRequest(url, null, 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode == RESULT_OK && requestCode == REQUEST_ALTERNATIVE_LOCATION) {
+			if(data != null){
+				double latitude = data.getDoubleExtra(AlternativeLocationMap.LATITUDE, Double.MAX_VALUE);
+				double longitude = data.getDoubleExtra(AlternativeLocationMap.LONGITUDE, Double.MAX_VALUE);
 				
-				new Response.Listener<JSONObject>() {
-					@Override
-					public void onResponse(JSONObject response) {
-						Log.i(TAG, "...success!");
-						onAlternativeLocationsReceived(response);
-					}
-				}, new Response.ErrorListener() {
-					@Override
-					public void onErrorResponse(VolleyError error) {
-						if (error.getMessage() == null) {
-							Log.e(TAG,
-									"...could not retrieve locations");
-							return;
-						}
-						VolleyLog.e("Error: ", error.getMessage());
-						Log.w(TAG, "...could not retrieve locations!");
-					}
-				});
-		ApplicationController.getInstance().addToRequestQueue(req);
-	}
-	
-	private void onAlternativeLocationsReceived(JSONObject result){
-		Location closestLocation = null;
-		float closestDistance = Float.MAX_VALUE;
-		
-		try {
-			JSONArray results = result.getJSONArray("results");
-
-			for (int i = 0; i < results.length(); i++) {
-				JSONObject addressNode = results.getJSONObject(i);
-				
-				if(addressNode.has("geometry")){
-					JSONObject locationNode = addressNode
-							.getJSONObject("geometry").getJSONObject("location");
+				if(latitude != Double.MAX_VALUE && longitude != Double.MAX_VALUE){
+					mAlternativeLocation = new Location("alternativeLocation");
+					mAlternativeLocation.setLatitude(latitude);
+					mAlternativeLocation.setLongitude(longitude);
+					mAlternativeLocation.setTime(System.currentTimeMillis());
 					
-					Double lat = Double.parseDouble(locationNode.getString("lat"));
-					Double lng = Double.parseDouble(locationNode.getString("lng"));
+					// TODO implement reloading of eventlist and instantiation of eventcontroller
+					mUseAlternativeLocation = true;
+					updateDrawerMap();
 					
-					Location location = new Location("location");
-					location.setLatitude(lat);
-					location.setLongitude(lng);
-					
-					// look for address, closest to our location
-					
-					if (closestLocation == null) {
-						closestLocation = location;
-					} else {
-						float[] tmp = new float[1];
-						Location.distanceBetween(
-								mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(), 
-								location.getLatitude(), location.getLongitude(), 
-								tmp);
-						
-						float distance = tmp[0];
-						if (distance < closestDistance) {
-							closestLocation = location;
-							closestDistance = distance;
-						}
-					}
 				}
 			}
-		} catch (JSONException error) {
-			Log.e(TAG, error.getMessage());
+		}
+	}
+	
+	private void openAlternativeMap(){
+		double latitude;
+		double longitude;
+		if(!mUseAlternativeLocation){
+			latitude = mLocation.getLatitude();
+			longitude = mLocation.getLongitude();
+		} else {
+			latitude = mAlternativeLocation.getLatitude();
+			longitude = mAlternativeLocation.getLongitude();
+		}
+		Intent intent = new Intent(getBaseContext(), AlternativeLocationMap.class);
+		intent.putExtra(AlternativeLocationMap.LATITUDE, latitude);
+		intent.putExtra(AlternativeLocationMap.LATITUDE, longitude);
+		startActivityForResult(intent, REQUEST_ALTERNATIVE_LOCATION);
+	}
+	
+	private Marker updateDrawerMap(){
+		LatLng location;
+		if(!mUseAlternativeLocation){
+			location = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+		} else {
+			location = new LatLng(mAlternativeLocation.getLatitude(), mAlternativeLocation.getLongitude());
 		}
 		
-		if(closestLocation != null){
-			mAlternativeLocation = closestLocation;
-			mEventController.setLocation(mAlternativeLocation);
-			mUseAlternativeLocation = true;
-			mEventController.useAlternativeLocation(true);
-			onEventControllerUpdate();
-			
-			mDrawerLayout.closeDrawer(Gravity.LEFT);
-			InputMethodManager inputManager = (InputMethodManager)
-                    getSystemService(Context.INPUT_METHOD_SERVICE); 
-
-			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
-                       InputMethodManager.HIDE_NOT_ALWAYS);
-			
-			Toast.makeText(this, "Neue Adresse gefunden.", Toast.LENGTH_LONG).show();
+		if(mDrawerMapMarker == null){
+			mDrawerMapMarker = mDrawerMap.addMarker(new MarkerOptions()
+			.position(location)
+			.icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker)));
 		} else {
-			Toast.makeText(this, "Es konnte keine Addresse gefunden werden", Toast.LENGTH_LONG).show();
+			mDrawerMapMarker.setPosition(location);
 		}
+		mDrawerMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, CAMERA_ZOOM_MAX));
+		
+		return mDrawerMapMarker;
+	}
+	
+	public void initDrawer(){
+		mDrawerLayout = (DrawerLayout) this.findViewById(R.id.drawer_layout);
+
+		if(ApiGuard.belowJellyBean()){
+			mDrawerLayout.setScrimColor(getResources().getColor(android.R.color.transparent));
+		}
+
+		//Force redraw of drawer to prevent glitches
+		if(ApiGuard.belowJellyBean()){
+			mDrawerLayout.setDrawerListener(new DrawerListener() {
+
+				@Override
+				public void onDrawerStateChanged(int arg0) { }
+
+				@Override
+				public void onDrawerSlide(View arg0, float arg1) {
+					mDrawerLayout.bringToFront();
+					mRootView.requestLayout();
+					mRootView.invalidate();
+				}
+
+				@Override
+				public void onDrawerOpened(View arg0) { }
+
+				@Override
+				public void onDrawerClosed(View arg0) { }
+			});
+		}
+		
+		// init map
+		mDrawerMap = ((SupportMapFragment) getSupportFragmentManager()
+				.findFragmentById(R.id.map_alternative_location)).getMap();
+		mDrawerMap.getUiSettings().setCompassEnabled(false);
+		mDrawerMap.getUiSettings().setZoomControlsEnabled(false);
+		mDrawerMap.getUiSettings().setAllGesturesEnabled(false);
+		mDrawerMap.setOnMapClickListener(new OnMapClickListener() {
+			@Override
+			public void onMapClick(LatLng arg0) {
+				openAlternativeMap();
+			}
+		});
+		mDrawerMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+			
+			@Override
+			public boolean onMarkerClick(Marker arg0) {
+				openAlternativeMap();
+				return false;
+			}
+		});
+		updateDrawerMap();
+	}
+	
+	public void initSlideUpPanel(){
+		mSlideUpPanel = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+		mSlideUpPanel.setPanelHeight((int) (ApplicationController.getScreenHeight() * 0.5));
+		mSlideUpPanel.setDragView(findViewById(R.id.list_handle));
+		mSlideUpPanel.setCoveredFadeColor(getResources().getColor(android.R.color.transparent));
+		mSlideUpPanel.setPanelSlideListener(new PanelSlideListener() {
+
+			@Override
+			public void onPanelSlide(View panel, float slideOffset) {
+				/*
+				 * Force redraw of list while panel sliding to prevent glitches
+				 */
+				if(ApiGuard.apiBelow(Build.VERSION_CODES.JELLY_BEAN)){
+					mListContainer.bringToFront();
+					mRootView.requestLayout();
+					mRootView.invalidate();
+				}
+
+				mEventListView.setPadding(
+						mEventListView.getPaddingLeft(), 
+						mEventListView.getPaddingTop(), 
+						mEventListView.getPaddingRight(), 
+						findViewById(R.id.list_container).getTop());
+			}
+
+			@Override
+			public void onPanelExpanded(View panel) { }
+
+			@Override
+			public void onPanelCollapsed(View panel) { }
+
+			@Override
+			public void onPanelAnchored(View panel) { }
+		});
 	}
 }

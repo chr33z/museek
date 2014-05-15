@@ -27,13 +27,6 @@
                     android:layout_height="match_parent" >
                 </FrameLayout>
 
-                <!--
-                    <de.mimuc.pem_music_graph.graph.MusicGraphView
-                    android:id="@+id/graph_view_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-                -->
-
                 <RelativeLayout
                     android:id="@+id/list_container"
                     android:layout_width="match_parent"
@@ -93,48 +86,11 @@
 
             <View style="@style/Divider" />
 
-            <RadioGroup
+            <fragment
+                android:id="@+id/map_alternative_location"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:choiceMode="singleChoice"
-                android:divider="@android:color/transparent"
-                android:dividerHeight="0dp"
-                android:orientation="vertical" >
-
-                <RadioButton
-                    android:id="@+id/radio_ownStart"
-                    style="@style/RadioButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:layout_marginTop="5dp"
-                    android:checked="true"
-                    android:onClick="onRadioButtonClicked"
-                    android:text="@string/stand"
-                    android:textSize="20sp" />
-
-                <RadioButton
-                    android:id="@+id/radio_otherStart"
-                    style="@style/RadioButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:onClick="onRadioButtonClicked"
-                    android:text="@string/andererStand"
-                    android:textSize="20sp" />
-            </RadioGroup>
-
-            <EditText
-                android:id="@+id/auto_text"
-                android:layout_width="191dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="47dp"
-                android:layout_marginTop="-10dp"
-                android:hint="@string/text_hint"
-                android:imeActionLabel="@string/start"
-                android:imeOptions="actionSend"
-                android:inputType="text"
-                android:textSize="20sp" />
+                android:layout_height="120dp" />
 
             <TextView
                 android:layout_width="fill_parent"

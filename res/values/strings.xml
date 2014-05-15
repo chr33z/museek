@@ -71,6 +71,9 @@
     <string name="address_not_found">Keine Addresse gefunden :(</string>
     <string name="drawer_open">Drawer offen</string>
     <string name="drawer_close">Drawer geschlossen</string>
+    
     <string name="title_activity_alternative_location_map">AlternativeLocationMap</string>
+    
+    <string name="toast_alternative_location_missing_marker">Setze einen Marker auf die Karte, um die Startposition zu übernehmen</string>
 
 </resources>

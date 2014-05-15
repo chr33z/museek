@@ -1,6 +1,11 @@
 package de.mimuc.pem_music_graph.utils;
 
-public interface JsonConstants {
+public interface Constants {
+	
+	public static final String LATITUDE = "latitude";
+	public static final String LONGITUDE = "longitude";
+
+	public static final String TAG_FAVORITES = "favorites";
 
 	public static final String TAG_LOCATIONS 			= "locations";
 

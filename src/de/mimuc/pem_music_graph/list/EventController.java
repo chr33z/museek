@@ -23,9 +23,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
 import de.mimuc.pem_music_graph.graph.GenreNode;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
-import de.mimuc.pem_music_graph.utils.JsonConstants;
+import de.mimuc.pem_music_graph.utils.Constants;
 
-public class EventController implements JsonConstants {
+public class EventController implements Constants {
 
 	private static final String TAG = EventController.class.getSimpleName();
 
@@ -232,7 +232,7 @@ public class EventController implements JsonConstants {
 				locationName = event.getString(TAG_LOCATION_NAME);
 				locationLatitude = event.getString(TAG_LOCATION_LATITUDE);
 				locationLongitude = event
-						.getString(JsonConstants.TAG_LOCATION_LONGITUDE);
+						.getString(Constants.TAG_LOCATION_LONGITUDE);
 				locationDescription = event.getString(TAG_LOCATION_DESCRIPTION);
 				addressStreet = event.getString(TAG_LOCATION_ADDRESS_STREET);
 				addressNumber = event.getString(TAG_LOCATION_ADDRESS_NUMBER);
@@ -521,6 +521,7 @@ public class EventController implements JsonConstants {
 	 */
 	public void setFavorites(Map<String, FavoriteLocation> favorites) {
 		this.favorites = favorites;
+		updateFavorites();
 	}
 
 	/**

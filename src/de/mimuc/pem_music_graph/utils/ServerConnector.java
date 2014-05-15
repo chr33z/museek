@@ -18,7 +18,7 @@ import android.util.Log;
  * @author Christopher Gebhardt
  *
  */
-public class ServerConnector implements JsonConstants {
+public class ServerConnector implements Constants {
 
 	private static final String TAG = ServerConnector.class.getSimpleName();
 

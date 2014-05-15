@@ -14,7 +14,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import de.mimuc.pem_music_graph.utils.ApplicationController;
 import de.mimuc.pem_music_graph.utils.FileUtils;
-import de.mimuc.pem_music_graph.utils.JsonConstants;
+import de.mimuc.pem_music_graph.utils.Constants;
 import de.mimuc.pem_music_graph.utils.ServerConnector;
 import de.mimuc.pem_music_graph.utils.ServerConnector.ServerConnectorListener;
 import android.app.Activity;
@@ -36,7 +36,7 @@ import android.widget.ProgressBar;
  * @author Christopher Gebhardt
  *
  */
-public class StartActivity extends Activity implements JsonConstants {
+public class StartActivity extends Activity implements Constants {
 
 	private static final String TAG = StartActivity.class.getSimpleName();
 
@@ -162,9 +162,10 @@ public class StartActivity extends Activity implements JsonConstants {
 	 * Starts the main activity. At this point a valid event list must be stored in internal storage
 	 */
 	private void startMuseek(){
+		Log.i(TAG, "Start ListActivity with Location "+mLocation.toString());
 		Intent mainActivity = new Intent(getBaseContext(), ListActivity.class);
-		mainActivity.putExtra("latitude", mLocation.getLatitude());
-		mainActivity.putExtra("longitude", mLocation.getLongitude());
+		mainActivity.putExtra(Constants.LATITUDE, mLocation.getLatitude());
+		mainActivity.putExtra(Constants.LONGITUDE, mLocation.getLongitude());
 		startActivity(mainActivity);
 	}
 	
@@ -181,7 +182,7 @@ public class StartActivity extends Activity implements JsonConstants {
 		 * check for distance as well
 		 */
 		try {
-			String tmp = eventList.getString("timestamp");
+			String tmp = eventList.getString("result_time");
 			long timeStamp = Long.parseLong(tmp);
 			
 			if(new DateTime().minus(MAX_EVENT_AGE).getMillis() < timeStamp){

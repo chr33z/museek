@@ -9,6 +9,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import de.mimuc.pem_music_graph.utils.Constants;
+
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -32,9 +34,6 @@ public class AlternativeLocationMap extends FragmentActivity {
 
 	private static final float CAMERA_ZOOM_MAX = 12f;
 	
-	public static final String LATITUDE = "latitude";
-	public static final String LONGITUDE = "longitude";
-	
 	private GoogleMap mMap;
 
 	private Marker mMarker = null;
@@ -55,8 +54,8 @@ public class AlternativeLocationMap extends FragmentActivity {
 			case R.id.button_confirm:
 				if(mMarker != null){
 					Intent result = new Intent();
-					result.putExtra(LATITUDE, mMarker.getPosition().latitude);
-					result.putExtra(LONGITUDE, mMarker.getPosition().longitude);
+					result.putExtra(Constants.LATITUDE, mMarker.getPosition().latitude);
+					result.putExtra(Constants.LONGITUDE, mMarker.getPosition().longitude);
 					setResult(RESULT_OK, result);
 					finish();
 				} else {

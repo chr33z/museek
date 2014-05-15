@@ -1,5 +1,6 @@
 package de.mimuc.pem_music_graph;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -63,6 +64,7 @@ import android.widget.RelativeLayout;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListAdapter;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteListListener;
 import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
+import de.mimuc.pem_music_graph.favorite_list.FavoritesConverter;
 import de.mimuc.pem_music_graph.graph.GenreGraphConstants;
 import de.mimuc.pem_music_graph.graph.GenreGraphListener;
 import de.mimuc.pem_music_graph.graph.GenreNode;
@@ -73,8 +75,8 @@ import de.mimuc.pem_music_graph.list.EventListAdapter;
 import de.mimuc.pem_music_graph.list.EventController;
 import de.mimuc.pem_music_graph.utils.ApiGuard;
 import de.mimuc.pem_music_graph.utils.ApplicationController;
+import de.mimuc.pem_music_graph.utils.Constants;
 import de.mimuc.pem_music_graph.utils.FileUtils;
-import de.mimuc.pem_music_graph.utils.JsonPreferences;
 import de.mimuc.pem_music_graph.utils.UndoBarController;
 import de.mimuc.pem_music_graph.utils.UndoBarController.UndoListener;
 
@@ -193,8 +195,8 @@ public class ListActivity extends FragmentActivity implements
 		if (eventList != null) {
 
 			// initialize controller
-			double latitude = getIntent().getDoubleExtra("latitude", 0.0);
-			double longitude = getIntent().getDoubleExtra("longitude", 0.0);
+			double latitude = getIntent().getDoubleExtra(Constants.LATITUDE, 0.0);
+			double longitude = getIntent().getDoubleExtra(Constants.LATITUDE, 0.0);
 			
 			Location location = new Location("location");
 			location.setLatitude(latitude);
@@ -206,11 +208,11 @@ public class ListActivity extends FragmentActivity implements
 		}
 		mEventController.setGenreNode(mGraphView.getRootNode());
 
-		String favorites = mSharedPreferences.getString("favorites", "");
-		if (!(favorites.isEmpty())) {
-			mEventController.setFavorites(JsonPreferences
-					.createFavoritesFromJson(favorites));
-			mEventController.updateFavorites();
+		// read favorites from file if there are any
+		JSONObject favoriteList = FileUtils.readFavoriteListFromStorage(this);
+		if (favoriteList != null) {
+			mEventController.setFavorites(FavoritesConverter
+					.createFavoritesFromJson(favoriteList));
 			updateFavoriteList();
 		}
 
@@ -235,16 +237,9 @@ public class ListActivity extends FragmentActivity implements
 		mAdapter = new EventListAdapter(this, mEventController.getEventList());
 		mEventListView.setAdapter(mAdapter);
 		onEventControllerUpdate();
-		updateFavoriteList();
 
 		initSlideUpPanel();
-		
 		initDrawer();
-
-		mDatePicker = (DatePicker) this.findViewById(R.id.datePicker1);
-		mBtnOk = (Button) this.findViewById(R.id.ok_button);
-		mBtnReset = (Button) this.findViewById(R.id.reset_button);
-		datePicker(null, null);
 
 		// Force redraw of list while scrolling to prevent glitches
 		if(ApiGuard.belowJellyBean()){
@@ -322,6 +317,13 @@ public class ListActivity extends FragmentActivity implements
 	@Override
 	protected void onStop() {
 		super.onStop();
+		
+		try {
+			FileUtils.writeFavoriteListToStorage(FavoritesConverter
+					.createJsonFromFavorites(mEventController.getFavorites()), this);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		if (mGraphView != null)
 			mGraphView.onThreadPause();
@@ -727,8 +729,8 @@ public class ListActivity extends FragmentActivity implements
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == RESULT_OK && requestCode == REQUEST_ALTERNATIVE_LOCATION) {
 			if(data != null){
-				double latitude = data.getDoubleExtra(AlternativeLocationMap.LATITUDE, Double.MAX_VALUE);
-				double longitude = data.getDoubleExtra(AlternativeLocationMap.LONGITUDE, Double.MAX_VALUE);
+				double latitude = data.getDoubleExtra(Constants.LATITUDE, Double.MAX_VALUE);
+				double longitude = data.getDoubleExtra(Constants.LONGITUDE, Double.MAX_VALUE);
 				
 				if(latitude != Double.MAX_VALUE && longitude != Double.MAX_VALUE){
 					mAlternativeLocation = new Location("alternativeLocation");
@@ -756,8 +758,8 @@ public class ListActivity extends FragmentActivity implements
 			longitude = mAlternativeLocation.getLongitude();
 		}
 		Intent intent = new Intent(getBaseContext(), AlternativeLocationMap.class);
-		intent.putExtra(AlternativeLocationMap.LATITUDE, latitude);
-		intent.putExtra(AlternativeLocationMap.LATITUDE, longitude);
+		intent.putExtra(Constants.LATITUDE, latitude);
+		intent.putExtra(Constants.LATITUDE, longitude);
 		startActivityForResult(intent, REQUEST_ALTERNATIVE_LOCATION);
 	}
 	
@@ -831,6 +833,11 @@ public class ListActivity extends FragmentActivity implements
 			}
 		});
 		updateDrawerMap();
+		
+		mDatePicker = (DatePicker) this.findViewById(R.id.datePicker1);
+		mBtnOk = (Button) this.findViewById(R.id.ok_button);
+		mBtnReset = (Button) this.findViewById(R.id.reset_button);
+		datePicker(null, null);
 	}
 	
 	public void initSlideUpPanel(){

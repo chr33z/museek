@@ -1,4 +1,4 @@
-package de.mimuc.pem_music_graph.utils;
+package de.mimuc.pem_music_graph.favorite_list;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,16 +8,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
+import de.mimuc.pem_music_graph.utils.Constants;
 
-import de.mimuc.pem_music_graph.favorite_list.FavoriteLocation;
+public class FavoritesConverter implements Constants{
 
-public class JsonPreferences implements JsonConstants{
-
-	public static String createJsonFromFavorites(Map<String, FavoriteLocation> favorites) {
+	public static JSONObject createJsonFromFavorites(Map<String, FavoriteLocation> favorites) {
+		JSONObject json = new JSONObject();
 		JSONArray array = new JSONArray();
-		for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
-			try {
+		try {
+			for (Map.Entry<String, FavoriteLocation> entry : favorites.entrySet()) {
 				DateTime now = new DateTime();
 				
 				JSONObject object = new JSONObject();
@@ -39,17 +38,19 @@ public class JsonPreferences implements JsonConstants{
 						entry.getValue().addressPostcode);
 				object.put(TAG_LOCATION_WEBSITE,
 						entry.getValue().locationWebsite);
-				array.put(object);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 
+				array.put(object);
+			}
+			
+			json.put(Constants.TAG_FAVORITES, array);
+		} catch (JSONException e) {
+			e.printStackTrace();
 		}
-		return array.toString();
+		
+		return json;
 	}
 	
-	public static Map<String, FavoriteLocation> createFavoritesFromJson(String json) {
+	public static Map<String, FavoriteLocation> createFavoritesFromJson(JSONObject json) {
 		Map<String, FavoriteLocation> favorites = new HashMap<String, FavoriteLocation>();
 		String locationID = null;
 		String locationName = null;
@@ -62,7 +63,7 @@ public class JsonPreferences implements JsonConstants{
 		String addressPostcode = null;
 		String locationWebsite = null;
 		try {
-			JSONArray array = new JSONArray(json);
+			JSONArray array = json.getJSONArray(Constants.TAG_FAVORITES);
 
 			for (int i = 0; i < array.length(); i++) {
 				JSONObject favorite = array.getJSONObject(i);
@@ -70,7 +71,7 @@ public class JsonPreferences implements JsonConstants{
 				locationName = favorite.getString(TAG_LOCATION_NAME);
 				locationLatitude = favorite.getString(TAG_LOCATION_LATITUDE);
 				locationLongitude = favorite
-						.getString(JsonConstants.TAG_LOCATION_LONGITUDE);
+						.getString(Constants.TAG_LOCATION_LONGITUDE);
 				locationDescription = favorite
 						.getString(TAG_LOCATION_DESCRIPTION);
 				addressStreet = favorite.getString(TAG_LOCATION_ADDRESS_STREET);

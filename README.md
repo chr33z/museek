@@ -10,3 +10,5 @@ Anna Kienle, Christopher Gebhardt, Edina Smajic und Nicole Lippner
 ## Interaktiver Genre Browser für Musikveranstaltungen
 
 Ziel war die Entwicklung einer App zur kreativen und innovativen Suche nach Veranstaltungen mit einem Nodesystem aus Musikgenres und Untergenres. Die Suche war intutitiv und ein Benutzer konnte sich bis zu seinem gewünschten Untergenre klicken und Veranstaltungen in der Stadt suchen.
+
+Das Projekt war als Konzept gedacht und wurde nicht im Playstore veröffentlicht.
